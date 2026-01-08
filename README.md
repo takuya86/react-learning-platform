@@ -1,73 +1,103 @@
-# React + TypeScript + Vite
+# React Learning Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/TypeScript学習のための実践プロジェクトです。
 
-Currently, two official plugins are available:
+## 必要環境
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Node.js 20.x** (`.nvmrc` で指定)
+- npm
+- Docker (オプション)
 
-## React Compiler
+## セットアップ
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Node バージョンの設定
 
-## Expanding the ESLint configuration
+```bash
+# nvm を使用している場合
+nvm use
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# nodenv を使用している場合
+nodenv local 20
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 依存関係のインストール
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci
 ```
+
+## 開発
+
+### ローカル開発（npm）
+
+```bash
+# 開発サーバー起動
+npm run dev
+
+# ブラウザで http://localhost:5173 を開く
+```
+
+### Docker を使用した開発
+
+```bash
+# コンテナをビルドして起動
+docker compose up --build
+
+# ブラウザで http://localhost:5173 を開く
+
+# 停止
+docker compose down
+
+# バックグラウンドで起動する場合
+docker compose up -d --build
+
+# ログを確認
+docker compose logs -f web
+```
+
+Docker環境ではホットリロードが有効です。ソースコードの変更は自動的に反映されます。
+
+## 利用可能なコマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `npm run dev` | 開発サーバー起動 |
+| `npm run build` | プロダクションビルド |
+| `npm run test` | テスト実行（watch モード） |
+| `npm run test:run` | テスト実行（1回のみ） |
+| `npm run lint` | ESLint 実行 |
+| `npm run format` | Prettier でフォーマット |
+| `npm run preview` | ビルド結果をプレビュー |
+
+## プロジェクト構成
+
+```
+src/
+├── app/           # アプリケーション設定、ルーティング
+├── components/ui/ # 共通UIコンポーネント
+├── data/          # 静的データ
+├── domain/types/  # 型定義
+├── features/      # 機能別モジュール
+│   ├── lessons/
+│   ├── notes/
+│   ├── progress/
+│   └── quiz/
+├── hooks/         # カスタムフック
+├── pages/         # ページコンポーネント
+└── tests/         # テストファイル
+```
+
+## CI/CD
+
+GitHub Actions で以下を自動実行:
+- テスト (`npm run test:run`)
+- ビルド (`npm run build`)
+
+## 技術スタック
+
+- **フレームワーク**: React 19 + TypeScript
+- **ビルドツール**: Vite
+- **テスト**: Vitest + Testing Library
+- **フォーム**: React Hook Form + Zod
+- **ルーティング**: React Router
+- **スタイリング**: CSS Modules
