@@ -1,136 +1,158 @@
 # React Learning Platform
 
-React/TypeScript学習のための実践プロジェクトです。
+React/TypeScript の基礎から実践までを学べるインタラクティブな学習アプリケーション。
 
-## 必要環境
+## Demo
 
-- **Node.js 20.x** (`.nvmrc` で指定)
-- npm
-- Docker (オプション)
+**公開URL**: <YOUR_VERCEL_URL>
 
-## セットアップ
+## Features
 
-### Node バージョンの設定
+- **レッスン**: React の基礎概念をステップバイステップで学習
+- **クイズ**: 理解度を確認するインタラクティブなクイズ機能
+- **タイマー**: クイズに制限時間を設定し、実践的な緊張感を演出
+- **ノート**: 学習メモを記録・管理
+- **進捗管理**: 完了レッスン・クイズの進捗をトラッキング
+- **レジューム**: 中断したクイズを途中から再開可能
+- **苦手分野**: 不正解問題を自動記録し、弱点を可視化
+
+## Tech Stack
+
+| カテゴリ | 技術 |
+|---------|------|
+| フレームワーク | React 19 + TypeScript |
+| ビルドツール | Vite |
+| ルーティング | React Router |
+| フォーム | React Hook Form + Zod |
+| テスト | Vitest + Testing Library |
+| スタイリング | CSS Modules |
+| CI/CD | GitHub Actions + Vercel |
+| コンテナ | Docker |
+
+## Getting Started
 
 ```bash
-# nvm を使用している場合
+# リポジトリをクローン
+git clone https://github.com/takuya86/react-learning-platform.git
+cd react-learning-platform
+
+# Node.js バージョン設定（nvm使用時）
 nvm use
 
-# nodenv を使用している場合
-nodenv local 20
-```
-
-### 依存関係のインストール
-
-```bash
+# 依存関係インストール
 npm ci
-```
 
-## 開発
-
-### ローカル開発（npm）
-
-```bash
 # 開発サーバー起動
 npm run dev
-
-# ブラウザで http://localhost:5173 を開く
+# → http://localhost:5173
 ```
 
-### Docker を使用した開発
+## Tests & Quality
 
 ```bash
-# コンテナをビルドして起動
+npm run lint          # ESLint
+npm run typecheck     # TypeScript 型チェック
+npm run test:run      # テスト実行（単発）
+npm run test          # テスト実行（watchモード）
+npm run test:coverage # カバレッジ付きテスト
+npm run build         # プロダクションビルド
+```
+
+## Docker Development
+
+```bash
+# コンテナ起動（ホットリロード有効）
 docker compose up --build
 
-# ブラウザで http://localhost:5173 を開く
+# バックグラウンド起動
+docker compose up -d --build
 
 # 停止
 docker compose down
-
-# バックグラウンドで起動する場合
-docker compose up -d --build
-
-# ログを確認
-docker compose logs -f web
 ```
 
-Docker環境ではホットリロードが有効です。ソースコードの変更は自動的に反映されます。
+## CI
 
-## 利用可能なコマンド
+GitHub Actions で以下を自動実行（push / PR時）:
 
-| コマンド | 説明 |
-|---------|------|
-| `npm run dev` | 開発サーバー起動 |
-| `npm run build` | プロダクションビルド |
-| `npm run test` | テスト実行（watch モード） |
-| `npm run test:run` | テスト実行（1回のみ） |
-| `npm run lint` | ESLint 実行 |
-| `npm run format` | Prettier でフォーマット |
-| `npm run preview` | ビルド結果をプレビュー |
+1. **Lint** - コード品質チェック
+2. **Type check** - 型安全性の検証
+3. **Test + Coverage** - テスト実行とカバレッジ計測
+4. **Build** - ビルド成功の確認
 
-## プロジェクト構成
+## Deployment
 
-```
-src/
-├── app/           # アプリケーション設定、ルーティング
-├── components/ui/ # 共通UIコンポーネント
-├── data/          # 静的データ
-├── domain/types/  # 型定義
-├── features/      # 機能別モジュール
-│   ├── lessons/
-│   ├── notes/
-│   ├── progress/
-│   └── quiz/
-├── hooks/         # カスタムフック
-├── pages/         # ページコンポーネント
-└── tests/         # テストファイル
-```
-
-## CI/CD
-
-GitHub Actions で以下を自動実行:
-- Lint (`npm run lint`)
-- 型チェック (`npm run typecheck`)
-- テスト + カバレッジ (`npm run test:coverage`)
-- ビルド (`npm run build`)
-
-## デプロイ（Vercel）
-
-### 公開手順
+### Vercel へのデプロイ手順
 
 1. [Vercel](https://vercel.com) にログイン
 2. 「Add New...」→「Project」をクリック
 3. GitHubリポジトリ `react-learning-platform` をImport
-4. ビルド設定を確認（通常は自動検出される）
-   - **Framework Preset**: Vite
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
+4. ビルド設定（自動検出）:
+   - Framework Preset: **Vite**
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
 5. 「Deploy」をクリック
 
 ### 自動デプロイ
 
-- **本番デプロイ**: `main` ブランチへのpushで自動実行
-- **Previewデプロイ**: PRごとに自動生成
+- `main` ブランチへの push/merge → 本番デプロイ
+- PR作成時 → プレビューデプロイ
 
-### 公開後の確認項目
+### SPAルーティング
 
-以下のURLに直接アクセスして、SPAルーティングが正常に動作することを確認:
+`vercel.json` でリライト設定済み。全パスが正常に動作します。
 
-- `/lessons` - レッスン一覧
-- `/lessons/react-basics` - レッスン詳細
-- `/quiz` - クイズ一覧
-- `/quiz/react-basics-quiz` - クイズ詳細
-- `/notes` - ノート
-- `/progress` - 進捗
+## Branch Strategy
 
-すべてのパスで404にならず、正しくページが表示されればOK。
+運用方針：**main は常にデプロイ可能（Vercel本番と同期）**。作業は基本PR経由で main にマージします。
 
-## 技術スタック
+### Branch roles
 
-- **フレームワーク**: React 19 + TypeScript
-- **ビルドツール**: Vite
-- **テスト**: Vitest + Testing Library
-- **フォーム**: React Hook Form + Zod
-- **ルーティング**: React Router
-- **スタイリング**: CSS Modules
+| ブランチ | 用途 | 例 |
+|---------|------|-----|
+| `main` | 常に安定・デプロイ可能 | - |
+| `feature/*` | 機能追加・スプリント作業 | `feature/sprint3-notes` |
+| `fix/*` | バグ修正 | `fix/timeout-double-fire` |
+| `chore/*` | 依存更新、リファクタ、設定調整 | `chore/ci-coverage-threshold` |
+| `hotfix/*` | 本番緊急対応（必要時のみ） | `hotfix/prod-routing-404` |
+
+※ `dev` ブランチは小規模では省略推奨。複数人運用時に導入。
+
+### PR rules
+
+- **1PR = 1目的**（小さく保つ）
+- **CI緑必須**（lint / typecheck / test:coverage / build）
+- **説明テンプレ**:
+  ```
+  ## 目的
+  ## 変更点
+  ## 動作確認
+  ## 影響範囲
+  ## スクリーンショット（任意）
+  ```
+
+### Release flow
+
+1. `feature/*` → PR → `main` にマージ
+2. GitHub Actions が CI を実行（緑確認）
+3. Vercel が `main` を自動デプロイ
+
+## Roadmap
+
+### 完了済み
+
+| Sprint | 内容 |
+|--------|------|
+| Sprint 2 | クイズ機能（タイマー、レジューム、苦手分野記録） |
+| Sprint 3 | ノート機能（追加・編集・削除・LocalStorage永続化） |
+| Sprint 4 | Docker化 + CI最小構成 |
+| Sprint 5-A | CI強化（lint / typecheck / coverage） |
+| Sprint 5-B | Vercelデプロイ対応 |
+
+### 今後の候補
+
+- 認証機能（ログイン・ユーザー管理）
+- バックエンド連携（進捗データの永続化）
+- レッスンコンテンツ拡充
+- ダークモード対応
+- PWA対応（オフライン学習）
