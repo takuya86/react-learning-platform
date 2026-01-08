@@ -37,7 +37,7 @@ function calculateStreak(studyDates: string[], lastStudyDate: string | null): nu
 
   const sortedDates = [...studyDates].sort().reverse();
   let streak = 0;
-  let expectedDate = new Date(today);
+  const expectedDate = new Date(today);
 
   if (sortedDates[0] !== today) {
     expectedDate.setDate(expectedDate.getDate() - 1);
