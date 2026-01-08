@@ -247,7 +247,7 @@ export function QuizPage() {
       <nav className={styles.breadcrumb}>
         <Link to="/quiz">クイズ一覧</Link>
         <span className={styles.separator}>/</span>
-        <span>{quiz.title}</span>
+        <span data-testid="quiz-title">{quiz.title}</span>
       </nav>
 
       <div className={styles.header}>

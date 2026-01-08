@@ -162,3 +162,7 @@ export const quizzes: Quiz[] = [
 export function getQuizById(id: string): Quiz | undefined {
   return quizzes.find((quiz) => quiz.id === id);
 }
+
+export function getQuizByLessonId(lessonId: string): Quiz | undefined {
+  return quizzes.find((quiz) => quiz.relatedLessonIds.includes(lessonId));
+}

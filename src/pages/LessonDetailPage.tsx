@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Button, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
-import { getLessonById } from '@/data';
+import { getLessonById, getQuizByLessonId } from '@/data';
 import type { Difficulty } from '@/domain/types';
 import styles from './LessonDetailPage.module.css';
 
@@ -25,6 +25,7 @@ export function LessonDetailPage() {
   const { markLessonOpened, completeLesson, isLessonCompleted } = useProgress();
 
   const lesson = id ? getLessonById(id) : undefined;
+  const relatedQuiz = id ? getQuizByLessonId(id) : undefined;
   const completed = id ? isLessonCompleted(id) : false;
 
   useEffect(() => {
@@ -100,7 +101,12 @@ export function LessonDetailPage() {
               演習に進む
             </Button>
           )}
-          <Link to={`/notes?lessonId=${id}`} className={styles.noteLink}>
+          {relatedQuiz && (
+            <Link to={`/quiz/${relatedQuiz.id}`} className={styles.quizLink} data-testid="open-quiz-link">
+              クイズを開く
+            </Link>
+          )}
+          <Link to={`/notes?lessonId=${id}`} className={styles.noteLink} data-testid="open-notes-link">
             ノートを開く
           </Link>
           <Link to="/lessons" className={styles.backLink}>

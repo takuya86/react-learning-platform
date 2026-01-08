@@ -50,7 +50,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
         <p className={styles.duration}>約 {lesson.estimatedMinutes} 分</p>
       </CardContent>
       <CardFooter>
-        <Link to={`/lessons/${lesson.id}`} className={styles.link}>
+        <Link to={`/lessons/${lesson.id}`} className={styles.link} data-testid="lesson-card">
           {completed ? '復習する' : opened ? '続きを学ぶ' : 'レッスンを始める'}
         </Link>
       </CardFooter>

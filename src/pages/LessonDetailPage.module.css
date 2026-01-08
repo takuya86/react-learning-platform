@@ -135,13 +135,15 @@
   flex-wrap: wrap;
 }
 
-.noteLink {
+.noteLink,
+.quizLink {
   color: #3b82f6;
   text-decoration: none;
   font-size: 14px;
 }
 
-.noteLink:hover {
+.noteLink:hover,
+.quizLink:hover {
   text-decoration: underline;
 }
 
