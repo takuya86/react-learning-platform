@@ -100,6 +100,9 @@ export function LessonDetailPage() {
               演習に進む
             </Button>
           )}
+          <Link to={`/notes?lessonId=${id}`} className={styles.noteLink}>
+            ノートを開く
+          </Link>
           <Link to="/lessons" className={styles.backLink}>
             レッスン一覧に戻る
           </Link>

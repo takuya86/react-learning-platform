@@ -27,6 +27,14 @@ export function Layout() {
               クイズ
             </NavLink>
             <NavLink
+              to="/notes"
+              className={({ isActive }) =>
+                `${styles.link} ${isActive ? styles.active : ''}`
+              }
+            >
+              ノート
+            </NavLink>
+            <NavLink
               to="/progress"
               className={({ isActive }) =>
                 `${styles.link} ${isActive ? styles.active : ''}`

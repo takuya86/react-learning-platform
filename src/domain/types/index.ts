@@ -8,6 +8,7 @@ export type {
   QuestionResult,
   QuizAttempt,
 } from './quiz';
+export { QUIZ_SESSION_VERSION } from './quiz';
 export type {
   FieldType,
   ExerciseField,
@@ -16,3 +17,5 @@ export type {
 } from './exercise';
 export type { LessonProgress, Progress } from './progress';
 export { initialProgress } from './progress';
+export type { Note, NotesStorageData } from './note';
+export { NOTES_STORAGE_VERSION, initialNotesData } from './note';

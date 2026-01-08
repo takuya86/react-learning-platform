@@ -1,0 +1,21 @@
+.status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: opacity 0.2s ease;
+}
+
+.saving {
+  color: var(--color-text-muted, #6b7280);
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+.saved {
+  color: var(--color-success, #059669);
+  background-color: var(--color-success-bg, #d1fae5);
+}
+
+.error {
+  color: var(--color-error, #dc2626);
+  background-color: var(--color-error-bg, #fee2e2);
+}

@@ -8,6 +8,7 @@ import {
   QuizListPage,
   QuizPage,
   ProgressPage,
+  NotesPage,
   NotFoundPage,
 } from '@/pages';
 
@@ -43,6 +44,10 @@ export const router = createBrowserRouter([
       {
         path: 'progress',
         element: <ProgressPage />,
+      },
+      {
+        path: 'notes',
+        element: <NotesPage />,
       },
       {
         path: '*',
