@@ -1,0 +1,136 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.statValue {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.progressBar {
+  margin-bottom: 32px;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.progressTrack {
+  height: 12px;
+  background-color: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.recentCard {
+  margin-bottom: 32px;
+}
+
+.emptyMessage {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+}
+
+.emptyMessage a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.emptyMessage a:hover {
+  text-decoration: underline;
+}
+
+.recentList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.recentItem:last-child {
+  border-bottom: none;
+}
+
+.recentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recentTitle {
+  color: #111827;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.recentTitle:hover {
+  color: #3b82f6;
+}
+
+.recentDate {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.resetSection {
+  text-align: center;
+}

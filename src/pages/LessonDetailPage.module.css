@@ -1,0 +1,171 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.breadcrumb a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.separator {
+  color: #9ca3af;
+}
+
+.header {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.duration {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.description {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.content {
+  line-height: 1.8;
+  color: #374151;
+}
+
+.content h1,
+.content h2,
+.content h3 {
+  color: #111827;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.content h1 {
+  font-size: 28px;
+}
+
+.content h2 {
+  font-size: 24px;
+}
+
+.content h3 {
+  font-size: 20px;
+}
+
+.content p {
+  margin-bottom: 16px;
+}
+
+.content pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.content code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+}
+
+.content :not(pre) > code {
+  background-color: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #ef4444;
+}
+
+.content ul,
+.content ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.content li {
+  margin-bottom: 8px;
+}
+
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.backLink:hover {
+  color: #374151;
+}
+
+.notFound {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.notFound h1 {
+  font-size: 24px;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.notFound p {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.notFound a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.notFound a:hover {
+  text-decoration: underline;
+}

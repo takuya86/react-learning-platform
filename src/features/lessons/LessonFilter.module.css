@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.searchWrapper {
+  flex: 1;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .container {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .filters {
+    flex-shrink: 0;
+  }
+}

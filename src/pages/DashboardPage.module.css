@@ -1,0 +1,150 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+.subtitle {
+  font-size: 18px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.statsRow {
+  margin-bottom: 32px;
+}
+
+.progressCard {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+}
+
+.progressCard :global(.card-content) {
+  padding: 24px;
+}
+
+.progressInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.progressLabel {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.progressValue {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.progressDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.progressTrack {
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: white;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.lessonMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.startButton {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.startButton:hover {
+  background-color: #2563eb;
+}
+
+.quickLinks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.quickLink {
+  text-decoration: none;
+}
+
+.quickCard {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+}
+
+.quickCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quickIcon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.quickLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.quickCount {
+  font-size: 14px;
+  color: #6b7280;
+}
