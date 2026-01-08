@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useCallback, useState } from 'react';
+import { useReducer, useEffect, useCallback, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button, Card, CardContent, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
@@ -26,6 +26,9 @@ import {
 } from '@/features/quiz/components';
 import styles from './QuizPage.module.css';
 
+// Helper to get current timestamp
+const now = () => new Date().toISOString();
+
 export function QuizPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -36,12 +39,16 @@ export function QuizPage() {
   const [state, dispatch] = useReducer(
     quizReducer,
     { quizId: id || '', timeLimitSec: quiz?.timeLimitSec ?? null },
-    ({ quizId, timeLimitSec }) => createInitialState(quizId, timeLimitSec)
+    ({ quizId, timeLimitSec }) => createInitialState(quizId, timeLimitSec, now())
   );
 
   const [hasExistingSession, setHasExistingSession] = useState(false);
   const [showResumeDialog, setShowResumeDialog] = useState(false);
 
+  // Track if we've already saved the result to prevent double saves
+  const resultSavedRef = useRef(false);
+
+  // Check for existing session on mount
   useEffect(() => {
     if (!id) return;
     const hasSession = hasQuizSession(id);
@@ -51,6 +58,7 @@ export function QuizPage() {
     }
   }, [id]);
 
+  // Auto-save session on state changes (but not when finished or showing resume dialog)
   useEffect(() => {
     if (!id || state.isFinished || showResumeDialog) return;
 
@@ -58,11 +66,29 @@ export function QuizPage() {
     saveQuizSession(session);
   }, [id, state, showResumeDialog]);
 
+  // Unified result saving: when isFinished becomes true, save result once
+  useEffect(() => {
+    if (!state.isFinished || !quiz || !id || resultSavedRef.current) return;
+
+    // Mark as saved to prevent double execution
+    resultSavedRef.current = true;
+
+    // Delete session
+    deleteQuizSession(id);
+
+    // Record completion
+    completeQuiz(id);
+
+    // Build and record attempt
+    const attempt = buildQuizAttempt(state, quiz.questions);
+    recordQuizAttempt(attempt);
+  }, [state.isFinished, quiz, id, completeQuiz, recordQuizAttempt, state]);
+
   const handleResume = useCallback(() => {
     if (!id) return;
     const session = loadQuizSession(id);
     if (session) {
-      dispatch({ type: 'RESUME_FROM_SESSION', session });
+      dispatch({ type: 'RESUME_FROM_SESSION', session, timestamp: now() });
     }
     setShowResumeDialog(false);
   }, [id]);
@@ -70,17 +96,14 @@ export function QuizPage() {
   const handleStartNew = useCallback(() => {
     if (!id) return;
     deleteQuizSession(id);
-    dispatch({ type: 'RESET', quizId: id, timeLimitSec: quiz?.timeLimitSec ?? null });
+    dispatch({ type: 'RESET', quizId: id, timeLimitSec: quiz?.timeLimitSec ?? null, timestamp: now() });
     setShowResumeDialog(false);
     setHasExistingSession(false);
+    resultSavedRef.current = false;
   }, [id, quiz?.timeLimitSec]);
 
   const handleTick = useCallback(() => {
-    dispatch({ type: 'TICK' });
-  }, []);
-
-  const handleTimeout = useCallback(() => {
-    dispatch({ type: 'TIMEOUT' });
+    dispatch({ type: 'TICK', timestamp: now() });
   }, []);
 
   if (!quiz) {
@@ -134,6 +157,7 @@ export function QuizPage() {
       type: 'SELECT_ANSWER',
       questionId: currentQuestion.id,
       answerIndex,
+      timestamp: now(),
     });
   };
 
@@ -143,25 +167,20 @@ export function QuizPage() {
       type: 'SKIP_QUESTION',
       questionId: currentQuestion.id,
       totalQuestions: quiz.questions.length,
+      timestamp: now(),
     });
   };
 
   const handleUseHint = () => {
     if (!currentQuestion.hint || state.hintUsedByQuestionId[currentQuestion.id]) return;
-    dispatch({ type: 'USE_HINT', questionId: currentQuestion.id });
+    dispatch({ type: 'USE_HINT', questionId: currentQuestion.id, timestamp: now() });
   };
 
   const handleNext = () => {
     if (isLastQuestion) {
-      dispatch({ type: 'FINISH' });
-      if (id) {
-        deleteQuizSession(id);
-        completeQuiz(id);
-        const attempt = buildQuizAttempt(state, quiz.questions);
-        recordQuizAttempt(attempt);
-      }
+      dispatch({ type: 'FINISH', timestamp: now() });
     } else {
-      dispatch({ type: 'NEXT_QUESTION', totalQuestions: quiz.questions.length });
+      dispatch({ type: 'NEXT_QUESTION', totalQuestions: quiz.questions.length, timestamp: now() });
     }
   };
 
@@ -169,7 +188,8 @@ export function QuizPage() {
     if (id) {
       deleteQuizSession(id);
     }
-    dispatch({ type: 'RESET', quizId: id || '', timeLimitSec: quiz.timeLimitSec ?? null });
+    resultSavedRef.current = false;
+    dispatch({ type: 'RESET', quizId: id || '', timeLimitSec: quiz.timeLimitSec ?? null, timestamp: now() });
   };
 
   if (state.isFinished) {
@@ -240,7 +260,6 @@ export function QuizPage() {
         <QuizTimer
           timeRemainingSec={state.timeRemainingSec}
           onTick={handleTick}
-          onTimeout={handleTimeout}
           isRunning={!state.isFinished && !state.showExplanation}
         />
       </div>

@@ -31,7 +31,11 @@ export interface QuizResult {
   completedAt: string;
 }
 
+// Session schema version for backward compatibility
+export const QUIZ_SESSION_VERSION = 1;
+
 export interface QuizSession {
+  version: number;
   quizId: string;
   currentIndex: number;
   answers: Record<string, number | null>;

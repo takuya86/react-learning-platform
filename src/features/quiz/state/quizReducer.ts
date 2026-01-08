@@ -1,4 +1,5 @@
 import type { QuizSession } from '@/domain/types';
+import { QUIZ_SESSION_VERSION } from '@/domain/types';
 
 export interface QuizState {
   quizId: string;
@@ -14,31 +15,30 @@ export interface QuizState {
 }
 
 export type QuizAction =
-  | { type: 'SELECT_ANSWER'; questionId: string; answerIndex: number }
-  | { type: 'NEXT_QUESTION'; totalQuestions: number }
-  | { type: 'SKIP_QUESTION'; questionId: string; totalQuestions: number }
-  | { type: 'USE_HINT'; questionId: string }
-  | { type: 'TICK' }
-  | { type: 'TIMEOUT' }
-  | { type: 'FINISH' }
-  | { type: 'RESET'; quizId: string; timeLimitSec: number | null }
-  | { type: 'RESUME_FROM_SESSION'; session: QuizSession }
+  | { type: 'SELECT_ANSWER'; questionId: string; answerIndex: number; timestamp: string }
+  | { type: 'NEXT_QUESTION'; totalQuestions: number; timestamp: string }
+  | { type: 'SKIP_QUESTION'; questionId: string; totalQuestions: number; timestamp: string }
+  | { type: 'USE_HINT'; questionId: string; timestamp: string }
+  | { type: 'TICK'; timestamp: string }
+  | { type: 'FINISH'; timestamp: string }
+  | { type: 'RESET'; quizId: string; timeLimitSec: number | null; timestamp: string }
+  | { type: 'RESUME_FROM_SESSION'; session: QuizSession; timestamp: string }
   | { type: 'SHOW_EXPLANATION' }
   | { type: 'HIDE_EXPLANATION' };
 
 export function createInitialState(
   quizId: string,
-  timeLimitSec: number | null
+  timeLimitSec: number | null,
+  timestamp: string
 ): QuizState {
-  const now = new Date().toISOString();
   return {
     quizId,
     currentIndex: 0,
     answers: {},
     skippedQuestionIds: [],
     hintUsedByQuestionId: {},
-    startedAt: now,
-    lastUpdatedAt: now,
+    startedAt: timestamp,
+    lastUpdatedAt: timestamp,
     timeRemainingSec: timeLimitSec,
     isFinished: false,
     showExplanation: false,
@@ -46,8 +46,6 @@ export function createInitialState(
 }
 
 export function quizReducer(state: QuizState, action: QuizAction): QuizState {
-  const now = new Date().toISOString();
-
   switch (action.type) {
     case 'SELECT_ANSWER':
       return {
@@ -56,7 +54,7 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
           ...state.answers,
           [action.questionId]: action.answerIndex,
         },
-        lastUpdatedAt: now,
+        lastUpdatedAt: action.timestamp,
         showExplanation: true,
       };
 
@@ -67,7 +65,7 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
         ...state,
         currentIndex: isFinished ? state.currentIndex : nextIndex,
         isFinished,
-        lastUpdatedAt: now,
+        lastUpdatedAt: action.timestamp,
         showExplanation: false,
       };
     }
@@ -88,7 +86,7 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
         },
         currentIndex: isFinished ? state.currentIndex : nextIndex,
         isFinished,
-        lastUpdatedAt: now,
+        lastUpdatedAt: action.timestamp,
         showExplanation: false,
       };
     }
@@ -100,37 +98,46 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
           ...state.hintUsedByQuestionId,
           [action.questionId]: true,
         },
-        lastUpdatedAt: now,
+        lastUpdatedAt: action.timestamp,
       };
 
     case 'TICK': {
-      if (state.timeRemainingSec === null || state.timeRemainingSec <= 0) {
+      // No timer or already finished - no change
+      if (state.timeRemainingSec === null || state.isFinished) {
         return state;
       }
+      // Already at 0 - no change
+      if (state.timeRemainingSec <= 0) {
+        return state;
+      }
+
+      const newTime = state.timeRemainingSec - 1;
+      // Time just ran out - auto finish
+      if (newTime <= 0) {
+        return {
+          ...state,
+          timeRemainingSec: 0,
+          isFinished: true,
+          lastUpdatedAt: action.timestamp,
+        };
+      }
+      // Normal tick
       return {
         ...state,
-        timeRemainingSec: state.timeRemainingSec - 1,
-        lastUpdatedAt: now,
+        timeRemainingSec: newTime,
+        lastUpdatedAt: action.timestamp,
       };
     }
-
-    case 'TIMEOUT':
-      return {
-        ...state,
-        isFinished: true,
-        timeRemainingSec: 0,
-        lastUpdatedAt: now,
-      };
 
     case 'FINISH':
       return {
         ...state,
         isFinished: true,
-        lastUpdatedAt: now,
+        lastUpdatedAt: action.timestamp,
       };
 
     case 'RESET':
-      return createInitialState(action.quizId, action.timeLimitSec);
+      return createInitialState(action.quizId, action.timeLimitSec, action.timestamp);
 
     case 'RESUME_FROM_SESSION':
       return {
@@ -140,7 +147,7 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
         skippedQuestionIds: action.session.skippedQuestionIds,
         hintUsedByQuestionId: action.session.hintUsedByQuestionId,
         startedAt: action.session.startedAt,
-        lastUpdatedAt: now,
+        lastUpdatedAt: action.timestamp,
         timeRemainingSec: action.session.timeRemainingSec,
         isFinished: action.session.isFinished,
         showExplanation: false,
@@ -165,6 +172,7 @@ export function quizReducer(state: QuizState, action: QuizAction): QuizState {
 
 export function stateToSession(state: QuizState): QuizSession {
   return {
+    version: QUIZ_SESSION_VERSION,
     quizId: state.quizId,
     currentIndex: state.currentIndex,
     answers: state.answers,
