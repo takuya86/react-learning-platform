@@ -90,8 +90,41 @@ src/
 ## CI/CD
 
 GitHub Actions で以下を自動実行:
-- テスト (`npm run test:run`)
+- Lint (`npm run lint`)
+- 型チェック (`npm run typecheck`)
+- テスト + カバレッジ (`npm run test:coverage`)
 - ビルド (`npm run build`)
+
+## デプロイ（Vercel）
+
+### 公開手順
+
+1. [Vercel](https://vercel.com) にログイン
+2. 「Add New...」→「Project」をクリック
+3. GitHubリポジトリ `react-learning-platform` をImport
+4. ビルド設定を確認（通常は自動検出される）
+   - **Framework Preset**: Vite
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+5. 「Deploy」をクリック
+
+### 自動デプロイ
+
+- **本番デプロイ**: `main` ブランチへのpushで自動実行
+- **Previewデプロイ**: PRごとに自動生成
+
+### 公開後の確認項目
+
+以下のURLに直接アクセスして、SPAルーティングが正常に動作することを確認:
+
+- `/lessons` - レッスン一覧
+- `/lessons/react-basics` - レッスン詳細
+- `/quiz` - クイズ一覧
+- `/quiz/react-basics-quiz` - クイズ詳細
+- `/notes` - ノート
+- `/progress` - 進捗
+
+すべてのパスで404にならず、正しくページが表示されればOK。
 
 ## 技術スタック
 
