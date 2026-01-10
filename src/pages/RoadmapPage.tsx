@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Badge, SyncStatusIndicator } from '@/components/ui';
 import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
+import { useRecommendations, NextLessonsCard } from '@/features/insights';
 import {
   getAllLessons,
   getLessonsForRoadmap,
@@ -42,6 +43,7 @@ const sectionInfo: Record<Difficulty, { title: string; description: string }> = 
 export function RoadmapPage() {
   const { user } = useAuth();
   const { isLessonCompleted, getCompletedLessonIds } = useProgress();
+  const { recommendations, hasRecommendations } = useRecommendations({ limit: 5 });
   const lessons = getAllLessons();
   const groupedLessons = getLessonsForRoadmap(lessons);
 
@@ -78,6 +80,10 @@ export function RoadmapPage() {
           {user && <SyncStatusIndicator />}
         </div>
       </header>
+
+      {hasRecommendations && (
+        <NextLessonsCard recommendations={recommendations} className={styles.recommendationsCard} />
+      )}
 
       <div className={styles.roadmap}>
         {difficulties.map((difficulty) => {

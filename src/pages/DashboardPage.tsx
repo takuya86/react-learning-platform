@@ -2,12 +2,14 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
+import { useRecommendations, NextLessonsCard } from '@/features/insights';
 import { getAllLessons } from '@/lib/lessons';
 import { quizzes } from '@/data';
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
   const { progress, getCompletedLessonsCount } = useProgress();
+  const { recommendations, hasRecommendations } = useRecommendations({ limit: 3 });
   const lessons = useMemo(() => getAllLessons(), []);
   const completedCount = getCompletedLessonsCount();
   const totalCount = lessons.length;
@@ -44,7 +46,13 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      {nextLesson && (
+      {hasRecommendations && (
+        <section className={styles.section}>
+          <NextLessonsCard recommendations={recommendations} />
+        </section>
+      )}
+
+      {nextLesson && !hasRecommendations && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>次のレッスン</h2>
           <Card>
