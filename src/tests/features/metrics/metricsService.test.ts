@@ -262,4 +262,48 @@ describe('metricsService', () => {
       expect(metrics.weeklyGoal.weekStartDate).toBe('2024-01-15');
     });
   });
+
+  describe('冪等性・重複排除仕様', () => {
+    it('[仕様固定] getUTCDateString は UTC 基準で日付を返す（タイムゾーン非依存）', () => {
+      // 日本時間 2024-01-16 08:00 = UTC 2024-01-15 23:00
+      // UTC基準なので 2024-01-15 を返すべき
+      const date = new Date('2024-01-15T23:59:59Z');
+      expect(getUTCDateString(date)).toBe('2024-01-15');
+
+      // UTC 2024-01-16 00:00:00 は 2024-01-16 を返すべき
+      const nextDay = new Date('2024-01-16T00:00:00Z');
+      expect(getUTCDateString(nextDay)).toBe('2024-01-16');
+    });
+
+    it('[仕様固定] updateMetricsOnEvent は同日複数回呼んでも metrics が変わらない', () => {
+      const initial = createInitialMetrics();
+      const today = '2024-01-15';
+
+      // 1回目
+      const after1st = updateMetricsOnEvent(initial, today, today);
+      expect(after1st.streak).toBe(1);
+      expect(after1st.weeklyGoal.progress).toBe(1);
+
+      // 2回目（同日）- 変化なし
+      const after2nd = updateMetricsOnEvent(after1st, today, today);
+      expect(after2nd.streak).toBe(1);
+      expect(after2nd.weeklyGoal.progress).toBe(1);
+
+      // 3回目（同日）- 変化なし
+      const after3rd = updateMetricsOnEvent(after2nd, today, today);
+      expect(after3rd.streak).toBe(1);
+      expect(after3rd.weeklyGoal.progress).toBe(1);
+    });
+
+    it('[仕様固定] recalculateMetrics は重複日付を1日としてカウント', () => {
+      const today = '2024-01-15';
+      // 同日が複数回含まれている
+      const dates = ['2024-01-15', '2024-01-15', '2024-01-15'];
+      const metrics = recalculateMetrics(dates, today);
+
+      // 重複は排除され、1日としてカウント
+      expect(metrics.streak).toBe(1);
+      expect(metrics.weeklyGoal.progress).toBe(1);
+    });
+  });
 });

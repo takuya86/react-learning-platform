@@ -15,6 +15,7 @@ function createMockQueryBuilder() {
     select: () => builder,
     insert: () => builder,
     update: () => builder,
+    // upsert accepts options like { onConflict, ignoreDuplicates }
     upsert: () => builder,
     delete: () => builder,
     eq: () => builder,

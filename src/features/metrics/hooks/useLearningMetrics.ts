@@ -140,16 +140,21 @@ export function useLearningMetrics(): UseLearningMetricsResult {
       }
 
       try {
-        // Insert event
-        const { error: eventError } = await supabase.from('learning_events').insert({
-          user_id: user.id,
-          event_type: eventType,
-          event_date: today,
-          reference_id: referenceId,
-        });
+        // Upsert event with ignoreDuplicates to prevent duplicate entries
+        // UNIQUE constraint on (user_id, event_type, reference_id, event_date) ensures idempotency
+        // 同一日・同一対象のイベントは1件のみ保存される（DB側で担保）
+        const { error: eventError } = await supabase.from('learning_events').upsert(
+          {
+            user_id: user.id,
+            event_type: eventType,
+            event_date: today,
+            reference_id: referenceId || '',
+          },
+          { ignoreDuplicates: true }
+        );
 
         if (eventError) {
-          console.error('Failed to insert learning event:', eventError);
+          console.error('Failed to upsert learning event:', eventError);
         }
 
         // Update metrics
