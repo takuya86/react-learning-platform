@@ -15,21 +15,16 @@ test.describe('レッスン詳細からの導線テスト', () => {
     await expect(page).toHaveURL(/\/lessons\/.+/);
     await page.waitForLoadState('networkidle');
 
-    // 「ノートを開く」リンクを確認
+    // 「ノートを開く」リンクをクリック
     const notesLink = page.getByTestId('open-notes-link');
     await expect(notesLink).toBeVisible();
-
-    // リンクのhrefを取得して直接遷移（SPAナビゲーションの問題を回避）
-    const href = await notesLink.getAttribute('href');
-    console.log('Notes link href:', href);
-    await page.goto(href!);
-    await page.waitForLoadState('networkidle');
+    await notesLink.click();
 
     // /notes に遷移したことを確認
     await expect(page).toHaveURL(/\/notes\?lessonId=.+/);
 
-    // ノートページが表示されていることを確認（サイドバーの存在で判定）
-    await expect(page.locator('aside')).toBeVisible();
+    // ノートページが表示されていることを確認
+    await expect(page.getByTestId('notes-page')).toBeVisible();
   });
 
   test('レッスン詳細 → クイズを開く → /quiz に遷移しクイズ画面が表示される', async ({ page }) => {
@@ -46,15 +41,10 @@ test.describe('レッスン詳細からの導線テスト', () => {
     await expect(page).toHaveURL(/\/lessons\/.+/);
     await page.waitForLoadState('networkidle');
 
-    // 「クイズを開く」リンクを確認
+    // 「クイズを開く」リンクをクリック
     const quizLink = page.getByTestId('open-quiz-link');
     await expect(quizLink).toBeVisible();
-
-    // リンクのhrefを取得して直接遷移（SPAナビゲーションの問題を回避）
-    const href = await quizLink.getAttribute('href');
-    console.log('Quiz link href:', href);
-    await page.goto(href!);
-    await page.waitForLoadState('networkidle');
+    await quizLink.click();
 
     // /quiz に遷移したことを確認
     await expect(page).toHaveURL(/\/quiz\/.+/);

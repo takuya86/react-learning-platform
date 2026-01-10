@@ -2,17 +2,14 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@/components/ui';
 import { useProgress } from '@/features/progress';
-import { lessons } from '@/data';
+import { getAllLessons } from '@/lib/lessons';
 import styles from './ProgressPage.module.css';
 
 export function ProgressPage() {
-  const {
-    progress,
-    getCompletedLessonsCount,
-    getTotalLessonsOpened,
-    resetProgress,
-  } = useProgress();
+  const { progress, getCompletedLessonsCount, getTotalLessonsOpened, resetProgress } =
+    useProgress();
 
+  const lessons = useMemo(() => getAllLessons(), []);
   const completedCount = getCompletedLessonsCount();
   const openedCount = getTotalLessonsOpened();
   const totalCount = lessons.length;
@@ -28,7 +25,7 @@ export function ProgressPage() {
         const lesson = lessons.find((l) => l.id === lp.lessonId);
         return { ...lp, lesson };
       });
-  }, [progress.lessons]);
+  }, [progress.lessons, lessons]);
 
   const handleReset = () => {
     if (window.confirm('進捗をリセットしますか？この操作は取り消せません。')) {
@@ -89,10 +86,7 @@ export function ProgressPage() {
           <span>{progressPercentage}%</span>
         </div>
         <div className={styles.progressTrack}>
-          <div
-            className={styles.progressFill}
-            style={{ width: `${progressPercentage}%` }}
-          />
+          <div className={styles.progressFill} style={{ width: `${progressPercentage}%` }} />
         </div>
       </div>
 

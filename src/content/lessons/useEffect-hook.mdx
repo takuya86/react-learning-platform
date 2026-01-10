@@ -1,0 +1,76 @@
+---
+title: 'useEffect：副作用の管理'
+slug: 'useEffect-hook'
+description: 'useEffectフックを使った副作用の管理方法を学びます。'
+tags: ['react', 'hooks', 'useEffect', 'lifecycle']
+difficulty: 'intermediate'
+estimatedMinutes: 25
+prerequisites: ['useState-hook']
+---
+
+# useEffect：副作用の管理
+
+## useEffectとは
+
+useEffectは、コンポーネントの副作用（データ取得、DOM操作、購読など）を処理するフックです。
+
+```tsx
+import { useEffect, useState } from 'react';
+
+function Timer() {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSeconds(s => s + 1);
+    }, 1000);
+
+    // クリーンアップ関数
+    return () => clearInterval(interval);
+  }, []); // 空の依存配列 = マウント時のみ実行
+
+  return <p>経過時間: {seconds}秒</p>;
+}
+```
+
+## 依存配列のパターン
+
+### 1. マウント時のみ実行
+```tsx
+useEffect(() => {
+  // 初回レンダリング後に1回だけ実行
+}, []);
+```
+
+### 2. 特定の値が変わった時に実行
+```tsx
+useEffect(() => {
+  // count が変わるたびに実行
+  console.log(`Count changed to: ${count}`);
+}, [count]);
+```
+
+### 3. 毎回実行（非推奨）
+```tsx
+useEffect(() => {
+  // 毎回のレンダリング後に実行
+}); // 依存配列なし
+```
+
+## クリーンアップ
+
+イベントリスナーやタイマーは必ずクリーンアップしましょう。
+
+```tsx
+useEffect(() => {
+  const handleResize = () => {
+    console.log(window.innerWidth);
+  };
+
+  window.addEventListener('resize', handleResize);
+
+  return () => {
+    window.removeEventListener('resize', handleResize);
+  };
+}, []);
+```

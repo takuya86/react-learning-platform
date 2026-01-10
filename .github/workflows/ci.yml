@@ -29,6 +29,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Validate lessons
+        run: npm run validate:lessons -- --strict
+
       - name: Test with coverage
         run: npm run test:coverage
 

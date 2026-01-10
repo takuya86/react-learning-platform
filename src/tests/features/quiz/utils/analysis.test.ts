@@ -8,6 +8,9 @@ import {
 } from '@/features/quiz/utils/analysis';
 import type { QuestionResult, QuizQuestion, Lesson } from '@/domain/types';
 
+// Mock component for testing
+const MockComponent = () => null;
+
 describe('analysis', () => {
   const mockQuestions: QuizQuestion[] = [
     {
@@ -52,7 +55,7 @@ describe('analysis', () => {
       tags: ['react', 'basics'],
       difficulty: 'beginner',
       estimatedMinutes: 15,
-      content: 'Content',
+      Component: MockComponent,
     },
     {
       id: 'lesson-2',
@@ -61,7 +64,7 @@ describe('analysis', () => {
       tags: ['react', 'hooks'],
       difficulty: 'intermediate',
       estimatedMinutes: 20,
-      content: 'Content',
+      Component: MockComponent,
     },
     {
       id: 'lesson-3',
@@ -70,17 +73,41 @@ describe('analysis', () => {
       tags: ['lifecycle', 'useEffect'],
       difficulty: 'intermediate',
       estimatedMinutes: 25,
-      content: 'Content',
+      Component: MockComponent,
     },
   ];
 
   describe('calculateTagStats', () => {
     it('should calculate correct stats when all answers are correct', () => {
       const results: QuestionResult[] = [
-        { questionId: 'q1', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q2', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 1 },
-        { questionId: 'q3', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 2 },
-        { questionId: 'q4', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
+        {
+          questionId: 'q1',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q2',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 1,
+        },
+        {
+          questionId: 'q3',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 2,
+        },
+        {
+          questionId: 'q4',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
       ];
 
       const stats = calculateTagStats(results, mockQuestions);
@@ -94,10 +121,34 @@ describe('analysis', () => {
 
     it('should calculate correct stats when some answers are wrong', () => {
       const results: QuestionResult[] = [
-        { questionId: 'q1', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q2', isCorrect: false, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q3', isCorrect: false, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q4', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
+        {
+          questionId: 'q1',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q2',
+          isCorrect: false,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q3',
+          isCorrect: false,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q4',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
       ];
 
       const stats = calculateTagStats(results, mockQuestions);
@@ -111,8 +162,20 @@ describe('analysis', () => {
 
     it('should treat skipped questions as wrong', () => {
       const results: QuestionResult[] = [
-        { questionId: 'q1', isCorrect: false, isSkipped: true, hintUsed: false, selectedChoiceIndex: null },
-        { questionId: 'q2', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 1 },
+        {
+          questionId: 'q1',
+          isCorrect: false,
+          isSkipped: true,
+          hintUsed: false,
+          selectedChoiceIndex: null,
+        },
+        {
+          questionId: 'q2',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 1,
+        },
       ];
 
       const stats = calculateTagStats(results, mockQuestions);
@@ -127,10 +190,34 @@ describe('analysis', () => {
   describe('getWeakAreas', () => {
     it('should return top N weak areas sorted by wrong rate', () => {
       const results: QuestionResult[] = [
-        { questionId: 'q1', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q2', isCorrect: false, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q3', isCorrect: false, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q4', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
+        {
+          questionId: 'q1',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q2',
+          isCorrect: false,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q3',
+          isCorrect: false,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q4',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
       ];
 
       const weakAreas = getWeakAreas(results, mockQuestions, 2);
@@ -141,8 +228,20 @@ describe('analysis', () => {
 
     it('should only include areas with wrong answers', () => {
       const results: QuestionResult[] = [
-        { questionId: 'q1', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q2', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 1 },
+        {
+          questionId: 'q1',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q2',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 1,
+        },
       ];
 
       const weakAreas = getWeakAreas(results, mockQuestions, 3);
@@ -152,10 +251,34 @@ describe('analysis', () => {
 
     it('should return empty array when all correct', () => {
       const results: QuestionResult[] = [
-        { questionId: 'q1', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
-        { questionId: 'q2', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 1 },
-        { questionId: 'q3', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 2 },
-        { questionId: 'q4', isCorrect: true, isSkipped: false, hintUsed: false, selectedChoiceIndex: 0 },
+        {
+          questionId: 'q1',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
+        {
+          questionId: 'q2',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 1,
+        },
+        {
+          questionId: 'q3',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 2,
+        },
+        {
+          questionId: 'q4',
+          isCorrect: true,
+          isSkipped: false,
+          hintUsed: false,
+          selectedChoiceIndex: 0,
+        },
       ];
 
       const weakAreas = getWeakAreas(results, mockQuestions);

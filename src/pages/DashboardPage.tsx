@@ -1,11 +1,14 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
-import { lessons, quizzes } from '@/data';
+import { getAllLessons } from '@/lib/lessons';
+import { quizzes } from '@/data';
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
   const { progress, getCompletedLessonsCount } = useProgress();
+  const lessons = useMemo(() => getAllLessons(), []);
   const completedCount = getCompletedLessonsCount();
   const totalCount = lessons.length;
   const progressPercentage = Math.round((completedCount / totalCount) * 100);
@@ -16,9 +19,7 @@ export function DashboardPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <h1 className={styles.title}>React学習プラットフォーム</h1>
-        <p className={styles.subtitle}>
-          Reactの基礎から実践までを体系的に学びましょう
-        </p>
+        <p className={styles.subtitle}>Reactの基礎から実践までを体系的に学びましょう</p>
       </header>
 
       <div className={styles.statsRow}>
@@ -30,15 +31,14 @@ export function DashboardPage() {
                 <div className={styles.progressValue}>{progressPercentage}%</div>
               </div>
               <div className={styles.progressDetails}>
-                <span>{completedCount} / {totalCount} レッスン完了</span>
+                <span>
+                  {completedCount} / {totalCount} レッスン完了
+                </span>
                 <span>連続 {progress.streak} 日</span>
               </div>
             </div>
             <div className={styles.progressTrack}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${progressPercentage}%` }}
-              />
+              <div className={styles.progressFill} style={{ width: `${progressPercentage}%` }} />
             </div>
           </CardContent>
         </Card>

@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import { MDXProvider } from '@mdx-js/react';
 import { Button, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
-import { getLessonById, getQuizByLessonId } from '@/data';
+import { getLessonById, getNextLessons, getPrerequisiteLessons } from '@/lib/lessons';
+import { getQuizByLessonId } from '@/data';
+import { mdxComponents } from '@/components/mdx';
 import type { Difficulty } from '@/domain/types';
 import styles from './LessonDetailPage.module.css';
 
@@ -27,6 +29,8 @@ export function LessonDetailPage() {
   const lesson = id ? getLessonById(id) : undefined;
   const relatedQuiz = id ? getQuizByLessonId(id) : undefined;
   const completed = id ? isLessonCompleted(id) : false;
+  const nextLessons = id ? getNextLessons(id) : [];
+  const prerequisiteLessons = id ? getPrerequisiteLessons(id) : [];
 
   useEffect(() => {
     if (id && lesson) {
@@ -83,10 +87,29 @@ export function LessonDetailPage() {
             </Badge>
           ))}
         </div>
+
+        {prerequisiteLessons.length > 0 && (
+          <div className={styles.prerequisites}>
+            <span className={styles.prerequisitesLabel}>前提レッスン:</span>
+            <div className={styles.prerequisitesList}>
+              {prerequisiteLessons.map((prereq) => (
+                <Link
+                  key={prereq.id}
+                  to={`/lessons/${prereq.id}`}
+                  className={styles.prerequisiteLink}
+                >
+                  {prereq.title}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       <article className={styles.content}>
-        <ReactMarkdown>{lesson.content}</ReactMarkdown>
+        <MDXProvider components={mdxComponents}>
+          <lesson.Component />
+        </MDXProvider>
       </article>
 
       <footer className={styles.footer}>
@@ -102,11 +125,19 @@ export function LessonDetailPage() {
             </Button>
           )}
           {relatedQuiz && (
-            <Link to={`/quiz/${relatedQuiz.id}`} className={styles.quizLink} data-testid="open-quiz-link">
+            <Link
+              to={`/quiz/${relatedQuiz.id}`}
+              className={styles.quizLink}
+              data-testid="open-quiz-link"
+            >
               クイズを開く
             </Link>
           )}
-          <Link to={`/notes?lessonId=${id}`} className={styles.noteLink} data-testid="open-notes-link">
+          <Link
+            to={`/notes?lessonId=${id}`}
+            className={styles.noteLink}
+            data-testid="open-notes-link"
+          >
             ノートを開く
           </Link>
           <Link to="/lessons" className={styles.backLink}>
@@ -114,6 +145,32 @@ export function LessonDetailPage() {
           </Link>
         </div>
       </footer>
+
+      {nextLessons.length > 0 && (
+        <section className={styles.nextLessons}>
+          <h2 className={styles.nextLessonsTitle}>次に読むべきレッスン</h2>
+          <div className={styles.nextLessonsList}>
+            {nextLessons.map((nextLesson) => (
+              <Link
+                key={nextLesson.id}
+                to={`/lessons/${nextLesson.id}`}
+                className={styles.nextLessonCard}
+              >
+                <div className={styles.nextLessonMeta}>
+                  <Badge variant={difficultyVariants[nextLesson.difficulty]} size="small">
+                    {difficultyLabels[nextLesson.difficulty]}
+                  </Badge>
+                  <span className={styles.nextLessonDuration}>
+                    約 {nextLesson.estimatedMinutes} 分
+                  </span>
+                </div>
+                <h3 className={styles.nextLessonTitle}>{nextLesson.title}</h3>
+                <p className={styles.nextLessonDescription}>{nextLesson.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

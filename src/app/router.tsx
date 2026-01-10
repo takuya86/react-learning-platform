@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, useParams } from 'react-router-dom';
 import { Layout } from './Layout';
 import {
   DashboardPage,
@@ -9,8 +9,24 @@ import {
   QuizPage,
   ProgressPage,
   NotesPage,
+  RoadmapPage,
   NotFoundPage,
 } from '@/pages';
+
+function LessonDetailRoute() {
+  const { id } = useParams<{ id: string }>();
+  return <LessonDetailPage key={id} />;
+}
+
+function ExerciseRoute() {
+  const { id } = useParams<{ id: string }>();
+  return <ExercisePage key={id} />;
+}
+
+function QuizRoute() {
+  const { id } = useParams<{ id: string }>();
+  return <QuizPage key={id} />;
+}
 
 export const router = createBrowserRouter([
   {
@@ -26,12 +42,16 @@ export const router = createBrowserRouter([
         element: <LessonsPage />,
       },
       {
+        path: 'roadmap',
+        element: <RoadmapPage />,
+      },
+      {
         path: 'lessons/:id',
-        element: <LessonDetailPage />,
+        element: <LessonDetailRoute />,
       },
       {
         path: 'lessons/:id/exercise',
-        element: <ExercisePage />,
+        element: <ExerciseRoute />,
       },
       {
         path: 'quiz',
@@ -39,7 +59,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'quiz/:id',
-        element: <QuizPage />,
+        element: <QuizRoute />,
       },
       {
         path: 'progress',

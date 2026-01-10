@@ -1,0 +1,68 @@
+---
+title: 'useState：状態管理の基本'
+slug: 'useState-hook'
+description: 'useStateフックを使った状態管理の基本を学びます。'
+tags: ['react', 'hooks', 'useState', 'state']
+difficulty: 'beginner'
+estimatedMinutes: 20
+exerciseId: 'counter-exercise'
+prerequisites: ['react-basics']
+---
+
+# useState：状態管理の基本
+
+## useStateとは
+
+useStateは、関数コンポーネントに状態（state）を追加するフックです。
+
+```tsx
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>カウント: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        増やす
+      </button>
+    </div>
+  );
+}
+```
+
+## 構造
+
+```tsx
+const [state, setState] = useState(initialValue);
+```
+
+- **state**: 現在の状態値
+- **setState**: 状態を更新する関数
+- **initialValue**: 初期値
+
+## 注意点
+
+### 1. 直接変更しない
+```tsx
+// ❌ 間違い
+count = count + 1;
+
+// ✅ 正しい
+setCount(count + 1);
+```
+
+### 2. 前の状態に基づく更新
+```tsx
+// 前の値を使う場合は関数形式で
+setCount(prev => prev + 1);
+```
+
+### 3. オブジェクトの更新
+```tsx
+const [user, setUser] = useState({ name: '', age: 0 });
+
+// スプレッド構文で新しいオブジェクトを作成
+setUser({ ...user, name: 'Taro' });
+```

@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input } from '@/components/ui';
 import { useProgress } from '@/features/progress';
-import { getExerciseById, getLessonById } from '@/data';
+import { getLessonById } from '@/lib/lessons';
+import { getExerciseById } from '@/data';
 import styles from './ExercisePage.module.css';
 
 export function ExercisePage() {
@@ -14,7 +15,11 @@ export function ExercisePage() {
   const exercise = lesson?.exerciseId ? getExerciseById(lesson.exerciseId) : undefined;
   const isCompleted = exercise ? progress.completedExercises.includes(exercise.id) : false;
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   if (!lesson || !exercise) {
     return (
@@ -46,9 +51,7 @@ export function ExercisePage() {
       <header className={styles.header}>
         <h1 className={styles.title}>{exercise.title}</h1>
         <p className={styles.description}>{exercise.description}</p>
-        {isCompleted && (
-          <div className={styles.completedBadge}>完了済み</div>
-        )}
+        {isCompleted && <div className={styles.completedBadge}>完了済み</div>}
       </header>
 
       <Card className={styles.instructionsCard}>
@@ -91,9 +94,7 @@ export function ExercisePage() {
                       })}
                     />
                     {errors[field.name] && (
-                      <span className={styles.error}>
-                        {errors[field.name]?.message as string}
-                      </span>
+                      <span className={styles.error}>{errors[field.name]?.message as string}</span>
                     )}
                   </div>
                 )}
@@ -107,9 +108,7 @@ export function ExercisePage() {
                     />
                     <span>{field.label}</span>
                     {errors[field.name] && (
-                      <span className={styles.error}>
-                        {errors[field.name]?.message as string}
-                      </span>
+                      <span className={styles.error}>{errors[field.name]?.message as string}</span>
                     )}
                   </label>
                 )}

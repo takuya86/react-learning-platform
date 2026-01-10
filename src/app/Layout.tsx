@@ -12,33 +12,31 @@ export function Layout() {
           <div className={styles.links}>
             <NavLink
               to="/lessons"
-              className={({ isActive }) =>
-                `${styles.link} ${isActive ? styles.active : ''}`
-              }
+              className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
             >
               レッスン
             </NavLink>
             <NavLink
+              to="/roadmap"
+              className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+            >
+              学習パス
+            </NavLink>
+            <NavLink
               to="/quiz"
-              className={({ isActive }) =>
-                `${styles.link} ${isActive ? styles.active : ''}`
-              }
+              className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
             >
               クイズ
             </NavLink>
             <NavLink
               to="/notes"
-              className={({ isActive }) =>
-                `${styles.link} ${isActive ? styles.active : ''}`
-              }
+              className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
             >
               ノート
             </NavLink>
             <NavLink
               to="/progress"
-              className={({ isActive }) =>
-                `${styles.link} ${isActive ? styles.active : ''}`
-              }
+              className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
             >
               進捗
             </NavLink>

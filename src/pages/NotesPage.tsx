@@ -16,7 +16,7 @@ export function NotesPage() {
   } = useNotes();
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-testid="notes-page">
       <aside className={styles.sidebar}>
         <LessonNoteList
           lessons={filteredLessons}
