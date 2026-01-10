@@ -150,7 +150,10 @@ export function useLearningMetrics(): UseLearningMetricsResult {
             event_date: today,
             reference_id: referenceId || '',
           },
-          { ignoreDuplicates: true }
+          {
+            onConflict: 'user_id,event_type,reference_id,event_date',
+            ignoreDuplicates: true,
+          }
         );
 
         if (eventError) {
