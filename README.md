@@ -338,6 +338,41 @@ npm run lessons:stats
 # → pending が週3ずつ減っていればOK
 ```
 
+### 管理画面からのレッスン生成
+
+管理者は `/admin/backlog` から手動でレッスン生成ワークフローを実行できます。
+
+#### 操作手順
+
+1. `/admin/backlog` にアクセス（admin権限が必要）
+2. 「次の生成候補 Top 5」セクションの「Generate Lessons PR」ボタンをクリック
+3. 既存のレッスンPRがある場合は確認ダイアログが表示される
+4. GitHub Actions ワークフローが実行され、PRが自動作成される
+
+#### 環境変数設定（GitHub API連携）
+
+管理画面からのワークフロー実行を有効にするには、以下の環境変数を設定してください：
+
+```env
+# .env.local
+VITE_GITHUB_TOKEN=ghp_xxx          # Personal Access Token (workflow権限)
+VITE_GITHUB_OWNER=your-org         # リポジトリオーナー
+VITE_GITHUB_REPO=react-learning-platform  # リポジトリ名
+```
+
+**GitHub Token作成手順**:
+
+1. GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Generate new token → 権限: `repo`, `workflow` を選択
+3. 生成されたトークンを `.env.local` に設定
+
+#### ワークフロー入力パラメータ
+
+| パラメータ       | 説明                                             | デフォルト |
+| ---------------- | ------------------------------------------------ | ---------- |
+| `max_lessons`    | 生成する最大レッスン数                           | 3          |
+| `selected_slugs` | 生成対象のslug（カンマ区切り、省略時は自動選択） | (空)       |
+
 ## Deployment
 
 ### Vercel へのデプロイ手順

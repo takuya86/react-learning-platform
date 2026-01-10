@@ -68,6 +68,14 @@
   margin-bottom: 1.5rem;
 }
 
+.candidatesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .candidatesList {
   list-style: none;
   padding: 0;

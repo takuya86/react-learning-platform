@@ -5,6 +5,15 @@ import { BrowserRouter } from 'react-router-dom';
 import { AdminBacklogPage } from '@/pages/AdminBacklogPage';
 import { AuthProvider } from '@/features/auth';
 
+// Mock GeneratePRButton component
+vi.mock('@/features/admin', () => ({
+  GeneratePRButton: ({ pendingCount, slugs }: { pendingCount: number; slugs: string[] }) => (
+    <button data-testid="generate-pr-button" disabled={pendingCount === 0}>
+      Generate Lessons PR ({slugs.length} candidates)
+    </button>
+  ),
+}));
+
 // Mock backlog data
 vi.mock('@/data/backlog', () => ({
   getAllBacklogEntries: () => [
@@ -113,6 +122,15 @@ describe('AdminBacklogPage', () => {
       expect(screen.getByText('次の生成候補 Top 5')).toBeInTheDocument();
       // Lesson 1 appears in both candidates and entries list, so check that we have multiple
       expect(screen.getAllByText('Lesson 1').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should render Generate PR button', () => {
+      renderWithProviders(<AdminBacklogPage />);
+
+      const button = screen.getByTestId('generate-pr-button');
+      expect(button).toBeInTheDocument();
+      // With 1 pending lesson in mock data, button should be enabled
+      expect(button).not.toBeDisabled();
     });
   });
 

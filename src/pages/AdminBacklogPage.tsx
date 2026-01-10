@@ -10,6 +10,7 @@ import {
   generateBacklogJson,
 } from '@/data/backlog';
 import { getAllLessons } from '@/lib/lessons';
+import { GeneratePRButton } from '@/features/admin';
 import styles from './AdminBacklogPage.module.css';
 
 const STATUS_OPTIONS: { value: BacklogStatus; label: string }[] = [
@@ -197,7 +198,14 @@ export function AdminBacklogPage() {
       {/* Top 5 Candidates */}
       <Card className={styles.candidatesCard}>
         <CardHeader>
-          <CardTitle>次の生成候補 Top 5</CardTitle>
+          <div className={styles.candidatesHeader}>
+            <CardTitle>次の生成候補 Top 5</CardTitle>
+            <GeneratePRButton
+              slugs={topCandidates.map((c) => c.slug)}
+              maxLessons={5}
+              pendingCount={stats.byStatus.pending}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {topCandidates.length === 0 ? (
