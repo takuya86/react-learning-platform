@@ -77,3 +77,21 @@
   text-align: center;
   color: #6b7280;
 }
+
+.mockWarning {
+  padding: 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  color: #92400e;
+  font-size: 13px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.mockWarning code {
+  background-color: #fef3c7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
