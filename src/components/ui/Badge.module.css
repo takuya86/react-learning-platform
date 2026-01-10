@@ -31,3 +31,8 @@
   background-color: #fee2e2;
   color: #b91c1c;
 }
+
+.small {
+  padding: 1px 6px;
+  font-size: 10px;
+}
