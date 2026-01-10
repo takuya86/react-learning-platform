@@ -2,9 +2,12 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const isE2E = import.meta.env.VITE_E2E === 'true';
 
-// Check if we're in mock mode (no env vars set - for testing/development without Supabase)
-export const isMockMode = !supabaseUrl || !supabaseAnonKey;
+// Check if we're in mock mode:
+// - No Supabase env vars set (development/testing without Supabase)
+// - VITE_E2E=true (E2E tests force mock mode regardless of env vars)
+export const isMockMode = isE2E || !supabaseUrl || !supabaseAnonKey;
 
 // Mock query builder for data operations
 function createMockQueryBuilder() {

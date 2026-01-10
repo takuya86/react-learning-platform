@@ -167,6 +167,26 @@ CREATE POLICY "Users can CRUD own notes" ON user_notes
 - テーブル未作成の場合でも、localStorageでの動作は継続（エラーログは出力）
 - モックモードでは同期は無効（localStorageのみで動作）
 
+### 4. 手動Smokeテスト（Supabase実接続確認）
+
+E2Eテストはモックモードで実行されるため、Supabase実接続の確認は以下の手順で手動実施してください：
+
+```bash
+# 1. .env.local にSupabase認証情報が設定されていることを確認
+cat .env.local
+
+# 2. 開発サーバー起動
+npm run dev
+
+# 3. ブラウザで http://localhost:5173 にアクセス
+
+# 4. 確認項目：
+#    - ログインページで「開発モード」警告が表示されない
+#    - ログイン後、レッスン完了やノート作成がSupabaseに同期される
+#    - 別ブラウザ/シークレットウィンドウでログインすると同じデータが表示される
+#    - Supabase Dashboard > Table Editor でuser_progress/user_notesにデータが入っている
+```
+
 ## Tests & Quality
 
 ```bash
@@ -197,8 +217,10 @@ GitHub Actions で以下を自動実行（push / PR時）:
 
 1. **Lint** - コード品質チェック
 2. **Type check** - 型安全性の検証
-3. **Test + Coverage** - テスト実行とカバレッジ計測
-4. **Build** - ビルド成功の確認
+3. **Validate lessons** - レッスンコンテンツ検証
+4. **Test + Coverage** - テスト実行とカバレッジ計測
+5. **Build** - ビルド成功の確認
+6. **E2E tests** - Playwright E2Eテスト（モックモード）
 
 ## Lesson Content Operations
 

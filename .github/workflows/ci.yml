@@ -41,5 +41,5 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run E2E tests
-        run: npm run e2e
+      - name: Run E2E tests (mock mode)
+        run: npm run e2e:mock
