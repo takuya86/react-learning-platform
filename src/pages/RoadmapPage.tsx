@@ -4,6 +4,7 @@ import { Badge, SyncStatusIndicator } from '@/components/ui';
 import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
 import { useRecommendations, NextLessonsCard } from '@/features/insights';
+import { useLearningMetrics, LearningMetricsCard } from '@/features/metrics';
 import {
   getAllLessons,
   getLessonsForRoadmap,
@@ -44,6 +45,7 @@ export function RoadmapPage() {
   const { user } = useAuth();
   const { isLessonCompleted, getCompletedLessonIds } = useProgress();
   const { recommendations, hasRecommendations } = useRecommendations({ limit: 5 });
+  const { metrics, isLoading: metricsLoading } = useLearningMetrics();
   const lessons = getAllLessons();
   const groupedLessons = getLessonsForRoadmap(lessons);
 
@@ -80,6 +82,8 @@ export function RoadmapPage() {
           {user && <SyncStatusIndicator />}
         </div>
       </header>
+
+      {user && <LearningMetricsCard metrics={metrics} isLoading={metricsLoading} />}
 
       {hasRecommendations && (
         <NextLessonsCard recommendations={recommendations} className={styles.recommendationsCard} />

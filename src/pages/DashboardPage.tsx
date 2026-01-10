@@ -1,15 +1,19 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Badge } from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
 import { useRecommendations, NextLessonsCard } from '@/features/insights';
+import { useLearningMetrics, LearningMetricsCard } from '@/features/metrics';
 import { getAllLessons } from '@/lib/lessons';
 import { quizzes } from '@/data';
 import styles from './DashboardPage.module.css';
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const { progress, getCompletedLessonsCount } = useProgress();
   const { recommendations, hasRecommendations } = useRecommendations({ limit: 3 });
+  const { metrics, isLoading: metricsLoading } = useLearningMetrics();
   const lessons = useMemo(() => getAllLessons(), []);
   const completedCount = getCompletedLessonsCount();
   const totalCount = lessons.length;
@@ -24,6 +28,8 @@ export function DashboardPage() {
         <p className={styles.subtitle}>Reactの基礎から実践までを体系的に学びましょう</p>
       </header>
 
+      {user && <LearningMetricsCard metrics={metrics} isLoading={metricsLoading} />}
+
       <div className={styles.statsRow}>
         <Card className={styles.progressCard}>
           <CardContent>
@@ -36,7 +42,6 @@ export function DashboardPage() {
                 <span>
                   {completedCount} / {totalCount} レッスン完了
                 </span>
-                <span>連続 {progress.streak} 日</span>
               </div>
             </div>
             <div className={styles.progressTrack}>
