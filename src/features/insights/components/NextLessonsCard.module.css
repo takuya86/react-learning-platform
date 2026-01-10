@@ -99,3 +99,14 @@
 .viewAllLink:hover {
   text-decoration: underline;
 }
+
+.emptyState {
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.emptyMessage {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}

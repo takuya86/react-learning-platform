@@ -178,6 +178,30 @@ describe('recommendationService', () => {
       // lesson-2 is locked (needs lesson-1)
       expect(result[0].id).toBe('lesson-1');
     });
+
+    it('[仕様固定] 推薦順序は「未完了→アンロック済み→トポロジカル順」の優先度で決定される', () => {
+      // この仕様を変更する場合は recommendationService.ts のコメントも更新すること
+      const lessons = [
+        createLesson('advanced-1', { difficulty: 'advanced' }),
+        createLesson('beginner-1', { difficulty: 'beginner' }),
+        createLesson('intermediate-1', {
+          difficulty: 'intermediate',
+          prerequisites: ['beginner-1'],
+        }),
+        createLesson('beginner-2', { difficulty: 'beginner' }),
+      ];
+      setTestLessons(lessons);
+      const completedIds = new Set(['beginner-1']);
+
+      const result = getRecommendedLessons(lessons, completedIds);
+
+      // 期待される順序:
+      // 1. beginner-2 (未完了、アンロック済み、難易度低)
+      // 2. intermediate-1 (未完了、アンロック済み=beginner-1完了)
+      // 3. advanced-1 (未完了、アンロック済み)
+      // beginner-1 は完了済みなので除外
+      expect(result.map((l) => l.id)).toEqual(['beginner-2', 'intermediate-1', 'advanced-1']);
+    });
   });
 
   describe('hasRecommendations', () => {

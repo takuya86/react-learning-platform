@@ -23,7 +23,23 @@ interface NextLessonsCardProps {
 
 export function NextLessonsCard({ recommendations, className = '' }: NextLessonsCardProps) {
   if (recommendations.length === 0) {
-    return null;
+    return (
+      <Card className={`${styles.card} ${className}`} data-testid="recommendations-empty">
+        <CardHeader>
+          <CardTitle>次のおすすめ</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className={styles.emptyState}>
+            <p className={styles.emptyMessage}>
+              すべてのレッスンを完了しました！おめでとうございます。
+            </p>
+            <Link to="/roadmap" className={styles.viewAllLink}>
+              学習パスを確認する →
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

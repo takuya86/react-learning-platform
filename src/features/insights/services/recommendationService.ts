@@ -4,12 +4,14 @@ import { topologicalSort, isLessonUnlocked } from '@/lib/lessons';
 /**
  * Get recommended next lessons based on user progress.
  *
- * Returns lessons that are:
- * 1. Not completed (not in completedLessonIds)
- * 2. Unlocked (all prerequisites completed)
+ * ## 推薦ロジック仕様（優先順位）
  *
- * Ordered by topological sort (learning path order) to prioritize
- * lessons that are earlier in the learning sequence.
+ * 1. **未完了** - completedLessonIds に含まれないレッスン
+ * 2. **アンロック済み** - 全ての prerequisites が完了済み
+ * 3. **トポロジカル順** - 難易度・依存関係に基づく学習パス順
+ *
+ * この順序は仕様として固定されており、変更する場合は
+ * 関連テストケースも更新すること。
  *
  * @param allLessons - All available lessons
  * @param completedLessonIds - Set of completed lesson IDs
