@@ -102,4 +102,38 @@ test.describe('Authentication', () => {
     // Verify we're on the actual roadmap page
     await expect(page.getByText('ロードマップ')).toBeVisible();
   });
+
+  test('should redirect to /login when session expires', async ({ page }) => {
+    // Enable mock authentication first
+    await page.addInitScript(() => {
+      localStorage.setItem('e2e_mock_authenticated', 'true');
+    });
+
+    // Navigate to a protected route
+    await page.goto('/notes');
+    await expect(page).toHaveURL(/\/notes/);
+    await expect(page.getByTestId('notes-page')).toBeVisible();
+
+    // Simulate session expiration by removing the auth flag
+    await page.evaluate(() => {
+      localStorage.removeItem('e2e_mock_authenticated');
+      // Trigger a storage event to simulate multi-tab signout
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'supabase.auth.token',
+          newValue: null,
+          oldValue: 'some-token',
+        })
+      );
+    });
+
+    // Wait a bit for the storage event to be processed
+    await page.waitForTimeout(100);
+
+    // Navigate to trigger auth check
+    await page.goto('/roadmap');
+
+    // Should be redirected to /login
+    await expect(page).toHaveURL(/\/login/);
+  });
 });
