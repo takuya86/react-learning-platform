@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui';
+import { Badge, SyncStatusIndicator } from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
 import {
   getAllLessons,
@@ -39,6 +40,7 @@ const sectionInfo: Record<Difficulty, { title: string; description: string }> = 
 };
 
 export function RoadmapPage() {
+  const { user } = useAuth();
   const { isLessonCompleted, getCompletedLessonIds } = useProgress();
   const lessons = getAllLessons();
   const groupedLessons = getLessonsForRoadmap(lessons);
@@ -73,6 +75,7 @@ export function RoadmapPage() {
           <span className={styles.progressText}>
             {stats.completed} / {stats.total} 完了
           </span>
+          {user && <SyncStatusIndicator />}
         </div>
       </header>
 

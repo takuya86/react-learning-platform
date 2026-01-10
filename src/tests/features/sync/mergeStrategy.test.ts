@@ -147,6 +147,128 @@ describe('mergeStrategy', () => {
 
       expect(result.quizAttempts).toHaveLength(2);
     });
+
+    // Boundary case tests
+    describe('boundary cases', () => {
+      it('should prefer local lesson when both are only opened (no completedAt)', () => {
+        const local: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': { lessonId: 'lesson-1', openedAt: '2025-01-02T00:00:00Z' },
+          },
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': { lessonId: 'lesson-1', openedAt: '2025-01-01T00:00:00Z' },
+          },
+        };
+
+        const result = mergeProgress(local, remote);
+
+        // Local should be preserved when both are opened-only
+        expect(result.lessons['lesson-1'].openedAt).toBe('2025-01-02T00:00:00Z');
+      });
+
+      it('should prefer earlier completedAt when both lessons are completed', () => {
+        const local: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': {
+              lessonId: 'lesson-1',
+              openedAt: '2025-01-01T00:00:00Z',
+              completedAt: '2025-01-03T00:00:00Z',
+            },
+          },
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': {
+              lessonId: 'lesson-1',
+              openedAt: '2025-01-01T00:00:00Z',
+              completedAt: '2025-01-02T00:00:00Z',
+            },
+          },
+        };
+
+        const result = mergeProgress(local, remote);
+
+        // Remote completed earlier, so remote should be used
+        expect(result.lessons['lesson-1'].completedAt).toBe('2025-01-02T00:00:00Z');
+      });
+
+      it('should keep local completed when remote is only opened', () => {
+        const local: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': {
+              lessonId: 'lesson-1',
+              openedAt: '2025-01-01T00:00:00Z',
+              completedAt: '2025-01-02T00:00:00Z',
+            },
+          },
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': { lessonId: 'lesson-1', openedAt: '2025-01-01T00:00:00Z' },
+          },
+        };
+
+        const result = mergeProgress(local, remote);
+
+        expect(result.lessons['lesson-1'].completedAt).toBe('2025-01-02T00:00:00Z');
+      });
+
+      it('should use local lastStudyDate when remote is null', () => {
+        const local: Progress = { ...baseProgress, lastStudyDate: '2025-01-05' };
+        const remote: Progress = { ...baseProgress, lastStudyDate: null };
+
+        const result = mergeProgress(local, remote);
+
+        expect(result.lastStudyDate).toBe('2025-01-05');
+      });
+
+      it('should use remote lastStudyDate when local is null', () => {
+        const local: Progress = { ...baseProgress, lastStudyDate: null };
+        const remote: Progress = { ...baseProgress, lastStudyDate: '2025-01-05' };
+
+        const result = mergeProgress(local, remote);
+
+        expect(result.lastStudyDate).toBe('2025-01-05');
+      });
+
+      it('should handle both lastStudyDate being null', () => {
+        const local: Progress = { ...baseProgress, lastStudyDate: null };
+        const remote: Progress = { ...baseProgress, lastStudyDate: null };
+
+        const result = mergeProgress(local, remote);
+
+        expect(result.lastStudyDate).toBeNull();
+      });
+
+      it('should handle empty arrays correctly', () => {
+        const local: Progress = { ...baseProgress };
+        const remote: Progress = { ...baseProgress };
+
+        const result = mergeProgress(local, remote);
+
+        expect(result.completedQuizzes).toEqual([]);
+        expect(result.completedExercises).toEqual([]);
+        expect(result.studyDates).toEqual([]);
+        expect(result.quizAttempts).toEqual([]);
+      });
+
+      it('should take remote streak when remote is higher', () => {
+        const local: Progress = { ...baseProgress, streak: 3 };
+        const remote: Progress = { ...baseProgress, streak: 5 };
+
+        const result = mergeProgress(local, remote);
+
+        expect(result.streak).toBe(5);
+      });
+    });
   });
 
   describe('mergeNotes', () => {
@@ -206,6 +328,64 @@ describe('mergeStrategy', () => {
 
       expect(result['lesson-1']).toBeDefined();
       expect(result['lesson-2']).toBeDefined();
+    });
+
+    // Boundary case tests
+    describe('boundary cases', () => {
+      it('should prefer local when timestamps are identical', () => {
+        const local: Record<string, Note> = {
+          'lesson-1': createNote('lesson-1', 'local content', '2025-01-01T00:00:00Z'),
+        };
+        const remote: Record<string, Note> = {
+          'lesson-1': createNote('lesson-1', 'remote content', '2025-01-01T00:00:00Z'),
+        };
+
+        const result = mergeNotes(local, remote);
+
+        // Local should be preferred when timestamps are equal
+        expect(result['lesson-1'].markdown).toBe('local content');
+      });
+
+      it('should return empty object when both are empty', () => {
+        const local: Record<string, Note> = {};
+        const remote: Record<string, Note> = {};
+
+        const result = mergeNotes(local, remote);
+
+        expect(result).toEqual({});
+      });
+
+      it('should return remote notes when local is empty', () => {
+        const local: Record<string, Note> = {};
+        const remote: Record<string, Note> = {
+          'lesson-1': createNote('lesson-1', 'remote content', '2025-01-01T00:00:00Z'),
+        };
+
+        const result = mergeNotes(local, remote);
+
+        expect(result['lesson-1'].markdown).toBe('remote content');
+      });
+
+      it('should handle many notes from both sides', () => {
+        const local: Record<string, Note> = {
+          'lesson-1': createNote('lesson-1', 'local 1', '2025-01-01T00:00:00Z'),
+          'lesson-2': createNote('lesson-2', 'local 2 newer', '2025-01-03T00:00:00Z'),
+          'lesson-3': createNote('lesson-3', 'local only', '2025-01-01T00:00:00Z'),
+        };
+        const remote: Record<string, Note> = {
+          'lesson-1': createNote('lesson-1', 'remote 1 newer', '2025-01-02T00:00:00Z'),
+          'lesson-2': createNote('lesson-2', 'remote 2', '2025-01-01T00:00:00Z'),
+          'lesson-4': createNote('lesson-4', 'remote only', '2025-01-01T00:00:00Z'),
+        };
+
+        const result = mergeNotes(local, remote);
+
+        expect(Object.keys(result)).toHaveLength(4);
+        expect(result['lesson-1'].markdown).toBe('remote 1 newer'); // remote is newer
+        expect(result['lesson-2'].markdown).toBe('local 2 newer'); // local is newer
+        expect(result['lesson-3'].markdown).toBe('local only'); // local only
+        expect(result['lesson-4'].markdown).toBe('remote only'); // remote only
+      });
     });
   });
 
