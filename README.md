@@ -4,7 +4,7 @@ React/TypeScript の基礎から実践までを学べるインタラクティブ
 
 ## Demo
 
-**公開URL**: <YOUR_VERCEL_URL>
+**公開URL**: https://react-learning-platform-rho.vercel.app
 
 ## Features
 
@@ -77,6 +77,36 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 2. Authentication → URL Configuration で:
    - Site URL: `http://localhost:5173`（開発時）
    - Redirect URLs: 本番URLを追加
+
+### 4. 本番環境（Vercel）での設定
+
+#### Vercel環境変数
+
+Vercel Dashboard → Settings → Environment Variables に以下を追加:
+
+| 変数名                   | 値                        |
+| ------------------------ | ------------------------- |
+| `VITE_SUPABASE_URL`      | `https://xxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | `eyJhbG...`               |
+
+設定後、Deployments から Redeploy を実行。
+
+#### Supabase URL設定（本番用）
+
+Authentication → URL Configuration:
+
+| 項目          | 値                                                  |
+| ------------- | --------------------------------------------------- |
+| Site URL      | `https://react-learning-platform-rho.vercel.app`    |
+| Redirect URLs | `https://react-learning-platform-rho.vercel.app/**` |
+
+### 5. モックモード（開発・テスト）
+
+環境変数が未設定の場合、自動的にモックモードで動作します:
+
+- **開発時**: ログイン機能は動作しない（UIのみ確認可能）
+- **E2E テスト**: `localStorage.setItem('e2e_mock_authenticated', 'true')` で認証をバイパス
+- **CI**: モックモードで実行され、Supabase依存なくテストが通過
 
 ## Tests & Quality
 
@@ -236,10 +266,10 @@ npm run lessons:stats
 | Sprint 4   | Docker化 + CI最小構成                              |
 | Sprint 5-A | CI強化（lint / typecheck / coverage）              |
 | Sprint 5-B | Vercelデプロイ対応                                 |
+| Sprint 6   | Supabase Auth認証機能（ログイン必須化）            |
 
 ### 今後の候補
 
-- 認証機能（ログイン・ユーザー管理）
 - バックエンド連携（進捗データの永続化）
 - レッスンコンテンツ拡充
 - ダークモード対応

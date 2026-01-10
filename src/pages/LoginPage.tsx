@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth';
 import { Button, Input } from '@/components/ui';
+import { isMockMode } from '@/lib/supabase';
 import styles from './LoginPage.module.css';
 
 export function LoginPage() {
@@ -59,6 +60,13 @@ export function LoginPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        {isMockMode && (
+          <div className={styles.mockWarning}>
+            <strong>開発モード:</strong> Supabase環境変数が未設定のため、認証機能は動作しません。
+            <br />
+            <code>.env.local</code> にSupabaseの認証情報を設定してください。
+          </div>
+        )}
         <h1 className={styles.title}>{isSignUp ? 'アカウント作成' : 'ログイン'}</h1>
 
         <form onSubmit={handleSubmit} className={styles.form}>
