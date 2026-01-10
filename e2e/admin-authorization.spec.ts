@@ -115,8 +115,8 @@ test.describe('Admin Authorization', () => {
 
     await page.goto('/admin');
 
-    // Should show admin badge
-    await expect(page.getByText('管理者')).toBeVisible();
+    // Should show admin badge (use exact match to avoid multiple matches)
+    await expect(page.getByText('管理者', { exact: true })).toBeVisible();
   });
 
   test('should redirect to login when unauthenticated user tries to access admin page', async ({
