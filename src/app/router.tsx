@@ -1,5 +1,6 @@
 import { createBrowserRouter, useParams } from 'react-router-dom';
 import { Layout } from './Layout';
+import { RequireAuth } from '@/features/auth';
 import {
   DashboardPage,
   LessonsPage,
@@ -11,6 +12,7 @@ import {
   NotesPage,
   RoadmapPage,
   NotFoundPage,
+  LoginPage,
 } from '@/pages';
 
 function LessonDetailRoute() {
@@ -30,8 +32,16 @@ function QuizRoute() {
 
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
     path: '/',
-    element: <Layout />,
+    element: (
+      <RequireAuth>
+        <Layout />
+      </RequireAuth>
+    ),
     children: [
       {
         index: true,

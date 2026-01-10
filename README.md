@@ -23,6 +23,7 @@ React/TypeScript の基礎から実践までを学べるインタラクティブ
 | フレームワーク | React 19 + TypeScript    |
 | ビルドツール   | Vite                     |
 | ルーティング   | React Router             |
+| 認証           | Supabase Auth            |
 | フォーム       | React Hook Form + Zod    |
 | テスト         | Vitest + Testing Library |
 | スタイリング   | CSS Modules              |
@@ -46,6 +47,36 @@ npm ci
 npm run dev
 # → http://localhost:5173
 ```
+
+## Authentication Setup
+
+このアプリケーションは認証にSupabaseを使用しています。
+
+### 1. Supabaseプロジェクト作成
+
+1. [Supabase](https://supabase.com) にアクセスしてアカウント作成
+2. 新しいプロジェクトを作成
+3. Project Settings → API から以下を取得:
+   - **Project URL**: `https://xxx.supabase.co`
+   - **anon/public key**: `eyJhbG...`
+
+### 2. 環境変数設定
+
+```bash
+# .env.example を .env.local にコピー
+cp .env.example .env.local
+
+# .env.local を編集してSupabase認証情報を設定
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### 3. 認証設定（Supabaseダッシュボード）
+
+1. Authentication → Providers で Email を有効化
+2. Authentication → URL Configuration で:
+   - Site URL: `http://localhost:5173`（開発時）
+   - Redirect URLs: 本番URLを追加
 
 ## Tests & Quality
 
