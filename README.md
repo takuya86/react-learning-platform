@@ -18,16 +18,16 @@ React/TypeScript の基礎から実践までを学べるインタラクティブ
 
 ## Tech Stack
 
-| カテゴリ | 技術 |
-|---------|------|
-| フレームワーク | React 19 + TypeScript |
-| ビルドツール | Vite |
-| ルーティング | React Router |
-| フォーム | React Hook Form + Zod |
-| テスト | Vitest + Testing Library |
-| スタイリング | CSS Modules |
-| CI/CD | GitHub Actions + Vercel |
-| コンテナ | Docker |
+| カテゴリ       | 技術                     |
+| -------------- | ------------------------ |
+| フレームワーク | React 19 + TypeScript    |
+| ビルドツール   | Vite                     |
+| ルーティング   | React Router             |
+| フォーム       | React Hook Form + Zod    |
+| テスト         | Vitest + Testing Library |
+| スタイリング   | CSS Modules              |
+| CI/CD          | GitHub Actions + Vercel  |
+| コンテナ       | Docker                   |
 
 ## Getting Started
 
@@ -80,6 +80,63 @@ GitHub Actions で以下を自動実行（push / PR時）:
 3. **Test + Coverage** - テスト実行とカバレッジ計測
 4. **Build** - ビルド成功の確認
 
+## Lesson Content Operations
+
+レッスンコンテンツはMDX形式で管理し、週次で自動生成されます。
+
+### 運用フロー
+
+```
+┌─────────────┐    generate:lessons    ┌──────────┐    Claude埋め    ┌─────────────┐
+│   Backlog   │ ─────────────────────► │  PR作成  │ ───────────────► │  品質チェック  │
+│ (18本待機)  │   毎週月曜 09:00 JST    │ (雛形MDX) │                  │   CI緑確認   │
+└─────────────┘                        └──────────┘                  └──────┬──────┘
+                                                                            │
+                                           マージ                           │
+┌─────────────┐                        ┌──────────┐                         │
+│    公開     │ ◄───────────────────── │   main   │ ◄───────────────────────┘
+│  (Vercel)   │                        │  ブランチ  │
+└─────────────┘                        └──────────┘
+```
+
+### コマンド一覧
+
+```bash
+# 雛形生成（最大3本/回）
+npm run generate:lessons
+
+# レッスン検証（必須）
+npm run validate:lessons -- --strict
+
+# 統計確認（バランス確認）
+npm run lessons:stats
+```
+
+### 品質ゲート（PRマージ前）
+
+```bash
+npm run validate:lessons -- --strict  # 必須フィールド・循環依存チェック
+npm run typecheck                      # 型チェック
+npm run test:run                       # テスト
+npm run build                          # ビルド
+```
+
+### Backlog運用ルール
+
+| チェック項目        | 説明                                          |
+| ------------------- | --------------------------------------------- |
+| prerequisites整合性 | 存在しないslugを参照していない                |
+| 循環依存なし        | A→B→A のような依存がない（CIで検出）          |
+| 難易度バランス      | beginner/intermediate/advanced が偏りすぎない |
+| 初学者導線          | beginnerが毎月一定数増える                    |
+
+### 週次KPI
+
+```bash
+npm run lessons:stats
+# → pending が週3ずつ減っていればOK
+```
+
 ## Deployment
 
 ### Vercel へのデプロイ手順
@@ -108,13 +165,13 @@ GitHub Actions で以下を自動実行（push / PR時）:
 
 ### Branch roles
 
-| ブランチ | 用途 | 例 |
-|---------|------|-----|
-| `main` | 常に安定・デプロイ可能 | - |
-| `feature/*` | 機能追加・スプリント作業 | `feature/sprint3-notes` |
-| `fix/*` | バグ修正 | `fix/timeout-double-fire` |
-| `chore/*` | 依存更新、リファクタ、設定調整 | `chore/ci-coverage-threshold` |
-| `hotfix/*` | 本番緊急対応（必要時のみ） | `hotfix/prod-routing-404` |
+| ブランチ    | 用途                           | 例                            |
+| ----------- | ------------------------------ | ----------------------------- |
+| `main`      | 常に安定・デプロイ可能         | -                             |
+| `feature/*` | 機能追加・スプリント作業       | `feature/sprint3-notes`       |
+| `fix/*`     | バグ修正                       | `fix/timeout-double-fire`     |
+| `chore/*`   | 依存更新、リファクタ、設定調整 | `chore/ci-coverage-threshold` |
+| `hotfix/*`  | 本番緊急対応（必要時のみ）     | `hotfix/prod-routing-404`     |
 
 ※ `dev` ブランチは小規模では省略推奨。複数人運用時に導入。
 
@@ -141,13 +198,13 @@ GitHub Actions で以下を自動実行（push / PR時）:
 
 ### 完了済み
 
-| Sprint | 内容 |
-|--------|------|
-| Sprint 2 | クイズ機能（タイマー、レジューム、苦手分野記録） |
-| Sprint 3 | ノート機能（追加・編集・削除・LocalStorage永続化） |
-| Sprint 4 | Docker化 + CI最小構成 |
-| Sprint 5-A | CI強化（lint / typecheck / coverage） |
-| Sprint 5-B | Vercelデプロイ対応 |
+| Sprint     | 内容                                               |
+| ---------- | -------------------------------------------------- |
+| Sprint 2   | クイズ機能（タイマー、レジューム、苦手分野記録）   |
+| Sprint 3   | ノート機能（追加・編集・削除・LocalStorage永続化） |
+| Sprint 4   | Docker化 + CI最小構成                              |
+| Sprint 5-A | CI強化（lint / typecheck / coverage）              |
+| Sprint 5-B | Vercelデプロイ対応                                 |
 
 ### 今後の候補
 
