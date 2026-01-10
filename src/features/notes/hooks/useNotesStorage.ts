@@ -1,9 +1,5 @@
-import { useState, useCallback } from 'react';
-import {
-  type Note,
-  type NotesStorageData,
-  NOTES_STORAGE_VERSION,
-} from '@/domain/types';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { type Note, type NotesStorageData, NOTES_STORAGE_VERSION } from '@/domain/types';
 import {
   loadNotesData,
   saveNotesData,
@@ -30,14 +26,33 @@ export interface UseNotesStorageReturn {
   deleteNote: (lessonId: string) => void;
   /** Create a new empty note for a lesson */
   createNote: (lessonId: string) => Note;
+  /** Set notes data directly (for sync) */
+  setNotesData: (notes: Record<string, Note>) => void;
+}
+
+export interface UseNotesStorageOptions {
+  /** Callback when a note changes */
+  onNoteChange?: (note: Note) => void;
+  /** Callback when notes data changes */
+  onDataChange?: (notes: Record<string, Note>) => void;
 }
 
 /**
  * Hook for managing notes localStorage access
  * Provides load/save/clear operations and state synchronization
  */
-export function useNotesStorage(): UseNotesStorageReturn {
+export function useNotesStorage(options?: UseNotesStorageOptions): UseNotesStorageReturn {
   const [data, setData] = useState<NotesStorageData>(() => loadNotesData());
+  const isInitialMount = useRef(true);
+
+  // Notify parent when notes data changes (skip initial mount)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    options?.onDataChange?.(data.notesByLessonId);
+  }, [data.notesByLessonId, options]);
 
   const load = useCallback(() => {
     const loaded = loadNotesData();
@@ -59,16 +74,21 @@ export function useNotesStorage(): UseNotesStorageReturn {
     return getNoteByLessonId(lessonId);
   }, []);
 
-  const saveNote = useCallback((note: Note) => {
-    saveNoteToStorage(note);
-    setData((prev) => ({
-      ...prev,
-      notesByLessonId: {
-        ...prev.notesByLessonId,
-        [note.lessonId]: note,
-      },
-    }));
-  }, []);
+  const saveNote = useCallback(
+    (note: Note) => {
+      saveNoteToStorage(note);
+      setData((prev) => ({
+        ...prev,
+        notesByLessonId: {
+          ...prev.notesByLessonId,
+          [note.lessonId]: note,
+        },
+      }));
+      // Notify about single note change
+      options?.onNoteChange?.(note);
+    },
+    [options]
+  );
 
   const deleteNote = useCallback((lessonId: string) => {
     deleteNoteFromStorage(lessonId);
@@ -92,6 +112,16 @@ export function useNotesStorage(): UseNotesStorageReturn {
     };
   }, []);
 
+  // Set notes data directly (for sync operations)
+  const setNotesData = useCallback((notes: Record<string, Note>) => {
+    const newData: NotesStorageData = {
+      version: NOTES_STORAGE_VERSION,
+      notesByLessonId: notes,
+    };
+    saveNotesData(newData);
+    setData(newData);
+  }, []);
+
   return {
     data,
     load,
@@ -101,5 +131,6 @@ export function useNotesStorage(): UseNotesStorageReturn {
     saveNote,
     deleteNote,
     createNote,
+    setNotesData,
   };
 }

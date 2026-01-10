@@ -108,6 +108,65 @@ Authentication → URL Configuration:
 - **E2E テスト**: `localStorage.setItem('e2e_mock_authenticated', 'true')` で認証をバイパス
 - **CI**: モックモードで実行され、Supabase依存なくテストが通過
 
+## Database Setup (Cloud Sync)
+
+ログインユーザーの進捗データとノートをSupabaseに同期するには、以下のテーブルをセットアップしてください。
+
+### 1. テーブル作成
+
+Supabase Dashboard → SQL Editor で以下のSQLを実行:
+
+```sql
+-- User Progress Table
+CREATE TABLE user_progress (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  lessons JSONB NOT NULL DEFAULT '{}',
+  completed_quizzes TEXT[] NOT NULL DEFAULT '{}',
+  completed_exercises TEXT[] NOT NULL DEFAULT '{}',
+  streak INTEGER NOT NULL DEFAULT 0,
+  last_study_date DATE,
+  study_dates DATE[] NOT NULL DEFAULT '{}',
+  quiz_attempts JSONB NOT NULL DEFAULT '[]',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+-- User Notes Table
+CREATE TABLE user_notes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  lesson_id TEXT NOT NULL,
+  markdown TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id, lesson_id)
+);
+
+-- Enable Row Level Security
+ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_notes ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can CRUD own progress" ON user_progress
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can CRUD own notes" ON user_notes
+  FOR ALL USING (auth.uid() = user_id);
+```
+
+### 2. 同期の動作
+
+- **ログイン時**: Supabaseからデータを取得し、ローカルデータとマージ
+- **データ更新時**: localStorage即時更新 → 500msデバウンス → Supabase同期
+- **オフライン時**: localStorageのみ更新、オンライン復帰で同期
+
+### 3. 注意事項
+
+- テーブル未作成の場合でも、localStorageでの動作は継続（エラーログは出力）
+- モックモードでは同期は無効（localStorageのみで動作）
+
 ## Tests & Quality
 
 ```bash
