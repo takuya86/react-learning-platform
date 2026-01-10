@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+// Set mock auth before each test (for routes that require authentication)
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('e2e_mock_authenticated', 'true');
+  });
+});
+
 test.describe('レッスン詳細からの導線テスト', () => {
   test('レッスン詳細 → ノートを開く → /notes に遷移し lessonId が含まれる', async ({ page }) => {
     // レッスン一覧に移動

@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+// Set mock auth before each test (for routes that require authentication)
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('e2e_mock_authenticated', 'true');
+  });
+});
+
 test('直接 /notes?lessonId=xxx にアクセス', async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on('console', (msg) => {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { Session, User, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, isMockMode } from '@/lib/supabase';
 
 interface AuthContextType {
   session: Session | null;
@@ -17,12 +17,45 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Mock user for E2E testing (when localStorage flag is set)
+const MOCK_USER: User = {
+  id: 'e2e-test-user',
+  email: 'test@example.com',
+  aud: 'authenticated',
+  role: 'authenticated',
+  created_at: new Date().toISOString(),
+  app_metadata: {},
+  user_metadata: {},
+} as User;
+
+const MOCK_SESSION: Session = {
+  access_token: 'mock-token',
+  refresh_token: 'mock-refresh-token',
+  expires_in: 3600,
+  token_type: 'bearer',
+  user: MOCK_USER,
+} as Session;
+
+// Check if E2E mock auth is enabled via localStorage
+function isE2EMockAuthEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  return isMockMode && localStorage.getItem('e2e_mock_authenticated') === 'true';
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // In E2E mock mode with flag set, auto-authenticate
+    if (isE2EMockAuthEnabled()) {
+      setSession(MOCK_SESSION);
+      setUser(MOCK_USER);
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);

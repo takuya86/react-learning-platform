@@ -1,13 +1,27 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. ' +
-      'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env.local file.'
-  );
+// Check if we're in mock mode (no env vars set - for testing/development without Supabase)
+export const isMockMode = !supabaseUrl || !supabaseAnonKey;
+
+// Create a mock Supabase client for testing
+function createMockClient(): SupabaseClient {
+  return {
+    auth: {
+      getSession: async () => ({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe: () => {} } },
+      }),
+      signUp: async () => ({ data: { user: null, session: null }, error: null }),
+      signInWithPassword: async () => ({ data: { user: null, session: null }, error: null }),
+      signOut: async () => ({ error: null }),
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase: SupabaseClient = isMockMode
+  ? createMockClient()
+  : createClient(supabaseUrl, supabaseAnonKey);
