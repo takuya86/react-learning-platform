@@ -1,18 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { lessons, getLessonById, getAllTags } from '@/data/lessons';
+import { getAllLessons, getLessonById, getAllTags } from '@/lib/lessons';
 
 describe('lessons data', () => {
   it('should have lessons array', () => {
+    const lessons = getAllLessons();
     expect(Array.isArray(lessons)).toBe(true);
     expect(lessons.length).toBeGreaterThan(0);
   });
 
   it('should have valid lesson structure', () => {
+    const lessons = getAllLessons();
     lessons.forEach((lesson) => {
       expect(lesson).toHaveProperty('id');
       expect(lesson).toHaveProperty('title');
       expect(lesson).toHaveProperty('description');
-      expect(lesson).toHaveProperty('content');
+      expect(lesson).toHaveProperty('Component');
       expect(lesson).toHaveProperty('tags');
       expect(lesson).toHaveProperty('difficulty');
       expect(lesson).toHaveProperty('estimatedMinutes');
@@ -21,7 +23,15 @@ describe('lessons data', () => {
     });
   });
 
+  it('should have Component as a function', () => {
+    const lessons = getAllLessons();
+    lessons.forEach((lesson) => {
+      expect(typeof lesson.Component).toBe('function');
+    });
+  });
+
   it('should have unique lesson ids', () => {
+    const lessons = getAllLessons();
     const ids = lessons.map((l) => l.id);
     const uniqueIds = new Set(ids);
     expect(ids.length).toBe(uniqueIds.size);

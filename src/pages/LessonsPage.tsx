@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { LessonFilter, LessonList } from '@/features/lessons';
 import { useDebounce } from '@/hooks';
-import { lessons, getAllTags } from '@/data';
+import { getAllLessons, getAllTags } from '@/lib/lessons';
 import type { Difficulty } from '@/domain/types';
 import styles from './LessonsPage.module.css';
 
@@ -11,6 +11,7 @@ export function LessonsPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | ''>('');
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const lessons = useMemo(() => getAllLessons(), []);
   const availableTags = useMemo(() => getAllTags(), []);
 
   const filteredLessons = useMemo(() => {
@@ -18,9 +19,7 @@ export function LessonsPage() {
       const matchesSearch =
         debouncedSearchQuery === '' ||
         lesson.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-        lesson.tags.some((tag) =>
-          tag.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-        );
+        lesson.tags.some((tag) => tag.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
 
       const matchesTag = selectedTag === '' || lesson.tags.includes(selectedTag);
 
@@ -29,7 +28,7 @@ export function LessonsPage() {
 
       return matchesSearch && matchesTag && matchesDifficulty;
     });
-  }, [debouncedSearchQuery, selectedTag, selectedDifficulty]);
+  }, [lessons, debouncedSearchQuery, selectedTag, selectedDifficulty]);
 
   return (
     <div className={styles.container}>

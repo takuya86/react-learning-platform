@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { type Note } from '@/domain/types';
 import { type Lesson } from '@/domain/types';
-import { lessons } from '@/data/lessons';
+import { getAllLessons } from '@/lib/lessons';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useNotesStorage } from './useNotesStorage';
 
@@ -46,7 +46,14 @@ const SEARCH_DEBOUNCE_DELAY = 300;
  */
 export function useNotes(): UseNotesReturn {
   const [searchParams, setSearchParams] = useSearchParams();
-  const storage = useNotesStorage();
+  const {
+    data: storageData,
+    saveNote: storageSaveNote,
+    deleteNote: storageDeleteNote,
+  } = useNotesStorage();
+
+  // Memoize lessons to avoid recreating the array on every render
+  const lessons = useMemo(() => getAllLessons(), []);
 
   // Search query state with debounce
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,14 +73,14 @@ export function useNotes(): UseNotesReturn {
   const selectedLessonId = searchParams.get('lessonId');
   const selectedLesson = useMemo(
     () => lessons.find((l) => l.id === selectedLessonId) ?? null,
-    [selectedLessonId]
+    [selectedLessonId, lessons]
   );
 
   // Current note for selected lesson
   const currentNote = useMemo(() => {
     if (!selectedLessonId) return null;
-    return storage.data.notesByLessonId[selectedLessonId] ?? null;
-  }, [selectedLessonId, storage.data.notesByLessonId]);
+    return storageData.notesByLessonId[selectedLessonId] ?? null;
+  }, [selectedLessonId, storageData.notesByLessonId]);
 
   // Filter lessons by search query
   const filteredLessons = useMemo(() => {
@@ -87,7 +94,7 @@ export function useNotes(): UseNotesReturn {
         lesson.title.toLowerCase().includes(query) ||
         lesson.tags.some((tag) => tag.toLowerCase().includes(query))
     );
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, lessons]);
 
   // Select a lesson (updates URL)
   const selectLesson = useCallback(
@@ -118,7 +125,7 @@ export function useNotes(): UseNotesReturn {
     }
 
     const now = new Date().toISOString();
-    const existingNote = storage.data.notesByLessonId[selectedLessonId];
+    const existingNote = storageData.notesByLessonId[selectedLessonId];
 
     const note: Note = existingNote
       ? { ...existingNote, markdown: debouncedContent, updatedAt: now }
@@ -130,13 +137,13 @@ export function useNotes(): UseNotesReturn {
         };
 
     try {
-      storage.saveNote(note);
+      storageSaveNote(note);
       lastSavedContentRef.current = debouncedContent;
       setSaveStatus('saved');
     } catch {
       setSaveStatus('error');
     }
-  }, [debouncedContent, selectedLessonId, storage]);
+  }, [debouncedContent, selectedLessonId, storageData.notesByLessonId, storageSaveNote]);
 
   // Reset save status after showing "saved"
   useEffect(() => {
@@ -151,26 +158,26 @@ export function useNotes(): UseNotesReturn {
   // Delete current note
   const deleteCurrentNote = useCallback(() => {
     if (selectedLessonId) {
-      storage.deleteNote(selectedLessonId);
+      storageDeleteNote(selectedLessonId);
       setPendingContent(null);
       lastSavedContentRef.current = null;
       setSaveStatus('idle');
     }
-  }, [selectedLessonId, storage]);
+  }, [selectedLessonId, storageDeleteNote]);
 
   // Check if a lesson has a note
   const hasNote = useCallback(
     (lessonId: string) => {
-      const note = storage.data.notesByLessonId[lessonId];
+      const note = storageData.notesByLessonId[lessonId];
       return !!note && note.markdown.trim().length > 0;
     },
-    [storage.data.notesByLessonId]
+    [storageData.notesByLessonId]
   );
 
   // Get all notes
   const getAllNotes = useCallback(() => {
-    return storage.data.notesByLessonId;
-  }, [storage.data.notesByLessonId]);
+    return storageData.notesByLessonId;
+  }, [storageData.notesByLessonId]);
 
   return {
     allLessons: lessons,

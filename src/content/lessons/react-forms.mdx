@@ -1,0 +1,78 @@
+---
+title: 'フォーム処理：react-hook-form'
+slug: 'react-forms'
+description: 'react-hook-formを使った効率的なフォーム処理を学びます。'
+tags: ['react', 'forms', 'react-hook-form', 'validation']
+difficulty: 'intermediate'
+estimatedMinutes: 30
+exerciseId: 'form-exercise'
+---
+
+# フォーム処理：react-hook-form
+
+## react-hook-formとは
+
+react-hook-formは、パフォーマンスに優れたフォームライブラリです。
+
+## 基本的な使い方
+
+```tsx
+import { useForm } from 'react-hook-form';
+
+interface FormData {
+  email: string;
+  password: string;
+}
+
+function LoginForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+
+  const onSubmit = (data: FormData) => {
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input
+        {...register('email', { required: 'メールアドレスは必須です' })}
+        placeholder="Email"
+      />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input
+        {...register('password', {
+          required: 'パスワードは必須です',
+          minLength: { value: 8, message: '8文字以上' }
+        })}
+        type="password"
+        placeholder="Password"
+      />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <button type="submit">ログイン</button>
+    </form>
+  );
+}
+```
+
+## Zodとの連携
+
+```tsx
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const schema = z.object({
+  email: z.string().email('有効なメールアドレスを入力'),
+  password: z.string().min(8, '8文字以上必要'),
+});
+
+type FormData = z.infer<typeof schema>;
+
+function LoginForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
+
+  // ...
+}
+```

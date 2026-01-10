@@ -1,14 +1,10 @@
-import { useReducer, useEffect, useCallback, useState, useRef } from 'react';
+import { useReducer, useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button, Card, CardContent, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
 import { getQuizById } from '@/data';
-import { lessons } from '@/data/lessons';
-import {
-  quizReducer,
-  createInitialState,
-  stateToSession,
-} from '@/features/quiz/state/quizReducer';
+import { getAllLessons } from '@/lib/lessons';
+import { quizReducer, createInitialState, stateToSession } from '@/features/quiz/state/quizReducer';
 import {
   saveQuizSession,
   loadQuizSession,
@@ -33,6 +29,7 @@ export function QuizPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { completeQuiz, recordQuizAttempt } = useProgress();
+  const lessons = useMemo(() => getAllLessons(), []);
 
   const quiz = id ? getQuizById(id) : undefined;
 
@@ -96,7 +93,12 @@ export function QuizPage() {
   const handleStartNew = useCallback(() => {
     if (!id) return;
     deleteQuizSession(id);
-    dispatch({ type: 'RESET', quizId: id, timeLimitSec: quiz?.timeLimitSec ?? null, timestamp: now() });
+    dispatch({
+      type: 'RESET',
+      quizId: id,
+      timeLimitSec: quiz?.timeLimitSec ?? null,
+      timestamp: now(),
+    });
     setShowResumeDialog(false);
     setHasExistingSession(false);
     resultSavedRef.current = false;
@@ -189,7 +191,12 @@ export function QuizPage() {
       deleteQuizSession(id);
     }
     resultSavedRef.current = false;
-    dispatch({ type: 'RESET', quizId: id || '', timeLimitSec: quiz.timeLimitSec ?? null, timestamp: now() });
+    dispatch({
+      type: 'RESET',
+      quizId: id || '',
+      timeLimitSec: quiz.timeLimitSec ?? null,
+      timestamp: now(),
+    });
   };
 
   if (state.isFinished) {
@@ -221,10 +228,7 @@ export function QuizPage() {
               <RelatedLessons lessons={relatedLessonsList} title="復習におすすめ" />
             )}
 
-            <QuizResultReview
-              questions={quiz.questions}
-              results={questionResults}
-            />
+            <QuizResultReview questions={quiz.questions} results={questionResults} />
 
             <div className={styles.resultActions}>
               <Button onClick={handleRetry} variant="outline">
@@ -286,11 +290,7 @@ export function QuizPage() {
                   <span className={styles.hintLabel}>ヒント:</span> {currentQuestion.hint}
                 </div>
               ) : (
-                <Button
-                  onClick={handleUseHint}
-                  variant="outline"
-                  className={styles.hintButton}
-                >
+                <Button onClick={handleUseHint} variant="outline" className={styles.hintButton}>
                   ヒントを見る
                 </Button>
               )}
@@ -321,13 +321,9 @@ export function QuizPage() {
                   onClick={() => handleSelectAnswer(index)}
                   disabled={hasAnswered || isSkipped}
                 >
-                  <span className={styles.optionIndex}>
-                    {String.fromCharCode(65 + index)}
-                  </span>
+                  <span className={styles.optionIndex}>{String.fromCharCode(65 + index)}</span>
                   <span className={styles.optionText}>{option}</span>
-                  {showCorrectness && isCorrect && (
-                    <Badge variant="success">正解</Badge>
-                  )}
+                  {showCorrectness && isCorrect && <Badge variant="success">正解</Badge>}
                 </button>
               );
             })}

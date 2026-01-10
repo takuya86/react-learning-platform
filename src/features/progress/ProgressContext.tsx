@@ -13,6 +13,7 @@ interface ProgressContextType {
   isLessonCompleted: (lessonId: string) => boolean;
   isLessonOpened: (lessonId: string) => boolean;
   getCompletedLessonsCount: () => number;
+  getCompletedLessonIds: () => string[];
   getTotalLessonsOpened: () => number;
   resetProgress: () => void;
 }
@@ -66,24 +67,21 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
     initialProgress
   );
 
-  const recordStudyActivity = useCallback(
-    (currentProgress: Progress): Progress => {
-      const today = getTodayDateString();
-      const newStudyDates = currentProgress.studyDates.includes(today)
-        ? currentProgress.studyDates
-        : [...currentProgress.studyDates, today];
+  const recordStudyActivity = useCallback((currentProgress: Progress): Progress => {
+    const today = getTodayDateString();
+    const newStudyDates = currentProgress.studyDates.includes(today)
+      ? currentProgress.studyDates
+      : [...currentProgress.studyDates, today];
 
-      const newStreak = calculateStreak(newStudyDates, today);
+    const newStreak = calculateStreak(newStudyDates, today);
 
-      return {
-        ...currentProgress,
-        lastStudyDate: today,
-        studyDates: newStudyDates,
-        streak: newStreak,
-      };
-    },
-    []
-  );
+    return {
+      ...currentProgress,
+      lastStudyDate: today,
+      studyDates: newStudyDates,
+      streak: newStreak,
+    };
+  }, []);
 
   const markLessonOpened = useCallback(
     (lessonId: string) => {
@@ -199,6 +197,12 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
     return Object.values(progress.lessons).filter((l) => l.completedAt).length;
   }, [progress]);
 
+  const getCompletedLessonIds = useCallback((): string[] => {
+    return Object.entries(progress.lessons)
+      .filter(([, lesson]) => lesson.completedAt)
+      .map(([id]) => id);
+  }, [progress]);
+
   const getTotalLessonsOpened = useCallback((): number => {
     return Object.keys(progress.lessons).length;
   }, [progress]);
@@ -219,6 +223,7 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
         isLessonCompleted,
         isLessonOpened,
         getCompletedLessonsCount,
+        getCompletedLessonIds,
         getTotalLessonsOpened,
         resetProgress,
       }}

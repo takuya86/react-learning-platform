@@ -1,0 +1,41 @@
+---
+title: 'React入門：コンポーネントとJSX'
+slug: 'react-basics'
+description: 'Reactの基本概念であるコンポーネントとJSXについて学びます。'
+tags: ['react', 'jsx', 'component']
+difficulty: 'beginner'
+estimatedMinutes: 15
+exerciseId: 'jsx-basics'
+---
+
+# React入門：コンポーネントとJSX
+
+## コンポーネントとは
+
+Reactのコンポーネントは、UIの独立した再利用可能なパーツです。
+関数コンポーネントを使って、シンプルに定義できます。
+
+```tsx
+function Welcome(props: { name: string }) {
+  return <h1>Hello, {props.name}</h1>;
+}
+```
+
+## JSXとは
+
+JSXはJavaScript XMLの略で、JavaScript内でHTMLのような構文を書けます。
+
+```tsx
+const element = <h1>Hello, world!</h1>;
+```
+
+### JSXのルール
+
+1. **単一のルート要素**: 複数要素は1つの親要素で囲む
+2. **属性名はキャメルケース**: `class` → `className`
+3. **JavaScript式は波括弧で囲む**: `{expression}`
+
+## 練習問題
+
+1. 自分の名前を表示するコンポーネントを作成してみましょう
+2. props を使って挨拶を変更できるようにしましょう
