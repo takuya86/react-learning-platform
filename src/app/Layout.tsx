@@ -1,7 +1,14 @@
 import { Outlet, NavLink } from 'react-router-dom';
+import { useAuth } from '@/features/auth';
 import styles from './Layout.module.css';
 
 export function Layout() {
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
@@ -40,6 +47,20 @@ export function Layout() {
             >
               進捗
             </NavLink>
+          </div>
+          <div className={styles.auth}>
+            {user ? (
+              <>
+                <span className={styles.email}>{user.email}</span>
+                <button onClick={handleLogout} className={styles.logoutButton}>
+                  ログアウト
+                </button>
+              </>
+            ) : (
+              <NavLink to="/login" className={styles.loginLink}>
+                ログイン
+              </NavLink>
+            )}
           </div>
         </nav>
       </header>

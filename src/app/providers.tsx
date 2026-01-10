@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { AuthProvider } from '@/features/auth';
 import { ProgressProvider } from '@/features/progress';
 
 interface AppProvidersProps {
@@ -6,5 +7,9 @@ interface AppProvidersProps {
 }
 
 export function AppProviders({ children }: AppProvidersProps) {
-  return <ProgressProvider>{children}</ProgressProvider>;
+  return (
+    <AuthProvider>
+      <ProgressProvider>{children}</ProgressProvider>
+    </AuthProvider>
+  );
 }
