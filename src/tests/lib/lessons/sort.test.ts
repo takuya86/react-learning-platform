@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { topologicalSort, groupByDifficulty } from '@/lib/lessons/sort';
+import { topologicalSort, groupByDifficulty, getLessonsForRoadmap } from '@/lib/lessons/sort';
 import type { LoadedLesson } from '@/lib/lessons/types';
 import type { ComponentType } from 'react';
 
@@ -119,5 +119,43 @@ describe('groupByDifficulty', () => {
     expect(grouped.beginner).toHaveLength(1);
     expect(grouped.intermediate).toHaveLength(0);
     expect(grouped.advanced).toHaveLength(0);
+  });
+});
+
+describe('getLessonsForRoadmap', () => {
+  it('should return sorted and grouped lessons', () => {
+    const lessons = [
+      createMockLesson('advanced', 'advanced', ['intermediate']),
+      createMockLesson('beginner', 'beginner'),
+      createMockLesson('intermediate', 'intermediate', ['beginner']),
+    ];
+
+    const result = getLessonsForRoadmap(lessons);
+
+    // Should have all three difficulty levels
+    expect(result.beginner).toBeDefined();
+    expect(result.intermediate).toBeDefined();
+    expect(result.advanced).toBeDefined();
+  });
+
+  it('should maintain topological order within each group', () => {
+    const lessons = [
+      createMockLesson('beginner2', 'beginner', ['beginner1']),
+      createMockLesson('beginner1', 'beginner'),
+    ];
+
+    const result = getLessonsForRoadmap(lessons);
+    const beginnerIds = result.beginner.map((l) => l.id);
+
+    // beginner1 should come before beginner2
+    expect(beginnerIds.indexOf('beginner1')).toBeLessThan(beginnerIds.indexOf('beginner2'));
+  });
+
+  it('should handle empty input', () => {
+    const result = getLessonsForRoadmap([]);
+
+    expect(result.beginner).toHaveLength(0);
+    expect(result.intermediate).toHaveLength(0);
+    expect(result.advanced).toHaveLength(0);
   });
 });
