@@ -102,4 +102,17 @@ test.describe('Authentication', () => {
     // Verify we're on the actual roadmap page
     await expect(page.getByText('ロードマップ')).toBeVisible();
   });
+
+  test('should redirect to /login when not authenticated on page refresh', async ({ page }) => {
+    // First, access login page (no auth required)
+    await page.goto('/login');
+    await expect(page).toHaveURL(/\/login/);
+
+    // Now try to access protected route directly (new page context, no auth)
+    // This simulates the behavior after session expiration
+    await page.goto('/roadmap');
+
+    // Should be redirected to /login since there's no authentication
+    await expect(page).toHaveURL(/\/login/);
+  });
 });
