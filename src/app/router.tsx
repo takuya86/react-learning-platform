@@ -1,6 +1,6 @@
 import { createBrowserRouter, useParams } from 'react-router-dom';
 import { Layout } from './Layout';
-import { RequireAuth } from '@/features/auth';
+import { RequireAuth, RequireRole } from '@/features/auth';
 import {
   DashboardPage,
   LessonsPage,
@@ -13,6 +13,7 @@ import {
   RoadmapPage,
   NotFoundPage,
   LoginPage,
+  AdminPage,
 } from '@/pages';
 
 function LessonDetailRoute() {
@@ -78,6 +79,14 @@ export const router = createBrowserRouter([
       {
         path: 'notes',
         element: <NotesPage />,
+      },
+      {
+        path: 'admin',
+        element: (
+          <RequireRole role="admin">
+            <AdminPage />
+          </RequireRole>
+        ),
       },
       {
         path: '*',

@@ -95,3 +95,53 @@
   border-radius: 4px;
   font-family: monospace;
 }
+
+.roleSelector {
+  padding: 12px;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.roleSelectorLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0c4a6e;
+  margin-bottom: 8px;
+}
+
+.roleButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.roleButton {
+  flex: 1;
+  padding: 8px 16px;
+  background-color: white;
+  border: 2px solid #e0f2fe;
+  border-radius: 6px;
+  color: #0369a1;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.roleButton:hover {
+  background-color: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+.roleButtonActive {
+  background-color: #0284c7;
+  border-color: #0284c7;
+  color: white;
+}
+
+.roleButtonActive:hover {
+  background-color: #0369a1;
+  border-color: #0369a1;
+}

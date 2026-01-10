@@ -15,6 +15,13 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mockRole, setMockRole] = useState<'user' | 'admin'>(() => {
+    if (isMockMode && typeof window !== 'undefined') {
+      const stored = localStorage.getItem('e2e_mock_role');
+      return stored === 'admin' ? 'admin' : 'user';
+    }
+    return 'user';
+  });
 
   // Get the redirect path from location state, or default to home
   const from = (location.state as { from?: Location })?.from?.pathname || '/';
@@ -23,6 +30,11 @@ export function LoginPage() {
   if (!loading && user) {
     return <Navigate to={from} replace />;
   }
+
+  const handleRoleChange = (newRole: 'user' | 'admin') => {
+    setMockRole(newRole);
+    localStorage.setItem('e2e_mock_role', newRole);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -65,6 +77,27 @@ export function LoginPage() {
             <strong>開発モード:</strong> Supabase環境変数が未設定のため、認証機能は動作しません。
             <br />
             <code>.env.local</code> にSupabaseの認証情報を設定してください。
+          </div>
+        )}
+        {isMockMode && (
+          <div className={styles.roleSelector}>
+            <label className={styles.roleSelectorLabel}>テスト用ロール:</label>
+            <div className={styles.roleButtons}>
+              <button
+                type="button"
+                className={`${styles.roleButton} ${mockRole === 'user' ? styles.roleButtonActive : ''}`}
+                onClick={() => handleRoleChange('user')}
+              >
+                ユーザー
+              </button>
+              <button
+                type="button"
+                className={`${styles.roleButton} ${mockRole === 'admin' ? styles.roleButtonActive : ''}`}
+                onClick={() => handleRoleChange('admin')}
+              >
+                管理者
+              </button>
+            </div>
           </div>
         )}
         <h1 className={styles.title}>{isSignUp ? 'アカウント作成' : 'ログイン'}</h1>

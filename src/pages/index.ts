@@ -9,3 +9,4 @@ export { NotesPage } from './NotesPage';
 export { RoadmapPage } from './RoadmapPage';
 export { NotFoundPage } from './NotFoundPage';
 export { LoginPage } from './LoginPage';
+export { AdminPage } from './AdminPage';

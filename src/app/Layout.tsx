@@ -3,7 +3,7 @@ import { useAuth } from '@/features/auth';
 import styles from './Layout.module.css';
 
 export function Layout() {
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
@@ -47,6 +47,14 @@ export function Layout() {
             >
               進捗
             </NavLink>
+            {role === 'admin' && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+              >
+                管理
+              </NavLink>
+            )}
           </div>
           <div className={styles.auth}>
             {user ? (
