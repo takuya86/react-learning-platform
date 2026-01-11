@@ -86,7 +86,7 @@ test.describe('Admin Authorization', () => {
     await expect(page.getByRole('heading', { name: '管理者ページ' })).toBeVisible();
     await expect(page.getByText('管理者専用の機能にアクセスできます')).toBeVisible();
     await expect(page.getByText('ユーザー管理')).toBeVisible();
-    await expect(page.getByText('コンテンツ管理')).toBeVisible();
+    await expect(page.getByText('Backlog 管理')).toBeVisible();
   });
 
   test('should navigate to admin page via navigation link', async ({ page }) => {

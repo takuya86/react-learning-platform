@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth';
 import styles from './AdminPage.module.css';
 
@@ -45,22 +46,22 @@ export function AdminPage() {
               </button>
             </div>
             <div className={styles.featureCard}>
-              <h3 className={styles.featureTitle}>コンテンツ管理</h3>
+              <h3 className={styles.featureTitle}>Backlog 管理</h3>
               <p className={styles.featureDescription}>
-                レッスンやクイズの追加、編集、削除を行います
+                レッスン生成パイプラインのバックログを管理します
               </p>
-              <button className={styles.featureButton} disabled>
-                準備中
-              </button>
+              <Link to="/admin/backlog" className={styles.featureButton}>
+                管理画面へ
+              </Link>
             </div>
             <div className={styles.featureCard}>
-              <h3 className={styles.featureTitle}>統計情報</h3>
+              <h3 className={styles.featureTitle}>Metrics 管理</h3>
               <p className={styles.featureDescription}>
                 プラットフォーム全体の利用状況を確認します
               </p>
-              <button className={styles.featureButton} disabled>
-                準備中
-              </button>
+              <Link to="/admin/metrics" className={styles.featureButton}>
+                管理画面へ
+              </Link>
             </div>
             <div className={styles.featureCard}>
               <h3 className={styles.featureTitle}>システム設定</h3>

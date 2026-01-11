@@ -14,4 +14,5 @@ vi.mock('@/lib/supabase', () => ({
       signOut: vi.fn().mockResolvedValue({ error: null }),
     },
   },
+  isMockMode: true,
 }));

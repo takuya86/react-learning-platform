@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Lesson, Note } from '@/domain/types';
-import { Button } from '@/components/ui';
+import { Button, SyncStatusIndicator } from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { NoteEditor } from './NoteEditor';
 import { NotePreview } from './NotePreview';
 import { NoteStatus } from './NoteStatus';
@@ -25,6 +26,7 @@ export function NotesLayout({
   onUpdateContent,
   onDeleteNote,
 }: NotesLayoutProps) {
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('split');
   const [localContent, setLocalContent] = useState('');
 
@@ -62,6 +64,7 @@ export function NotesLayout({
               レッスンを見る
             </Link>
             <NoteStatus status={saveStatus} />
+            {user && <SyncStatusIndicator showTime={false} />}
           </div>
         </div>
         <div className={styles.headerRight}>

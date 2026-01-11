@@ -1,0 +1,173 @@
+/**
+ * Learning Trend Chart Styles
+ *
+ * 自前SVG棒グラフ用スタイル
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.modeToggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.modeButton {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: none;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modeButton:not(:last-child) {
+  border-right: 1px solid #e5e7eb;
+}
+
+.modeButton:hover {
+  background: #f3f4f6;
+}
+
+.modeButtonActive {
+  background: #3b82f6;
+  color: white;
+}
+
+.modeButtonActive:hover {
+  background: #2563eb;
+}
+
+.chartContainer {
+  position: relative;
+  width: 100%;
+  height: 180px;
+}
+
+.chart {
+  width: 100%;
+  height: 100%;
+}
+
+.bar {
+  fill: #3b82f6;
+  transition: fill 0.15s ease;
+  cursor: pointer;
+}
+
+.bar:hover {
+  fill: #2563eb;
+}
+
+.gridLine {
+  stroke: #e5e7eb;
+  stroke-width: 1;
+}
+
+.axisLabel {
+  font-size: 10px;
+  fill: #9ca3af;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  color: #9ca3af;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.emptyIcon {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 0.875rem;
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  color: #9ca3af;
+}
+
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  color: #ef4444;
+  font-size: 0.875rem;
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  padding: 0.375rem 0.625rem;
+  background-color: #1f2937;
+  color: #ffffff;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  margin-top: -8px;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .title {
+    color: var(--text-primary, #e5e7eb);
+  }
+
+  .modeToggle {
+    border-color: #374151;
+  }
+
+  .modeButton {
+    background: #1f2937;
+    color: #9ca3af;
+    border-color: #374151;
+  }
+
+  .modeButton:hover {
+    background: #374151;
+  }
+
+  .gridLine {
+    stroke: #374151;
+  }
+
+  .axisLabel {
+    fill: #6b7280;
+  }
+}

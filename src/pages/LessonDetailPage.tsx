@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 import { Button, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
+import { useLearningMetrics } from '@/features/metrics';
 import { getLessonById, getNextLessons, getPrerequisiteLessons } from '@/lib/lessons';
 import { getQuizByLessonId } from '@/data';
 import { mdxComponents } from '@/components/mdx';
@@ -25,6 +26,7 @@ export function LessonDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { markLessonOpened, completeLesson, isLessonCompleted } = useProgress();
+  const { recordEvent } = useLearningMetrics();
 
   const lesson = id ? getLessonById(id) : undefined;
   const relatedQuiz = id ? getQuizByLessonId(id) : undefined;
@@ -35,8 +37,10 @@ export function LessonDetailPage() {
   useEffect(() => {
     if (id && lesson) {
       markLessonOpened(id);
+      // Record lesson_viewed event for effectiveness tracking
+      recordEvent('lesson_viewed', id);
     }
-  }, [id, lesson, markLessonOpened]);
+  }, [id, lesson, markLessonOpened, recordEvent]);
 
   if (!lesson) {
     return (
@@ -60,6 +64,23 @@ export function LessonDetailPage() {
     if (lesson.exerciseId) {
       navigate(`/lessons/${id}/exercise`);
     }
+  };
+
+  const handleReview = () => {
+    if (id) {
+      recordEvent('review_started', id);
+      // TODO: Navigate to review page when implemented
+    }
+  };
+
+  const handleQuizClick = () => {
+    if (relatedQuiz && id) {
+      recordEvent('quiz_started', id);
+    }
+  };
+
+  const handleNextLessonClick = (nextLessonId: string) => {
+    recordEvent('next_lesson_opened', nextLessonId);
   };
 
   return (
@@ -124,11 +145,15 @@ export function LessonDetailPage() {
               演習に進む
             </Button>
           )}
+          <Button onClick={handleReview} variant="outline" data-testid="review-button">
+            復習する（3分）
+          </Button>
           {relatedQuiz && (
             <Link
               to={`/quiz/${relatedQuiz.id}`}
               className={styles.quizLink}
               data-testid="open-quiz-link"
+              onClick={handleQuizClick}
             >
               クイズを開く
             </Link>
@@ -155,6 +180,7 @@ export function LessonDetailPage() {
                 key={nextLesson.id}
                 to={`/lessons/${nextLesson.id}`}
                 className={styles.nextLessonCard}
+                onClick={() => handleNextLessonClick(nextLesson.id)}
               >
                 <div className={styles.nextLessonMeta}>
                   <Badge variant={difficultyVariants[nextLesson.difficulty]} size="small">

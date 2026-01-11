@@ -1,0 +1,223 @@
+.card {
+  margin-bottom: 24px;
+}
+
+.metricsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.metricItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.metricIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.metricContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metricValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.metricLabel {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.divider {
+  width: 1px;
+  height: 48px;
+  background-color: #e5e7eb;
+}
+
+.weeklyProgress {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.goalTarget {
+  font-size: 16px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.progressBar {
+  width: 80px;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #3b82f6;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressFill.goalMet {
+  background-color: #10b981;
+}
+
+.skeleton {
+  width: 100px;
+  height: 40px;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* Explain button and popover */
+.explainWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.explainButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin-left: 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.explainButton:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.explainButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+}
+
+.popover {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 240px;
+  max-width: 320px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.popover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent #e5e7eb;
+}
+
+.popover::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 5px 5px;
+  border-style: solid;
+  border-color: transparent transparent white;
+}
+
+.popoverMessage {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.popoverDetails {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.popoverDetails li {
+  margin-bottom: 2px;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .metricsRow {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .divider {
+    width: 80%;
+    height: 1px;
+  }
+
+  .metricItem {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .popover {
+    left: 0;
+    transform: none;
+    min-width: 200px;
+  }
+
+  .popover::before,
+  .popover::after {
+    left: 20px;
+    transform: none;
+  }
+}

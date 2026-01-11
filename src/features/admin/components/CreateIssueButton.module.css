@@ -1,0 +1,62 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.createButton {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.createButton:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.createButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.issueDone {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.issueLink {
+  font-size: 0.75rem;
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.issueLink:hover {
+  text-decoration: underline;
+}
+
+.checking {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.noAction {
+  font-size: 0.75rem;
+  color: #d1d5db;
+}
+
+.error {
+  display: inline-block;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.625rem;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: 2px;
+  cursor: help;
+}

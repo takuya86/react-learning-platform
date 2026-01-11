@@ -108,6 +108,144 @@ Authentication → URL Configuration:
 - **E2E テスト**: `localStorage.setItem('e2e_mock_authenticated', 'true')` で認証をバイパス
 - **CI**: モックモードで実行され、Supabase依存なくテストが通過
 
+## Database Setup (Cloud Sync)
+
+ログインユーザーの進捗データとノートをSupabaseに同期するには、以下のテーブルをセットアップしてください。
+
+### 1. テーブル作成
+
+Supabase Dashboard → SQL Editor で以下のSQLを実行:
+
+```sql
+-- User Progress Table
+CREATE TABLE user_progress (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  lessons JSONB NOT NULL DEFAULT '{}',
+  completed_quizzes TEXT[] NOT NULL DEFAULT '{}',
+  completed_exercises TEXT[] NOT NULL DEFAULT '{}',
+  streak INTEGER NOT NULL DEFAULT 0,
+  last_study_date DATE,
+  study_dates DATE[] NOT NULL DEFAULT '{}',
+  quiz_attempts JSONB NOT NULL DEFAULT '[]',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+-- User Notes Table
+CREATE TABLE user_notes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  lesson_id TEXT NOT NULL,
+  markdown TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(user_id, lesson_id)
+);
+
+-- Enable Row Level Security
+ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_notes ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can CRUD own progress" ON user_progress
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can CRUD own notes" ON user_notes
+  FOR ALL USING (auth.uid() = user_id);
+```
+
+### 2. 同期の動作
+
+- **ログイン時**: Supabaseからデータを取得し、ローカルデータとマージ
+- **データ更新時**: localStorage即時更新 → 500msデバウンス → Supabase同期
+- **オフライン時**: localStorageのみ更新、オンライン復帰で同期
+
+### 3. マージ戦略（Merge Strategy）
+
+ローカルとリモートのデータが異なる場合、以下の戦略でマージします。
+
+#### Progress データ
+
+| フィールド           | 戦略             | 説明                                                                                         |
+| -------------------- | ---------------- | -------------------------------------------------------------------------------------------- |
+| `lessons`            | Union + 完了優先 | 両方の全レッスンを統合。同じレッスンがある場合は完了済みを優先、両方完了済みなら早い方を採用 |
+| `completedQuizzes`   | Union            | 配列を統合、重複を除去                                                                       |
+| `completedExercises` | Union            | 配列を統合、重複を除去                                                                       |
+| `streak`             | Max              | より大きい値を採用                                                                           |
+| `lastStudyDate`      | 最新             | より新しい日付を採用                                                                         |
+| `studyDates`         | Union            | 配列を統合、重複を除去、ソート                                                               |
+| `quizAttempts`       | Union + 重複排除 | `quizId + attemptedAt` をキーに重複を排除                                                    |
+
+#### Notes データ
+
+| 戦略            | 説明                                              |
+| --------------- | ------------------------------------------------- |
+| Last-Write-Wins | 各 `lessonId` ごとに `updatedAt` が新しい方を採用 |
+
+#### 境界ケース
+
+| ケース                       | 動作             |
+| ---------------------------- | ---------------- |
+| ローカルのみ存在             | ローカルを採用   |
+| リモートのみ存在             | リモートを採用   |
+| 両方存在、タイムスタンプ同一 | ローカルを優先   |
+| 片方がnull/undefined         | 存在する方を採用 |
+
+### 4. 注意事項
+
+- テーブル未作成の場合でも、localStorageでの動作は継続（エラーログは出力）
+- モックモードでは同期は無効（localStorageのみで動作）
+
+### 5. 手動Smokeテスト（Supabase実接続確認）
+
+E2Eテストはモックモードで実行されるため、Supabase実接続の確認は以下の手順で手動実施してください。
+
+#### 事前準備
+
+```bash
+# 1. .env.local にSupabase認証情報が設定されていることを確認
+cat .env.local
+# VITE_SUPABASE_URL=https://xxx.supabase.co
+# VITE_SUPABASE_ANON_KEY=eyJhbG...
+
+# 2. 開発サーバー起動
+npm run dev
+
+# 3. ブラウザで http://localhost:5173 にアクセス
+```
+
+#### 確認チェックリスト
+
+| #   | 確認項目                  | 期待動作                                                     |
+| --- | ------------------------- | ------------------------------------------------------------ |
+| 1   | ログインページ            | 「開発モード」警告が表示されない                             |
+| 2   | ログイン後 - 学習パス画面 | 同期ステータス「同期済み」が表示される                       |
+| 3   | レッスン完了              | 同期ステータスが「同期中...」→「同期済み」に変化             |
+| 4   | ノート作成/編集           | ノート画面で同期ステータスが「同期中...」→「同期済み」に変化 |
+| 5   | 進捗画面                  | 同期ステータスと最終同期時刻が表示される                     |
+| 6   | 別ブラウザ同期            | シークレットウィンドウでログイン → 同じデータが表示          |
+| 7   | Supabase確認              | Dashboard > Table Editor でデータが入っている                |
+
+#### オフラインテスト
+
+```bash
+# ブラウザのDevTools > Network > Offline をON
+# 1. 同期ステータスが「オフライン」に変化することを確認
+# 2. レッスン完了やノート編集ができることを確認（localStorageに保存）
+# 3. Offline をOFF → 同期ステータスが「同期中...」→「同期済み」に変化
+```
+
+#### マージ動作確認
+
+```bash
+# 1. ブラウザAでログイン → レッスン1を完了
+# 2. ブラウザBでログイン → レッスン2を完了
+# 3. ブラウザAをリロード → レッスン1,2両方が完了状態
+# 4. ブラウザBをリロード → レッスン1,2両方が完了状態
+```
+
 ## Tests & Quality
 
 ```bash
@@ -138,8 +276,10 @@ GitHub Actions で以下を自動実行（push / PR時）:
 
 1. **Lint** - コード品質チェック
 2. **Type check** - 型安全性の検証
-3. **Test + Coverage** - テスト実行とカバレッジ計測
-4. **Build** - ビルド成功の確認
+3. **Validate lessons** - レッスンコンテンツ検証
+4. **Test + Coverage** - テスト実行とカバレッジ計測
+5. **Build** - ビルド成功の確認
+6. **E2E tests** - Playwright E2Eテスト（モックモード）
 
 ## Lesson Content Operations
 
@@ -197,6 +337,41 @@ npm run build                          # ビルド
 npm run lessons:stats
 # → pending が週3ずつ減っていればOK
 ```
+
+### 管理画面からのレッスン生成
+
+管理者は `/admin/backlog` から手動でレッスン生成ワークフローを実行できます。
+
+#### 操作手順
+
+1. `/admin/backlog` にアクセス（admin権限が必要）
+2. 「次の生成候補 Top 5」セクションの「Generate Lessons PR」ボタンをクリック
+3. 既存のレッスンPRがある場合は確認ダイアログが表示される
+4. GitHub Actions ワークフローが実行され、PRが自動作成される
+
+#### 環境変数設定（GitHub API連携）
+
+管理画面からのワークフロー実行を有効にするには、以下の環境変数を設定してください：
+
+```env
+# .env.local
+VITE_GITHUB_TOKEN=ghp_xxx          # Personal Access Token (workflow権限)
+VITE_GITHUB_OWNER=your-org         # リポジトリオーナー
+VITE_GITHUB_REPO=react-learning-platform  # リポジトリ名
+```
+
+**GitHub Token作成手順**:
+
+1. GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Generate new token → 権限: `repo`, `workflow` を選択
+3. 生成されたトークンを `.env.local` に設定
+
+#### ワークフロー入力パラメータ
+
+| パラメータ       | 説明                                             | デフォルト |
+| ---------------- | ------------------------------------------------ | ---------- |
+| `max_lessons`    | 生成する最大レッスン数                           | 3          |
+| `selected_slugs` | 生成対象のslug（カンマ区切り、省略時は自動選択） | (空)       |
 
 ## Deployment
 

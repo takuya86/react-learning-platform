@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useLocalStorage } from '@/hooks';
 import type { Progress, QuizAttempt } from '@/domain/types';
 import { initialProgress } from '@/domain/types';
@@ -16,6 +16,7 @@ interface ProgressContextType {
   getCompletedLessonIds: () => string[];
   getTotalLessonsOpened: () => number;
   resetProgress: () => void;
+  setProgress: (progress: Progress) => void;
 }
 
 const ProgressContext = createContext<ProgressContextType | null>(null);
@@ -59,13 +60,32 @@ function calculateStreak(studyDates: string[], lastStudyDate: string | null): nu
 
 interface ProgressProviderProps {
   children: ReactNode;
+  onProgressChange?: (progress: Progress) => void;
 }
 
-export function ProgressProvider({ children }: ProgressProviderProps) {
-  const [progress, setProgress] = useLocalStorage<Progress>(
+export function ProgressProvider({ children, onProgressChange }: ProgressProviderProps) {
+  const [progress, setProgressInternal] = useLocalStorage<Progress>(
     'react-learning-progress',
     initialProgress
   );
+  const isInitialMount = useRef(true);
+
+  // Wrapper that calls onProgressChange after setting progress
+  const setProgress = useCallback(
+    (updater: Progress | ((prev: Progress) => Progress)) => {
+      setProgressInternal(updater);
+    },
+    [setProgressInternal]
+  );
+
+  // Notify parent when progress changes (skip initial mount)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    onProgressChange?.(progress);
+  }, [progress, onProgressChange]);
 
   const recordStudyActivity = useCallback((currentProgress: Progress): Progress => {
     const today = getTodayDateString();
@@ -211,6 +231,14 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
     setProgress(initialProgress);
   }, [setProgress]);
 
+  // Direct setter for sync operations (e.g., merging with remote data)
+  const setProgressDirect = useCallback(
+    (newProgress: Progress) => {
+      setProgress(newProgress);
+    },
+    [setProgress]
+  );
+
   return (
     <ProgressContext.Provider
       value={{
@@ -226,6 +254,7 @@ export function ProgressProvider({ children }: ProgressProviderProps) {
         getCompletedLessonIds,
         getTotalLessonsOpened,
         resetProgress,
+        setProgress: setProgressDirect,
       }}
     >
       {children}

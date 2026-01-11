@@ -6,11 +6,12 @@
  * Generates MDX scaffold files from lessons.backlog.json
  *
  * Usage:
- *   node tools/generate-lessons.mjs [--max=N] [--dry-run]
+ *   node tools/generate-lessons.mjs [--max=N] [--dry-run] [--slugs=slug1,slug2,...]
  *
  * Options:
- *   --max=N     Maximum number of lessons to generate (default: 3)
- *   --dry-run   Show what would be generated without writing files
+ *   --max=N              Maximum number of lessons to generate (default: 3)
+ *   --dry-run            Show what would be generated without writing files
+ *   --slugs=slug1,slug2  Comma-separated slugs to generate (overrides auto-selection)
  */
 
 import fs from 'fs';
@@ -30,6 +31,7 @@ function parseArgs() {
   const options = {
     max: 3,
     dryRun: false,
+    slugs: [],
   };
 
   for (const arg of args) {
@@ -37,6 +39,9 @@ function parseArgs() {
       options.max = parseInt(arg.split('=')[1], 10);
     } else if (arg === '--dry-run') {
       options.dryRun = true;
+    } else if (arg.startsWith('--slugs=')) {
+      const slugsStr = arg.split('=')[1];
+      options.slugs = slugsStr ? slugsStr.split(',').map(s => s.trim()).filter(Boolean) : [];
     }
   }
 
@@ -154,6 +159,9 @@ async function main() {
   console.log('================');
   console.log(`Max lessons: ${options.max}`);
   console.log(`Dry run: ${options.dryRun}`);
+  if (options.slugs.length > 0) {
+    console.log(`Selected slugs: ${options.slugs.join(', ')}`);
+  }
   console.log('');
 
   // Read backlog
@@ -165,8 +173,14 @@ async function main() {
   const backlog = JSON.parse(fs.readFileSync(BACKLOG_PATH, 'utf-8'));
 
   // Filter pending lessons
-  const pendingLessons = backlog.lessons.filter(l => l.status === 'pending');
+  let pendingLessons = backlog.lessons.filter(l => l.status === 'pending');
   console.log(`Found ${pendingLessons.length} pending lessons`);
+
+  // If specific slugs are provided, filter to only those
+  if (options.slugs.length > 0) {
+    pendingLessons = pendingLessons.filter(l => options.slugs.includes(l.slug));
+    console.log(`Filtered to ${pendingLessons.length} matching slugs`);
+  }
 
   if (pendingLessons.length === 0) {
     console.log('No pending lessons to generate.');
