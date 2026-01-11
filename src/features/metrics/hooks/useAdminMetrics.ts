@@ -30,6 +30,26 @@ import {
   type LessonRanking,
   buildLessonRanking,
 } from '../services/lessonEffectivenessRankingService';
+import {
+  listAllOpenImprovementIssues,
+  type ImprovementTrackerItem,
+} from '@/features/admin/services/githubIssueService';
+
+/**
+ * Tracker row with baseline and current metrics combined
+ */
+export interface ImprovementTrackerRow {
+  lessonSlug: string;
+  lessonTitle: string;
+  hintType: string;
+  baselineRate: number;
+  currentRate: number | null;
+  delta: number | null;
+  originCount: number;
+  isLowSample: boolean;
+  issueNumber: number;
+  issueUrl: string;
+}
 
 interface UseAdminMetricsResult {
   period: AdminPeriod;
@@ -40,6 +60,7 @@ interface UseAdminMetricsResult {
   leaderboards: Leaderboards | null;
   effectiveness: EffectivenessSummary | null;
   lessonRanking: LessonRanking | null;
+  improvementTracker: ImprovementTrackerRow[];
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -78,6 +99,7 @@ export function useAdminMetrics(): UseAdminMetricsResult {
   const [period, setPeriod] = useState<AdminPeriod>('30d');
   const [events, setEvents] = useState<LearningEvent[]>([]);
   const [userMetrics, setUserMetrics] = useState<UserLearningMetric[]>([]);
+  const [trackerItems, setTrackerItems] = useState<ImprovementTrackerItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +108,11 @@ export function useAdminMetrics(): UseAdminMetricsResult {
       // In mock mode, use mock data
       setEvents(mockAdminEvents);
       setUserMetrics(mockAdminUserMetrics);
+      // Fetch improvement tracker items in mock mode
+      const trackerResult = await listAllOpenImprovementIssues();
+      if (trackerResult.data) {
+        setTrackerItems(trackerResult.data);
+      }
       setIsLoading(false);
       return;
     }
@@ -103,7 +130,7 @@ export function useAdminMetrics(): UseAdminMetricsResult {
       heatmapStartDate.setUTCDate(heatmapStartDate.getUTCDate() - (HEATMAP_DAYS - 1));
       const heatmapStartStr = getUTCDateString(heatmapStartDate);
 
-      const [eventsResult, metricsResult] = await Promise.all([
+      const [eventsResult, metricsResult, trackerResult] = await Promise.all([
         supabase
           .from('learning_events')
           .select('user_id, event_type, event_date, reference_id, created_at')
@@ -113,6 +140,7 @@ export function useAdminMetrics(): UseAdminMetricsResult {
         supabase
           .from('user_learning_metrics')
           .select('user_id, streak, last_event_date, weekly_goal, weekly_progress, updated_at'),
+        listAllOpenImprovementIssues(),
       ]);
 
       if (eventsResult.error) {
@@ -142,6 +170,14 @@ export function useAdminMetrics(): UseAdminMetricsResult {
 
       setEvents(fetchedEvents);
       setUserMetrics(fetchedMetrics);
+
+      // Set tracker items from GitHub API
+      if (trackerResult.data) {
+        setTrackerItems(trackerResult.data);
+      } else if (trackerResult.error) {
+        console.warn('Failed to fetch improvement tracker:', trackerResult.error);
+        setTrackerItems([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch admin metrics');
       setEvents([]);
@@ -200,6 +236,52 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     return buildLessonRanking(periodEvents, lessons);
   }, [events, period, today, isLoading]);
 
+  const improvementTracker = useMemo(() => {
+    if (isLoading) return [];
+
+    // Get lesson info lookup
+    const lessons = getAllLessons();
+    const lessonMap = new Map(lessons.map((l) => [l.id, l]));
+
+    // Calculate current metrics for all lessons
+    const { startDate, endDate } = getDateRangeForPeriod(period, today);
+    const periodEvents = filterEventsByDateRange(events, startDate, endDate);
+    const currentLessonInfo = getAllLessons().map((lesson) => ({
+      slug: lesson.id,
+      title: lesson.title,
+      difficulty: lesson.difficulty,
+    }));
+    const currentRanking = buildLessonRanking(periodEvents, currentLessonInfo);
+
+    // Build lookup map for current metrics
+    const currentMetricsMap = new Map<string, { rate: number; originCount: number }>();
+    [...currentRanking.best, ...currentRanking.worst].forEach((row) => {
+      currentMetricsMap.set(row.slug, {
+        rate: row.followUpRate,
+        originCount: row.originCount,
+      });
+    });
+
+    // Combine tracker items with current metrics
+    return trackerItems.map((item) => {
+      const lesson = lessonMap.get(item.lessonSlug);
+      const current = currentMetricsMap.get(item.lessonSlug);
+
+      return {
+        lessonSlug: item.lessonSlug,
+        lessonTitle: lesson?.title || item.lessonSlug,
+        hintType: item.hintType,
+        baselineRate: item.baselineRate,
+        currentRate: current?.rate ?? null,
+        delta: current ? current.rate - item.baselineRate : null,
+        originCount: current?.originCount ?? 0,
+        isLowSample: (current?.originCount ?? 0) < 5,
+        issueNumber: item.issueNumber,
+        issueUrl: item.issueUrl,
+      };
+    });
+  }, [trackerItems, events, period, today, isLoading]);
+
   return {
     period,
     setPeriod,
@@ -209,6 +291,7 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     leaderboards,
     effectiveness,
     lessonRanking,
+    improvementTracker,
     isLoading,
     error,
     refresh: fetchData,

@@ -50,6 +50,7 @@ export function AdminMetricsPage() {
     leaderboards,
     effectiveness,
     lessonRanking,
+    improvementTracker,
     isLoading,
     error,
   } = useAdminMetrics();
@@ -420,6 +421,81 @@ export function AdminMetricsPage() {
                 </table>
               </Card>
             </div>
+          </section>
+
+          {/* Improvement Tracker */}
+          <section
+            className={styles.trackerSection}
+            data-testid="admin-metrics-improvement-tracker"
+          >
+            <h2 className={styles.sectionTitle}>Improvement Tracker</h2>
+            <Card className={styles.trackerCard}>
+              <table className={styles.trackerTable}>
+                <thead>
+                  <tr>
+                    <th>Lesson</th>
+                    <th>Hint Type</th>
+                    <th className={styles.numericCell}>Baseline</th>
+                    <th className={styles.numericCell}>Current</th>
+                    <th className={styles.numericCell}>Delta</th>
+                    <th>Status</th>
+                    <th>Issue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {improvementTracker.map((row) => {
+                    const deltaDisplay =
+                      row.delta !== null
+                        ? `${row.delta > 0 ? '+' : ''}${row.delta.toFixed(1)}%`
+                        : '-';
+                    const deltaClass =
+                      row.delta !== null
+                        ? row.delta > 0
+                          ? styles.deltaPositive
+                          : row.delta < 0
+                            ? styles.deltaNegative
+                            : styles.deltaNeutral
+                        : '';
+
+                    return (
+                      <tr key={`${row.lessonSlug}-${row.hintType}`}>
+                        <td className={styles.lessonCell} title={row.lessonSlug}>
+                          {row.lessonTitle}
+                        </td>
+                        <td className={styles.hintTypeCell}>{row.hintType}</td>
+                        <td className={styles.numericCell}>{row.baselineRate}%</td>
+                        <td className={styles.numericCell}>
+                          {row.currentRate !== null ? `${row.currentRate}%` : '-'}
+                        </td>
+                        <td className={`${styles.numericCell} ${deltaClass}`}>{deltaDisplay}</td>
+                        <td className={styles.statusCell}>
+                          {row.isLowSample && (
+                            <span className={styles.lowSampleBadge}>low sample</span>
+                          )}
+                        </td>
+                        <td className={styles.issueCell}>
+                          <a
+                            href={row.issueUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.issueLink}
+                          >
+                            #{row.issueNumber}
+                          </a>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {improvementTracker.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', color: '#6b7280' }}>
+                        改善中のレッスンはありません
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </Card>
           </section>
         </>
       )}

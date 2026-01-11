@@ -170,6 +170,7 @@ export {
   setMockAdminEvents,
   setMockAdminUserMetrics,
   resetMockAdminData,
+  type ImprovementTrackerRow,
 } from './hooks/useAdminMetrics';
 export {
   useGrowthInsights,

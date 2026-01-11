@@ -3,6 +3,7 @@ export {
   createIssue,
   isDuplicateIssue,
   listOpenIssuesByLesson,
+  listAllOpenImprovementIssues,
   canCreateIssue,
   setMockOpenIssues,
   getMockCreatedIssues,
@@ -11,6 +12,7 @@ export {
   type CreatedIssue,
   type OpenIssue,
   type IssueResult,
+  type ImprovementTrackerItem,
 } from './services/githubIssueService';
 export { useGitHubWorkflow } from './hooks/useGitHubWorkflow';
 export { useLessonImprovementIssue } from './hooks/useLessonImprovementIssue';

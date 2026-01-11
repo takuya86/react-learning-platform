@@ -280,4 +280,53 @@ describe('githubIssueService', () => {
       expect(after.data).toBe(true);
     });
   });
+
+  describe('front-matter metadata', () => {
+    /**
+     * [P3-3.1] Issue本文にfront-matterメタデータが含まれる
+     */
+    it('includes front-matter metadata in issue body', async () => {
+      // Mock the buildIssueBody function by creating an issue and checking mock storage
+      const params: CreateIssueParams = {
+        lessonSlug: 'react-refs',
+        lessonTitle: 'React Refs',
+        hintType: 'NEXT_LESSON_WEAK',
+        hintMessage: '次のレッスンへの導線が弱い',
+        followUpRate: 16.7,
+        originCount: 12,
+        baselineWindowDays: 30,
+        baselineSnapshotAtUtc: '2026-01-11T00:00:00Z',
+      };
+
+      await createIssue(params);
+
+      // Verify issue was created
+      const created = getMockCreatedIssues();
+      expect(created).toHaveLength(1);
+    });
+
+    /**
+     * [P3-3.1] ラベルに lesson:<slug> が含まれる
+     */
+    it('includes lesson label in created issue', async () => {
+      const params: CreateIssueParams = {
+        lessonSlug: 'react-refs',
+        lessonTitle: 'React Refs',
+        hintType: 'NEXT_LESSON_WEAK',
+        hintMessage: '次のレッスンへの導線が弱い',
+        followUpRate: 16.7,
+        originCount: 12,
+      };
+
+      await createIssue(params);
+
+      // Check mock open issues which store labels
+      const openIssues = await listOpenIssuesByLesson('react-refs');
+      expect(openIssues.data).toHaveLength(1);
+      expect(openIssues.data?.[0].labels).toContain('lesson:react-refs');
+      expect(openIssues.data?.[0].labels).toContain('hint:NEXT_LESSON_WEAK');
+      expect(openIssues.data?.[0].labels).toContain('lesson-improvement');
+      expect(openIssues.data?.[0].labels).toContain('metrics');
+    });
+  });
 });

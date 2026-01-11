@@ -306,6 +306,92 @@
   border-radius: 6px;
 }
 
+/* Improvement Tracker */
+.trackerSection {
+  margin-bottom: 2rem;
+}
+
+.trackerCard {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.trackerTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.trackerTable th,
+.trackerTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.trackerTable th {
+  color: #6b7280;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.trackerTable td {
+  color: #111827;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.trackerTable tr:last-child td {
+  border-bottom: none;
+}
+
+.trackerTable tr:hover td {
+  background: #f9fafb;
+}
+
+.lessonCell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.hintTypeCell {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.statusCell {
+  min-width: 100px;
+}
+
+.deltaPositive {
+  color: #059669;
+  font-weight: 600;
+}
+
+.deltaNegative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.deltaNeutral {
+  color: #6b7280;
+}
+
+.issueLink {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.issueLink:hover {
+  text-decoration: underline;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .summaryGrid {
