@@ -1,0 +1,96 @@
+/**
+ * Habit Intervention Card Styles
+ *
+ * Design principles:
+ * - No red or warning colors
+ * - Calm, encouraging tones
+ * - Soft gradients
+ */
+
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+/* Streak Rescue - Warm, encouraging green */
+.streak_rescue {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+/* Weekly Catchup - Calm blue */
+.weekly_catchup {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+/* Positive - Soft purple */
+.positive {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.textContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.message {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.subMessage {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.cta:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .cta {
+    width: 100%;
+  }
+}
