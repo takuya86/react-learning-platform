@@ -55,13 +55,13 @@ export function AdminPage() {
               </Link>
             </div>
             <div className={styles.featureCard}>
-              <h3 className={styles.featureTitle}>統計情報</h3>
+              <h3 className={styles.featureTitle}>Metrics 管理</h3>
               <p className={styles.featureDescription}>
                 プラットフォーム全体の利用状況を確認します
               </p>
-              <button className={styles.featureButton} disabled>
-                準備中
-              </button>
+              <Link to="/admin/metrics" className={styles.featureButton}>
+                管理画面へ
+              </Link>
             </div>
             <div className={styles.featureCard}>
               <h3 className={styles.featureTitle}>システム設定</h3>

@@ -15,6 +15,7 @@ import {
   LoginPage,
   AdminPage,
   AdminBacklogPage,
+  AdminMetricsPage,
 } from '@/pages';
 
 function LessonDetailRoute() {
@@ -94,6 +95,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireRole role="admin">
             <AdminBacklogPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'admin/metrics',
+        element: (
+          <RequireRole role="admin">
+            <AdminMetricsPage />
           </RequireRole>
         ),
       },
