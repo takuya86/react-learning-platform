@@ -20,7 +20,17 @@
  * - week start: 月曜日 00:00 UTC
  */
 
-export type LearningEventType = 'lesson_completed' | 'quiz_completed' | 'note_updated';
+export type LearningEventType =
+  | 'lesson_completed'
+  | 'lesson_viewed'
+  | 'quiz_completed'
+  | 'quiz_started'
+  | 'note_updated'
+  | 'note_created'
+  | 'review_started'
+  | 'next_lesson_opened'
+  | 'intervention_shown'
+  | 'insights_shown';
 
 export interface LearningEvent {
   id?: string;

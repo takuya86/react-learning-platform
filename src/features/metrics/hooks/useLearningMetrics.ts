@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase, isMockMode } from '@/lib/supabase';
 import {
@@ -9,9 +9,16 @@ import {
   getUTCDateString,
   getWeekStartUTC,
 } from '../services/metricsService';
+import {
+  buildMetricsExplain,
+  type StreakExplain,
+  type WeeklyGoalExplain,
+} from '../services/metricsExplainService';
 
 interface UseLearningMetricsResult {
   metrics: LearningMetrics;
+  streakExplain: StreakExplain;
+  weeklyExplain: WeeklyGoalExplain;
   isLoading: boolean;
   error: string | null;
   recordEvent: (eventType: LearningEventType, referenceId?: string) => Promise<void>;
@@ -36,6 +43,7 @@ export function resetMockMetricsState(): void {
 export function useLearningMetrics(): UseLearningMetricsResult {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<LearningMetrics>(createInitialMetrics());
+  const [todayCount, setTodayCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,14 +51,16 @@ export function useLearningMetrics(): UseLearningMetricsResult {
   const fetchMetrics = useCallback(async () => {
     if (!user) {
       setMetrics(createInitialMetrics());
+      setTodayCount(0);
       setIsLoading(false);
       return;
     }
 
+    const today = getUTCDateString();
+
     if (isMockMode) {
       // In mock mode, return current mock state
       // Recalculate to ensure week is current
-      const today = getUTCDateString();
       const weekStart = getWeekStartUTC();
       if (mockMetrics.weeklyGoal.weekStartDate !== weekStart) {
         // Week changed, reset weekly progress
@@ -78,6 +88,9 @@ export function useLearningMetrics(): UseLearningMetricsResult {
           };
         }
       }
+      // Count today's events
+      const todayEventCount = mockEventDates.filter((d) => d === today).length;
+      setTodayCount(todayEventCount);
       setMetrics(mockMetrics);
       setIsLoading(false);
       return;
@@ -87,27 +100,34 @@ export function useLearningMetrics(): UseLearningMetricsResult {
       setIsLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('user_learning_metrics')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Fetch metrics and today's event count in parallel
+      const [metricsResult, eventsResult] = await Promise.all([
+        supabase.from('user_learning_metrics').select('*').eq('user_id', user.id).maybeSingle(),
+        supabase
+          .from('learning_events')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('event_date', today),
+      ]);
 
-      if (fetchError) {
-        throw new Error(fetchError.message);
+      if (metricsResult.error) {
+        throw new Error(metricsResult.error.message);
       }
 
-      if (data) {
+      // Set today's event count
+      setTodayCount(eventsResult.data?.length || 0);
+
+      if (metricsResult.data) {
         const weekStart = getWeekStartUTC();
-        const isNewWeek = data.week_start_date !== weekStart;
+        const isNewWeek = metricsResult.data.week_start_date !== weekStart;
 
         setMetrics({
-          streak: isNewWeek ? 0 : data.streak,
-          lastActivityDate: data.last_activity_date,
+          streak: isNewWeek ? 0 : metricsResult.data.streak,
+          lastActivityDate: metricsResult.data.last_activity_date,
           weeklyGoal: {
-            type: data.weekly_goal_type,
-            target: data.weekly_goal_target,
-            progress: isNewWeek ? 0 : data.weekly_goal_progress,
+            type: metricsResult.data.weekly_goal_type,
+            target: metricsResult.data.weekly_goal_target,
+            progress: isNewWeek ? 0 : metricsResult.data.weekly_goal_progress,
             weekStartDate: weekStart,
           },
         });
@@ -118,6 +138,7 @@ export function useLearningMetrics(): UseLearningMetricsResult {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
       setMetrics(createInitialMetrics());
+      setTodayCount(0);
     } finally {
       setIsLoading(false);
     }
@@ -136,6 +157,7 @@ export function useLearningMetrics(): UseLearningMetricsResult {
         mockMetrics = newMetrics;
         mockEventDates.push(today);
         setMetrics(newMetrics);
+        setTodayCount((prev) => prev + 1);
         return;
       }
 
@@ -178,6 +200,7 @@ export function useLearningMetrics(): UseLearningMetricsResult {
         }
 
         setMetrics(newMetrics);
+        setTodayCount((prev) => prev + 1);
       } catch (err) {
         console.error('Error recording event:', err);
       }
@@ -190,8 +213,18 @@ export function useLearningMetrics(): UseLearningMetricsResult {
     fetchMetrics();
   }, [fetchMetrics]);
 
+  // Build explanations
+  const { streak: streakExplain, weekly: weeklyExplain } = useMemo(() => {
+    return buildMetricsExplain({
+      metrics,
+      todayCount,
+    });
+  }, [metrics, todayCount]);
+
   return {
     metrics,
+    streakExplain,
+    weeklyExplain,
     isLoading,
     error,
     recordEvent,
