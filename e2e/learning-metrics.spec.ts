@@ -50,3 +50,59 @@ test.describe('未ログイン時の表示テスト', () => {
     await expect(metricsCard).not.toBeVisible();
   });
 });
+
+test.describe('理由説明UI（P1-3）', () => {
+  test('Streak説明ボタンをクリックするとポップオーバーが表示される', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Streak説明ボタンをクリック
+    const streakExplainButton = page.getByTestId('streak-explain-button');
+    await expect(streakExplainButton).toBeVisible();
+    await streakExplainButton.click();
+
+    // ポップオーバーが表示されることを確認
+    const streakPopover = page.getByTestId('streak-explain-popover');
+    await expect(streakPopover).toBeVisible();
+
+    // 詳細リストが表示されていることを確認
+    const details = streakPopover.locator('li');
+    await expect(details.first()).toBeVisible();
+  });
+
+  test('Weekly説明ボタンをクリックするとポップオーバーが表示される', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Weekly説明ボタンをクリック
+    const weeklyExplainButton = page.getByTestId('weekly-explain-button');
+    await expect(weeklyExplainButton).toBeVisible();
+    await weeklyExplainButton.click();
+
+    // ポップオーバーが表示されることを確認
+    const weeklyPopover = page.getByTestId('weekly-explain-popover');
+    await expect(weeklyPopover).toBeVisible();
+
+    // 詳細リストが表示されていることを確認
+    const details = weeklyPopover.locator('li');
+    await expect(details.first()).toBeVisible();
+  });
+
+  test('一方のポップオーバーを開くともう一方は閉じる', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Streak説明ボタンをクリック
+    const streakExplainButton = page.getByTestId('streak-explain-button');
+    await streakExplainButton.click();
+    await expect(page.getByTestId('streak-explain-popover')).toBeVisible();
+
+    // Weekly説明ボタンをクリック
+    const weeklyExplainButton = page.getByTestId('weekly-explain-button');
+    await weeklyExplainButton.click();
+
+    // Streakポップオーバーが閉じてWeeklyポップオーバーが開く
+    await expect(page.getByTestId('streak-explain-popover')).not.toBeVisible();
+    await expect(page.getByTestId('weekly-explain-popover')).toBeVisible();
+  });
+});
