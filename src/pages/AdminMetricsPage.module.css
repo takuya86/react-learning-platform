@@ -263,6 +263,10 @@
   max-width: 180px;
 }
 
+.issueCell {
+  white-space: nowrap;
+}
+
 /* Empty State */
 .emptyState {
   display: flex;

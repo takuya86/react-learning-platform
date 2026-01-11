@@ -5,21 +5,22 @@ import {
   LearningHeatmap,
   type AdminPeriod,
   type LessonRankingRow,
+  type LessonImprovementHint,
   generateLessonHint,
 } from '@/features/metrics';
+import { CreateIssueButton } from '@/features/admin';
 import styles from './AdminMetricsPage.module.css';
 
 /**
  * Generate improvement hint for a ranking row
  */
-function getHintForRow(row: LessonRankingRow): string | null {
-  const hint = generateLessonHint({
+function getHintForRow(row: LessonRankingRow): LessonImprovementHint | null {
+  return generateLessonHint({
     lessonSlug: row.slug,
     originCount: row.originCount,
     followUpRate: row.followUpRate,
     followUpCounts: row.followUpCounts,
   });
-  return hint?.message ?? null;
 }
 
 const PERIOD_LABELS: Record<AdminPeriod, string> = {
@@ -354,7 +355,7 @@ export function AdminMetricsPage() {
                           </td>
                           <td className={styles.numericCell}>{row.originCount}</td>
                           <td className={styles.numericCell}>{row.followUpRate}%</td>
-                          <td className={styles.hintCell}>{hint ?? '-'}</td>
+                          <td className={styles.hintCell}>{hint?.message ?? '-'}</td>
                         </tr>
                       );
                     })}
@@ -380,6 +381,7 @@ export function AdminMetricsPage() {
                       <th className={styles.numericCell}>母数</th>
                       <th className={styles.numericCell}>Rate</th>
                       <th>Hint</th>
+                      <th>Issue</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -400,13 +402,16 @@ export function AdminMetricsPage() {
                           </td>
                           <td className={styles.numericCell}>{row.originCount}</td>
                           <td className={styles.numericCell}>{row.followUpRate}%</td>
-                          <td className={styles.hintCell}>{hint ?? '-'}</td>
+                          <td className={styles.hintCell}>{hint?.message ?? '-'}</td>
+                          <td className={styles.issueCell}>
+                            <CreateIssueButton row={row} hint={hint} />
+                          </td>
                         </tr>
                       );
                     })}
                     {(!lessonRanking || lessonRanking.worst.length === 0) && (
                       <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', color: '#6b7280' }}>
+                        <td colSpan={6} style={{ textAlign: 'center', color: '#6b7280' }}>
                           データがありません
                         </td>
                       </tr>

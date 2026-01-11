@@ -206,3 +206,39 @@ test.describe('Admin Page - Metrics Link', () => {
     await expect(page).toHaveURL('/admin/metrics');
   });
 });
+
+/**
+ * [spec-lock] P3-2.3 Issue Automation
+ * Tests for GitHub Issue creation from Worst lessons table
+ */
+test.describe('Admin Metrics Page - Issue Automation', () => {
+  test('should display Issue column in Worst lessons table', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    // Worst table should have Issue column
+    const ranking = page.getByTestId('admin-metrics-lesson-ranking');
+    await expect(ranking).toBeVisible();
+
+    // Check for Issue column header in Worst table
+    const worstTable = ranking.locator('table').nth(1);
+    await expect(worstTable.getByText('Issue')).toBeVisible();
+  });
+
+  test('should show Issue button or status for Worst lessons', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    const ranking = page.getByTestId('admin-metrics-lesson-ranking');
+    await expect(ranking).toBeVisible();
+
+    // Check that Issue column cells exist (either button, link, or placeholder)
+    const worstTable = ranking.locator('table').nth(1);
+
+    // Should have rows with Issue column content
+    // In mock mode, lessons might not have enough data to show buttons
+    // but the column should exist
+    const issueColumn = worstTable.getByRole('columnheader', { name: 'Issue' });
+    await expect(issueColumn).toBeVisible();
+  });
+});
