@@ -140,3 +140,25 @@ export type FollowUpEventType = (typeof FOLLOW_UP_EVENT_TYPES)[number];
  * @spec-lock これらのイベントからfollow-upを計測する
  */
 export const ORIGIN_EVENT_TYPES = ['lesson_viewed', 'lesson_completed'] as const;
+
+// ============================================================
+// Evaluation Service Constants (P4-1.1)
+// ============================================================
+
+/**
+ * Evaluation window in days
+ * @spec-lock 効果測定の期間（Before/After各14日間）
+ */
+export const EVALUATION_WINDOW_DAYS = 14 as const;
+
+/**
+ * Minimum origin count for valid evaluation
+ * @spec-lock 5件未満はLOW_SAMPLEとして扱う
+ */
+export const MIN_ORIGIN_FOR_EVAL = 5 as const;
+
+/**
+ * Delta threshold for significant change (percentage points)
+ * @spec-lock ±5pp以上の変化で改善/悪化と判定
+ */
+export const EVAL_RATE_DELTA_THRESHOLD = 0.05 as const;
