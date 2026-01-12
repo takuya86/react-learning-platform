@@ -1,0 +1,73 @@
+.card {
+  background: var(--card-background, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.lastRun {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #666);
+}
+
+.statsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.statsSection {
+  /* Section styling */
+}
+
+.sectionTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+}
+
+.statsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.statsTable th,
+.statsTable td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.statsTable th {
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+}
+
+.totalRow {
+  font-weight: 600;
+}
+
+.loading,
+.error {
+  color: var(--text-secondary, #666);
+  font-style: italic;
+}
+
+.error {
+  color: var(--error-color, #d32f2f);
+}
+
+@media (max-width: 600px) {
+  .statsContainer {
+    grid-template-columns: 1fr;
+  }
+}

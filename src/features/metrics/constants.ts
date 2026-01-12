@@ -204,3 +204,13 @@ export const PRIORITY_STRATEGY_WEIGHTS = {
   intermediate: 1.0,
   advanced: 0.9,
 } as const;
+
+// ============================================================
+// Lifecycle Runner Constants (P5-2.3)
+// ============================================================
+
+/**
+ * Lifecycle applied event type
+ * @spec-lock lifecycle_applied イベントで冪等性を保証
+ */
+export const LIFECYCLE_APPLIED_EVENT_TYPE = 'lifecycle_applied' as const;

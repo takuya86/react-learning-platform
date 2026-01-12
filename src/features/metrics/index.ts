@@ -193,6 +193,7 @@ export {
   type ImprovementRoiItem,
   type RoiStatus,
 } from './hooks/useImprovementRoi';
+export { useLifecycleStats, type LifecycleStats } from './hooks/useLifecycleStats';
 
 // Components
 export { LearningMetricsCard } from './components/LearningMetricsCard';
@@ -200,3 +201,4 @@ export { LearningHeatmap } from './components/LearningHeatmap';
 export { LearningTrendChart } from './components/LearningTrendChart';
 export { HabitInterventionCard } from './components/HabitInterventionCard';
 export { GrowthInsightsCard } from './components/GrowthInsightsCard';
+export { LifecycleStatsCard } from './components/LifecycleStatsCard';

@@ -4,6 +4,7 @@ import {
   useAdminMetrics,
   LearningHeatmap,
   useImprovementRoi,
+  LifecycleStatsCard,
   type AdminPeriod,
   type LessonRankingRow,
   type LessonImprovementHint,
@@ -753,6 +754,11 @@ export function AdminMetricsPage() {
                 </table>
               </Card>
             )}
+          </section>
+
+          {/* Lifecycle Decisions */}
+          <section className={styles.lifecycleSection} data-testid="admin-metrics-lifecycle">
+            <LifecycleStatsCard />
           </section>
         </>
       )}

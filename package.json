@@ -23,6 +23,8 @@
     "generate:lessons": "node tools/generate-lessons.mjs",
     "validate:lessons": "node tools/validate-lessons.mjs",
     "lessons:stats": "node tools/lessons-stats.mjs",
+    "lifecycle:run": "node tools/run-lifecycle.mjs",
+    "lifecycle:dry": "node tools/run-lifecycle.mjs --dry-run",
     "prepare": "husky"
   },
   "dependencies": {

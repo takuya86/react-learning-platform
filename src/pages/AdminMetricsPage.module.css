@@ -631,6 +631,11 @@
   opacity: 0.6;
 }
 
+/* Lifecycle Decisions */
+.lifecycleSection {
+  margin-bottom: 2rem;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .summaryGrid {

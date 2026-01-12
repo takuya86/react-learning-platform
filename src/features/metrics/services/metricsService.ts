@@ -30,7 +30,8 @@ export type LearningEventType =
   | 'review_started'
   | 'next_lesson_opened'
   | 'intervention_shown'
-  | 'insights_shown';
+  | 'insights_shown'
+  | 'lifecycle_applied';
 
 export interface LearningEvent {
   id?: string;
