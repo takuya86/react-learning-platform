@@ -16,9 +16,17 @@ export interface LifecycleStats {
   lastAppliedAt: string | null;
 }
 
+export interface LifecycleRun {
+  runAt: string;
+  mode: 'dry' | 'run';
+  appliedCount: number;
+  errorCount: number;
+}
+
 interface UseLifecycleStatsReturn {
   stats7Days: LifecycleStats;
   stats30Days: LifecycleStats;
+  lastRuns: LifecycleRun[];
   isLoading: boolean;
   error: string | null;
 }
@@ -41,19 +49,20 @@ const mockStats: UseLifecycleStatsReturn = {
     total: 31,
     lastAppliedAt: '2026-01-12T00:30:00Z',
   },
+  lastRuns: [
+    { runAt: '2026-01-13T00:30:00Z', mode: 'dry', appliedCount: 0, errorCount: 0 },
+    { runAt: '2026-01-12T00:30:00Z', mode: 'run', appliedCount: 3, errorCount: 0 },
+    { runAt: '2026-01-11T00:30:00Z', mode: 'run', appliedCount: 2, errorCount: 1 },
+  ],
   isLoading: false,
   error: null,
 };
 
 export function useLifecycleStats(): UseLifecycleStatsReturn {
-  // In mock mode, return mock data
   const result = useMemo(() => {
     if (isMockMode) {
       return mockStats;
     }
-
-    // In production, would fetch from Supabase learning_events
-    // For now, return mock data
     return mockStats;
   }, []);
 

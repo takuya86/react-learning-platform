@@ -7,7 +7,14 @@
  * Applies decisions (close/label) and records them for idempotency.
  *
  * Usage:
- *   node tools/run-lifecycle.mjs [--dry-run] [--label=lesson-improvement]
+ *   node tools/run-lifecycle.mjs [options]
+ *
+ * Options:
+ *   --dry-run              Only simulate actions without making changes (default)
+ *   --confirm-run          Required flag to actually apply changes (safety)
+ *   --max-actions=N        Maximum number of actions to apply (default: 20)
+ *   --label=NAME           Filter issues by label (default: lesson-improvement)
+ *   --since-days=N         Only process issues updated in last N days (default: 30)
  *
  * Environment Variables:
  *   GITHUB_TOKEN           GitHub API token
@@ -26,6 +33,11 @@ import { createClient } from '@supabase/supabase-js';
 const LIFECYCLE_APPLIED_EVENT_TYPE = 'lifecycle_applied';
 const SYSTEM_USER_ID = 'system';
 
+// Safety Constants (from lifecycleConstants.ts)
+const MAX_ACTIONS_PER_RUN = 20;
+const REQUIRE_CONFIRM_FLAG_FOR_RUN = true;
+const SAFE_EXIT_ON_MISSING_SECRETS = true;
+
 // ============================================================
 // CLI Argument Parsing
 // ============================================================
@@ -33,16 +45,32 @@ const SYSTEM_USER_ID = 'system';
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    dryRun: false,
+    dryRun: true, // Default to dry-run for safety
+    confirmRun: false,
+    maxActions: MAX_ACTIONS_PER_RUN,
     label: 'lesson-improvement',
+    sinceDays: 30,
   };
 
   for (const arg of args) {
     if (arg === '--dry-run') {
       options.dryRun = true;
+    } else if (arg === '--confirm-run') {
+      options.confirmRun = true;
+      options.dryRun = false;
+    } else if (arg.startsWith('--max-actions=')) {
+      options.maxActions = parseInt(arg.split('=')[1], 10);
     } else if (arg.startsWith('--label=')) {
       options.label = arg.split('=')[1];
+    } else if (arg.startsWith('--since-days=')) {
+      options.sinceDays = parseInt(arg.split('=')[1], 10);
     }
+  }
+
+  // Safety: require --confirm-run for non-dry-run
+  if (!options.dryRun && !options.confirmRun && REQUIRE_CONFIRM_FLAG_FOR_RUN) {
+    console.warn('⚠️ --confirm-run is required for write operations. Forcing dry-run mode.');
+    options.dryRun = true;
   }
 
   return options;
@@ -66,6 +94,11 @@ function validateEnvironment() {
     .map(([key]) => key);
 
   if (missing.length > 0) {
+    if (SAFE_EXIT_ON_MISSING_SECRETS) {
+      console.warn(`⚠️ Missing environment variables: ${missing.join(', ')}`);
+      console.warn('Safe exit: No changes will be made.');
+      return null;
+    }
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 
@@ -287,6 +320,23 @@ async function recordAppliedDecision(supabase, issueNumber, decision) {
   }
 }
 
+async function recordRunSummary(supabase, summary, options) {
+  const runAt = new Date().toISOString();
+  const referenceId = `run:${runAt}`;
+
+  const { error } = await supabase.from('learning_events').insert({
+    user_id: SYSTEM_USER_ID,
+    event_type: 'lifecycle_run_summary',
+    reference_id: referenceId,
+    event_date: runAt.split('T')[0],
+    // Note: metadata field would store JSON summary if available in schema
+  });
+
+  if (error) {
+    console.warn(`⚠️ Failed to record run summary: ${error.message}`);
+  }
+}
+
 async function fetchIssueMetrics(supabase, lessonSlug) {
   // For now, return mock data
   // In production, query learning_events and calculate delta/roi
@@ -303,16 +353,22 @@ async function fetchIssueMetrics(supabase, lessonSlug) {
 // ============================================================
 
 async function runLifecycle(options) {
-  const { dryRun, label } = options;
+  const { dryRun, label, maxActions } = options;
 
   const env = validateEnvironment();
+  if (!env) {
+    // Missing secrets, safe exit
+    return;
+  }
+
   const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
 
   console.log('='.repeat(60));
   console.log('Lifecycle Runner');
   console.log('='.repeat(60));
-  console.log(`Dry Run: ${dryRun ? 'Yes' : 'No'}`);
+  console.log(`Mode: ${dryRun ? 'DRY RUN' : 'LIVE RUN'}`);
   console.log(`Label Filter: ${label}`);
+  console.log(`Max Actions: ${maxActions}`);
   console.log('');
 
   // Fetch already applied decisions
@@ -327,11 +383,14 @@ async function runLifecycle(options) {
 
   const summary = {
     processed: 0,
+    applied: 0,
     skipped: 0,
+    skippedLimit: 0,
     closed: 0,
     redesign: 0,
     continued: 0,
     errors: 0,
+    errorMessages: [],
   };
 
   for (const issue of issues) {
@@ -379,6 +438,13 @@ async function runLifecycle(options) {
         summary.continued++;
         console.log('✓ Continuing monitoring');
       } else if (result.decision === 'CLOSE_NO_EFFECT') {
+        // Check action limit before applying
+        if (summary.applied >= maxActions) {
+          console.log(`⏹️ Reached max actions limit (${maxActions}), stopping`);
+          summary.skippedLimit++;
+          continue;
+        }
+
         if (dryRun) {
           console.log('[DRY RUN] Would close issue');
         } else {
@@ -386,9 +452,17 @@ async function runLifecycle(options) {
           await closeIssue(env, issue.number, comment);
           await recordAppliedDecision(supabase, issue.number, result.decision);
           console.log('✓ Issue closed');
+          summary.applied++;
         }
         summary.closed++;
       } else if (result.decision === 'REDESIGN_REQUIRED') {
+        // Check action limit before applying
+        if (summary.applied >= maxActions) {
+          console.log(`⏹️ Reached max actions limit (${maxActions}), stopping`);
+          summary.skippedLimit++;
+          continue;
+        }
+
         if (dryRun) {
           console.log('[DRY RUN] Would add needs-redesign label');
         } else {
@@ -410,25 +484,45 @@ async function runLifecycle(options) {
           await addLabel(env, issue.number, result.labelToAdd);
           await recordAppliedDecision(supabase, issue.number, result.decision);
           console.log('✓ Label added');
+          summary.applied++;
         }
         summary.redesign++;
       }
     } catch (error) {
       console.error(`❌ Error: ${error.message}`);
       summary.errors++;
+      if (summary.errorMessages.length === 0) {
+        summary.errorMessages.push(error.message);
+      }
     }
   }
 
-  // Print summary
+  // Record run summary to Supabase
+  if (!dryRun) {
+    await recordRunSummary(supabase, summary, options);
+  }
+
+  // Print detailed summary
   console.log('\n' + '='.repeat(60));
-  console.log('Summary');
+  console.log('Lifecycle Runner Summary');
   console.log('='.repeat(60));
-  console.log(`Processed: ${summary.processed}`);
-  console.log(`Skipped (idempotent): ${summary.skipped}`);
-  console.log(`Closed: ${summary.closed}`);
-  console.log(`Redesign: ${summary.redesign}`);
-  console.log(`Continued: ${summary.continued}`);
-  console.log(`Errors: ${summary.errors}`);
+  console.log(`Mode: ${dryRun ? 'DRY RUN' : 'LIVE RUN'}`);
+  console.log(`Max Actions: ${maxActions}`);
+  console.log('');
+  console.log('Results:');
+  console.log(`  Processed: ${summary.processed}`);
+  console.log(`  Applied: ${summary.applied}`);
+  console.log(`  - Closed: ${summary.closed}`);
+  console.log(`  - Redesign: ${summary.redesign}`);
+  console.log(`  - Continued: ${summary.continued}`);
+  console.log(`  Skipped (idempotent): ${summary.skipped}`);
+  console.log(`  Skipped (limit): ${summary.skippedLimit}`);
+  console.log(`  Errors: ${summary.errors}`);
+
+  if (summary.errorMessages.length > 0) {
+    console.log('');
+    console.log('First error: ' + summary.errorMessages[0]);
+  }
 }
 
 async function main() {

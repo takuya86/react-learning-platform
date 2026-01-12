@@ -4,7 +4,11 @@
  * Displays lifecycle decision statistics for Admin Metrics.
  */
 
-import { useLifecycleStats, type LifecycleStats } from '../hooks/useLifecycleStats';
+import {
+  useLifecycleStats,
+  type LifecycleStats,
+  type LifecycleRun,
+} from '../hooks/useLifecycleStats';
 import styles from './LifecycleStatsCard.module.css';
 
 function formatDate(isoString: string | null): string {
@@ -52,8 +56,44 @@ function StatsTable({ stats, title }: { stats: LifecycleStats; title: string }) 
   );
 }
 
+function LastRunsTable({ runs }: { runs: LifecycleRun[] }) {
+  if (runs.length === 0) {
+    return <p className={styles.noRuns}>No runs recorded yet</p>;
+  }
+
+  return (
+    <div className={styles.lastRunsSection}>
+      <h4 className={styles.sectionTitle}>Last Runs</h4>
+      <table className={styles.runsTable}>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Mode</th>
+            <th>Applied</th>
+            <th>Errors</th>
+          </tr>
+        </thead>
+        <tbody>
+          {runs.map((run, index) => (
+            <tr key={index} className={run.errorCount > 0 ? styles.errorRow : ''}>
+              <td>{formatDate(run.runAt)}</td>
+              <td>
+                <span className={run.mode === 'run' ? styles.liveMode : styles.dryMode}>
+                  {run.mode.toUpperCase()}
+                </span>
+              </td>
+              <td>{run.appliedCount}</td>
+              <td>{run.errorCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function LifecycleStatsCard() {
-  const { stats7Days, stats30Days, isLoading, error } = useLifecycleStats();
+  const { stats7Days, stats30Days, lastRuns, isLoading, error } = useLifecycleStats();
 
   if (isLoading) {
     return (
@@ -81,6 +121,7 @@ export function LifecycleStatsCard() {
         <StatsTable stats={stats7Days} title="Last 7 Days" />
         <StatsTable stats={stats30Days} title="Last 30 Days" />
       </div>
+      <LastRunsTable runs={lastRuns} />
     </div>
   );
 }

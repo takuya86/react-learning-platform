@@ -2,29 +2,31 @@ name: Improvement Lifecycle
 
 on:
   schedule:
-    # Run daily at 00:30 UTC (09:30 JST)
+    # Run daily at 00:30 UTC (09:30 JST) - DRY RUN ONLY
     - cron: '30 0 * * *'
   workflow_dispatch:
     inputs:
-      dry_run:
-        description: 'Run in dry-run mode (no GitHub changes)'
-        required: false
-        default: 'false'
+      mode:
+        description: 'Run mode'
+        required: true
+        default: 'dry'
         type: choice
         options:
-          - 'true'
-          - 'false'
+          - 'dry'
+          - 'run'
+      max_actions:
+        description: 'Maximum actions per run'
+        required: false
+        default: '20'
+        type: string
 
 permissions:
   issues: write
   contents: read
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   VITE_GITHUB_OWNER: ${{ github.repository_owner }}
   VITE_GITHUB_REPO: ${{ github.event.repository.name }}
-  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
 jobs:
   run-lifecycle:
@@ -33,19 +35,74 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check secrets
+        id: check-secrets
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_SERVICE_KEY }}" ]; then
+            echo "⚠️ Required secrets not configured. Skipping run."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup Node.js
+        if: steps.check-secrets.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
+        if: steps.check-secrets.outputs.skip != 'true'
         run: npm ci
 
-      - name: Run Lifecycle (Dry Run)
-        if: ${{ github.event.inputs.dry_run == 'true' }}
-        run: npm run lifecycle:dry
+      - name: Run Lifecycle (Schedule - Dry Run Only)
+        if: github.event_name == 'schedule' && steps.check-secrets.outputs.skip != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          echo "### Lifecycle Runner (Scheduled - Dry Run)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          npm run lifecycle:dry 2>&1 | tee lifecycle-output.txt
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat lifecycle-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
-      - name: Run Lifecycle
-        if: ${{ github.event.inputs.dry_run != 'true' }}
-        run: npm run lifecycle:run
+      - name: Run Lifecycle (Manual - Dry Run)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'dry' && steps.check-secrets.outputs.skip != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          echo "### Lifecycle Runner (Manual - Dry Run)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          npm run lifecycle:dry -- --max-actions=${{ github.event.inputs.max_actions }} 2>&1 | tee lifecycle-output.txt
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat lifecycle-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Lifecycle (Manual - Live Run)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'run' && steps.check-secrets.outputs.skip != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          echo "### Lifecycle Runner (Manual - LIVE RUN)" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ This run will make actual changes to GitHub issues." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          npm run lifecycle:run -- --confirm-run --max-actions=${{ github.event.inputs.max_actions }} 2>&1 | tee lifecycle-output.txt
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat lifecycle-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip notification
+        if: steps.check-secrets.outputs.skip == 'true'
+        run: |
+          echo "### Lifecycle Runner Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Required secrets (SUPABASE_URL, SUPABASE_SERVICE_KEY) are not configured." >> $GITHUB_STEP_SUMMARY
+          echo "Please configure them in repository settings to enable the lifecycle runner." >> $GITHUB_STEP_SUMMARY

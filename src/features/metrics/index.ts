@@ -193,7 +193,11 @@ export {
   type ImprovementRoiItem,
   type RoiStatus,
 } from './hooks/useImprovementRoi';
-export { useLifecycleStats, type LifecycleStats } from './hooks/useLifecycleStats';
+export {
+  useLifecycleStats,
+  type LifecycleStats,
+  type LifecycleRun,
+} from './hooks/useLifecycleStats';
 
 // Components
 export { LearningMetricsCard } from './components/LearningMetricsCard';
