@@ -177,6 +177,11 @@ export {
   setMockGrowthEvents,
   resetMockGrowthEvents,
 } from './hooks/useGrowthInsights';
+export {
+  useImprovementRoi,
+  type ImprovementRoiItem,
+  type RoiStatus,
+} from './hooks/useImprovementRoi';
 
 // Components
 export { LearningMetricsCard } from './components/LearningMetricsCard';

@@ -3,9 +3,11 @@ import { Card, CardContent } from '@/components/ui';
 import {
   useAdminMetrics,
   LearningHeatmap,
+  useImprovementRoi,
   type AdminPeriod,
   type LessonRankingRow,
   type LessonImprovementHint,
+  type RoiStatus,
   generateLessonHint,
 } from '@/features/metrics';
 import { CreateIssueButton } from '@/features/admin';
@@ -54,6 +56,8 @@ export function AdminMetricsPage() {
     isLoading,
     error,
   } = useAdminMetrics();
+
+  const { roiList, isLoading: roiLoading, error: roiError } = useImprovementRoi();
 
   if (error) {
     return (
@@ -497,10 +501,118 @@ export function AdminMetricsPage() {
               </table>
             </Card>
           </section>
+
+          {/* Improvement ROI */}
+          <section className={styles.roiSection} data-testid="admin-metrics-improvement-roi">
+            <h2 className={styles.sectionTitle}>Improvement ROI</h2>
+            {roiError && (
+              <div className={styles.errorBanner}>ROIデータの取得に失敗しました: {roiError}</div>
+            )}
+            {roiLoading ? (
+              <div className={styles.loadingState}>ROIデータを読み込み中...</div>
+            ) : (
+              <Card className={styles.roiCard}>
+                <table className={styles.roiTable}>
+                  <thead>
+                    <tr>
+                      <th>Lesson</th>
+                      <th>Issue</th>
+                      <th className={styles.numericCell}>Δ Follow-up Rate</th>
+                      <th className={styles.numericCell}>Δ Completion Rate</th>
+                      <th>Status</th>
+                      <th>Period</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {roiList.map((roi) => {
+                      const followUpDisplay =
+                        roi.deltaFollowUpRate !== null
+                          ? `${roi.deltaFollowUpRate > 0 ? '+' : ''}${roi.deltaFollowUpRate.toFixed(1)}%`
+                          : '-';
+                      const followUpClass =
+                        roi.deltaFollowUpRate !== null
+                          ? roi.deltaFollowUpRate > 0
+                            ? styles.deltaPositive
+                            : roi.deltaFollowUpRate < 0
+                              ? styles.deltaNegative
+                              : styles.deltaNeutral
+                          : '';
+
+                      const completionDisplay =
+                        roi.deltaCompletionRate !== null
+                          ? `${roi.deltaCompletionRate > 0 ? '+' : ''}${roi.deltaCompletionRate.toFixed(1)}%`
+                          : '-';
+
+                      const statusClass = getStatusClass(roi.status);
+
+                      return (
+                        <tr key={`${roi.lessonSlug}-${roi.issueNumber}`}>
+                          <td className={styles.lessonCell} title={roi.lessonSlug}>
+                            {roi.lessonTitle}
+                          </td>
+                          <td className={styles.issueCell}>
+                            <a
+                              href={roi.issueUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.issueLink}
+                            >
+                              #{roi.issueNumber}
+                            </a>
+                          </td>
+                          <td className={`${styles.numericCell} ${followUpClass}`}>
+                            {followUpDisplay}
+                          </td>
+                          <td className={styles.numericCell}>{completionDisplay}</td>
+                          <td className={styles.statusCell}>
+                            <span className={`${styles.statusBadge} ${statusClass}`}>
+                              {roi.status}
+                            </span>
+                          </td>
+                          <td className={styles.periodCell}>
+                            <div className={styles.periodInfo}>
+                              <span className={styles.periodLabel}>Before:</span> {roi.beforePeriod}
+                              <br />
+                              <span className={styles.periodLabel}>After:</span> {roi.afterPeriod}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {roiList.length === 0 && (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', color: '#6b7280' }}>
+                          完了した改善Issueはありません
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </Card>
+            )}
+          </section>
         </>
       )}
     </div>
   );
+}
+
+/**
+ * Get CSS class for ROI status badge
+ */
+function getStatusClass(status: RoiStatus): string {
+  switch (status) {
+    case 'IMPROVED':
+      return 'statusImproved';
+    case 'REGRESSED':
+      return 'statusRegressed';
+    case 'NO_CHANGE':
+      return 'statusNoChange';
+    case 'INSUFFICIENT_DATA':
+      return 'statusInsufficient';
+    default:
+      return '';
+  }
 }
 
 // Simple trend chart for admin (using SVG like LearningTrendChart)

@@ -162,3 +162,13 @@ export const MIN_ORIGIN_FOR_EVAL = 5 as const;
  * @spec-lock ±5pp以上の変化で改善/悪化と判定
  */
 export const EVAL_RATE_DELTA_THRESHOLD = 0.05 as const;
+
+// ============================================================
+// ROI Service Constants (P4-2.1)
+// ============================================================
+
+/**
+ * ROI calculation window in days (before/after each)
+ * @spec-lock Before/After それぞれ7日間
+ */
+export const ROI_WINDOW_DAYS = 7 as const;

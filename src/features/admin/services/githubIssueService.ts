@@ -65,12 +65,20 @@ export interface OpenIssue {
 // Mock storage for testing
 let mockCreatedIssues: CreatedIssue[] = [];
 let mockOpenIssues: OpenIssue[] = [];
+let mockClosedIssues: OpenIssue[] = [];
 
 /**
  * Set mock open issues for testing
  */
 export function setMockOpenIssues(issues: OpenIssue[]): void {
   mockOpenIssues = [...issues];
+}
+
+/**
+ * Set mock closed issues for testing
+ */
+export function setMockClosedIssues(issues: OpenIssue[]): void {
+  mockClosedIssues = [...issues];
 }
 
 /**
@@ -86,6 +94,7 @@ export function getMockCreatedIssues(): CreatedIssue[] {
 export function resetMockIssueData(): void {
   mockCreatedIssues = [];
   mockOpenIssues = [];
+  mockClosedIssues = [];
 }
 
 /**
@@ -556,6 +565,113 @@ export async function listAllOpenImprovementIssues(): Promise<
       return {
         data: null,
         error: `Failed to list improvement issues: ${response.status} ${errorText}`,
+      };
+    }
+
+    const issues = await response.json();
+
+    const trackerItems: ImprovementTrackerItem[] = issues.map(
+      (issue: {
+        number: number;
+        html_url: string;
+        title: string;
+        body: string;
+        labels: { name: string }[];
+      }) => {
+        // Extract lesson slug from title
+        const slugMatch = issue.title.match(/\(([^)]+)\)/);
+        const lessonSlug = slugMatch ? slugMatch[1] : '';
+
+        // Extract hint type from labels
+        const hintLabel = issue.labels.find((label) => label.name.startsWith('hint:'));
+        const hintType = (hintLabel?.name.replace('hint:', '') || 'LOW_ENGAGEMENT') as HintType;
+
+        // Parse baseline from issue body
+        const { baselineRate, baselineOriginCount } = parseBaselineFromIssueBody(issue.body || '');
+
+        return {
+          lessonSlug,
+          hintType,
+          baselineRate,
+          baselineOriginCount,
+          issueNumber: issue.number,
+          issueUrl: issue.html_url,
+        };
+      }
+    );
+
+    return { data: trackerItems, error: null };
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * List all closed improvement issues with their baseline metrics
+ *
+ * This function retrieves all closed issues with the lesson-improvement label
+ * and extracts baseline metrics and metadata from the issue body.
+ *
+ * @returns Array of improvement tracker items for closed issues
+ */
+export async function listAllClosedImprovementIssues(): Promise<
+  IssueResult<ImprovementTrackerItem[]>
+> {
+  // Mock mode
+  if (isMockMode) {
+    const trackerItems: ImprovementTrackerItem[] = mockClosedIssues
+      .filter((issue) => issue.labels.includes(ISSUE_LABEL_PREFIX))
+      .map((issue) => {
+        // Extract lesson slug from title: "[Lesson Improvement] Title (slug) - HINT_TYPE"
+        const slugMatch = issue.title.match(/\(([^)]+)\)/);
+        const lessonSlug = slugMatch ? slugMatch[1] : '';
+
+        // Extract hint type from labels
+        const hintLabel = issue.labels.find((label) => label.startsWith('hint:'));
+        const hintType = (hintLabel?.replace('hint:', '') || 'LOW_ENGAGEMENT') as HintType;
+
+        // For mock mode, use dummy baseline values
+        return {
+          lessonSlug,
+          hintType,
+          baselineRate: 15,
+          baselineOriginCount: 10,
+          issueNumber: issue.number,
+          issueUrl: issue.url,
+        };
+      });
+
+    return { data: trackerItems, error: null };
+  }
+
+  // Check for required env vars
+  if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
+    return {
+      data: null,
+      error: 'GitHub API credentials not configured',
+    };
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues?state=closed&labels=${ISSUE_LABEL_PREFIX}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        data: null,
+        error: `Failed to list closed improvement issues: ${response.status} ${errorText}`,
       };
     }
 
