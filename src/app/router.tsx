@@ -13,6 +13,7 @@ import {
   RoadmapPage,
   NotFoundPage,
   LoginPage,
+  AuthCallbackPage,
   AdminPage,
   AdminBacklogPage,
   AdminMetricsPage,
@@ -37,6 +38,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/auth/callback',
+    element: <AuthCallbackPage />,
   },
   {
     path: '/',

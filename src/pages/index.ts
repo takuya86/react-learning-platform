@@ -9,6 +9,7 @@ export { NotesPage } from './NotesPage';
 export { RoadmapPage } from './RoadmapPage';
 export { NotFoundPage } from './NotFoundPage';
 export { LoginPage } from './LoginPage';
+export { AuthCallbackPage } from './AuthCallbackPage';
 export { AdminPage } from './AdminPage';
 export { AdminBacklogPage } from './AdminBacklogPage';
 export { AdminMetricsPage } from './AdminMetricsPage';
