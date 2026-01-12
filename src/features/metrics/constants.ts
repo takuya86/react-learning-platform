@@ -172,3 +172,35 @@ export const EVAL_RATE_DELTA_THRESHOLD = 0.05 as const;
  * @spec-lock Before/After それぞれ7日間
  */
 export const ROI_WINDOW_DAYS = 7 as const;
+
+// ============================================================
+// Priority Score Constants (P5-1.1)
+// ============================================================
+
+/**
+ * Priority score version
+ * @spec-lock バージョン管理用（将来のアルゴリズム変更に備える）
+ */
+export const PRIORITY_SCORE_VERSION = 'v1' as const;
+
+/**
+ * Impact weight calculation: log base
+ * @spec-lock log10(originCount + 1) で計算
+ */
+export const PRIORITY_IMPACT_LOG_BASE = 10;
+
+/**
+ * Impact weight clamp range
+ * @spec-lock 0.5 ~ 2.0 にクランプ
+ */
+export const PRIORITY_IMPACT_CLAMP = { min: 0.5, max: 2.0 } as const;
+
+/**
+ * Strategy weight by difficulty
+ * @spec-lock 初心者向けを優先（beginner > intermediate > advanced）
+ */
+export const PRIORITY_STRATEGY_WEIGHTS = {
+  beginner: 1.2,
+  intermediate: 1.0,
+  advanced: 0.9,
+} as const;

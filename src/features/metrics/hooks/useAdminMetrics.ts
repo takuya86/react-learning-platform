@@ -34,6 +34,12 @@ import {
   listAllOpenImprovementIssues,
   type ImprovementTrackerItem,
 } from '@/features/admin/services/githubIssueService';
+import {
+  rankImprovements,
+  type RankedItem,
+  type ImprovementItem,
+} from '../services/priorityScoreService';
+import { generateLessonHint } from '../services/lessonImprovementHintService';
 
 /**
  * Tracker row with baseline and current metrics combined
@@ -61,6 +67,8 @@ interface UseAdminMetricsResult {
   effectiveness: EffectivenessSummary | null;
   lessonRanking: LessonRanking | null;
   improvementTracker: ImprovementTrackerRow[];
+  priorityRanking: RankedItem[];
+  nextBestImprovement: RankedItem | null;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -282,6 +290,39 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     });
   }, [trackerItems, events, period, today, isLoading]);
 
+  const priorityRanking = useMemo(() => {
+    if (isLoading || !lessonRanking) return [];
+
+    // Calculate priority items from worst lessons
+    const improvementItems: ImprovementItem[] = lessonRanking.worst.map((row) => {
+      const hint = generateLessonHint({
+        lessonSlug: row.slug,
+        originCount: row.originCount,
+        followUpRate: row.followUpRate,
+        followUpCounts: row.followUpCounts,
+      });
+      const hintType = hint?.type ?? null;
+      const roiScore = 100 - row.followUpRate;
+
+      return {
+        lessonSlug: row.slug,
+        lessonTitle: row.title,
+        roiScore,
+        originCount: row.originCount,
+        followUpRate: row.followUpRate,
+        difficulty: row.difficulty,
+        hintType,
+      };
+    });
+
+    // Rank by priority score
+    return rankImprovements(improvementItems);
+  }, [lessonRanking, isLoading]);
+
+  const nextBestImprovement = useMemo(() => {
+    return priorityRanking.find((item) => !item.isLowSample) ?? null;
+  }, [priorityRanking]);
+
   return {
     period,
     setPeriod,
@@ -292,6 +333,8 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     effectiveness,
     lessonRanking,
     improvementTracker,
+    priorityRanking,
+    nextBestImprovement,
     isLoading,
     error,
     refresh: fetchData,

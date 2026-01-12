@@ -53,6 +53,8 @@ export function AdminMetricsPage() {
     effectiveness,
     lessonRanking,
     improvementTracker,
+    priorityRanking,
+    nextBestImprovement,
     isLoading,
     error,
   } = useAdminMetrics();
@@ -425,6 +427,167 @@ export function AdminMetricsPage() {
                 </table>
               </Card>
             </div>
+          </section>
+
+          {/* Next Best Improvement */}
+          <section className={styles.nextBestSection} data-testid="next-best-improvement">
+            <h2 className={styles.sectionTitle}>Next Best Improvement</h2>
+            {nextBestImprovement ? (
+              <Card className={styles.priorityCard}>
+                <CardContent className={styles.priorityCardContent}>
+                  <div className={styles.priorityHeader}>
+                    <div className={styles.lessonInfo}>
+                      <h3 className={styles.lessonTitle}>{nextBestImprovement.lessonTitle}</h3>
+                      <span className={styles.lessonSlug}>{nextBestImprovement.lessonSlug}</span>
+                    </div>
+                    <div className={styles.priorityScoreDisplay}>
+                      <span className={styles.priorityScoreLabel}>Priority Score</span>
+                      <span className={styles.priorityScoreValue}>
+                        {nextBestImprovement.priority.score.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.breakdown}>
+                    <div className={styles.breakdownItem}>
+                      <span className={styles.breakdownLabel}>ROI</span>
+                      <span className={styles.breakdownValue}>
+                        {nextBestImprovement.priority.breakdown.roiScore.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className={styles.breakdownItem}>
+                      <span className={styles.breakdownLabel}>Origin Count</span>
+                      <span className={styles.breakdownValue}>
+                        {nextBestImprovement.originCount}
+                      </span>
+                    </div>
+                    <div className={styles.breakdownItem}>
+                      <span className={styles.breakdownLabel}>Strategy Weight</span>
+                      <span className={styles.breakdownValue}>
+                        {nextBestImprovement.priority.breakdown.strategyWeight.toFixed(1)}x
+                      </span>
+                    </div>
+                    <div className={styles.breakdownItem}>
+                      <span className={styles.breakdownLabel}>Hint Type</span>
+                      <span className={styles.breakdownValue}>
+                        {nextBestImprovement.hintType ?? '-'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.issueAction}>
+                    <CreateIssueButton
+                      row={{
+                        slug: nextBestImprovement.lessonSlug,
+                        title: nextBestImprovement.lessonTitle,
+                        difficulty: 'beginner',
+                        originCount: nextBestImprovement.originCount,
+                        followUpCount: Math.round(
+                          (nextBestImprovement.followUpRate / 100) * nextBestImprovement.originCount
+                        ),
+                        followUpRate: Math.round(nextBestImprovement.followUpRate),
+                        followUpCounts: {},
+                        isLowSample: false,
+                      }}
+                      hint={
+                        nextBestImprovement.hintType
+                          ? {
+                              type: nextBestImprovement.hintType,
+                              message: `Improve ${nextBestImprovement.lessonTitle}`,
+                            }
+                          : null
+                      }
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className={styles.emptyState}>
+                  <span className={styles.emptyText}>改善すべきレッスンはありません</span>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+
+          {/* Priority Queue */}
+          <section className={styles.priorityQueueSection} data-testid="priority-queue">
+            <h2 className={styles.sectionTitle}>Improvement Priority Queue</h2>
+            <Card className={styles.priorityQueueCard}>
+              <table className={styles.priorityQueueTable}>
+                <thead>
+                  <tr>
+                    <th className={styles.rankCell}>Rank</th>
+                    <th>Lesson</th>
+                    <th className={styles.numericCell}>Priority Score</th>
+                    <th className={styles.numericCell}>ROI</th>
+                    <th className={styles.numericCell}>Origin Count</th>
+                    <th>Hint Type</th>
+                    <th>Issue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {priorityRanking.slice(0, 10).map((item, index) => {
+                    const isTopPriority = index === 0 && !item.isLowSample;
+                    return (
+                      <tr
+                        key={item.lessonSlug}
+                        className={item.isLowSample ? styles.lowSampleRow : ''}
+                      >
+                        <td className={styles.rankCell}>
+                          <span className={`${styles.rank} ${isTopPriority ? styles.top : ''}`}>
+                            {index + 1}
+                          </span>
+                        </td>
+                        <td className={styles.lessonCell} title={item.lessonSlug}>
+                          {item.lessonTitle}
+                          {item.isLowSample && (
+                            <span className={styles.lowSampleBadge}>low sample</span>
+                          )}
+                        </td>
+                        <td className={styles.numericCell}>{item.priority.score.toFixed(1)}</td>
+                        <td className={styles.numericCell}>
+                          {item.priority.breakdown.roiScore.toFixed(1)}%
+                        </td>
+                        <td className={styles.numericCell}>{item.originCount}</td>
+                        <td className={styles.hintTypeCell}>{item.hintType ?? '-'}</td>
+                        <td className={styles.issueCell}>
+                          {!item.isLowSample && item.hintType && (
+                            <CreateIssueButton
+                              row={{
+                                slug: item.lessonSlug,
+                                title: item.lessonTitle,
+                                difficulty: 'beginner',
+                                originCount: item.originCount,
+                                followUpCount: Math.round(
+                                  (item.followUpRate / 100) * item.originCount
+                                ),
+                                followUpRate: Math.round(item.followUpRate),
+                                followUpCounts: {},
+                                isLowSample: false,
+                              }}
+                              hint={
+                                item.hintType
+                                  ? {
+                                      type: item.hintType,
+                                      message: `Improve ${item.lessonTitle}`,
+                                    }
+                                  : null
+                              }
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {priorityRanking.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', color: '#6b7280' }}>
+                        優先順位データがありません
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </Card>
           </section>
 
           {/* Improvement Tracker */}

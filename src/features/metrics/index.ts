@@ -134,6 +134,17 @@ export {
   generateLessonHints,
 } from './services/lessonImprovementHintService';
 
+export {
+  type RankedItem,
+  type ImprovementItem,
+  type PriorityResult,
+  type PriorityBreakdown,
+  rankImprovements,
+  computePriorityScore,
+  computeImpactWeight,
+  computeStrategyWeight,
+} from './services/priorityScoreService';
+
 // Constants (for reference and testing)
 export {
   HABIT_SCORE_WEIGHTS,
