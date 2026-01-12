@@ -2,12 +2,22 @@
  * GitHub Issue Service for Lesson Improvement Automation
  *
  * P3-2.3: Automatically creates GitHub Issues for lessons needing improvement.
+ * P5-2.2: Extended with Issue lifecycle management (close, label, process decisions)
  *
  * ## 発火条件（spec-lock）
  * - originCount >= 5
  * - improvementHint !== null
  * - hintType !== 'LOW_SAMPLE'
  * - 同一 lesson + hintType の Issue が Open で存在しない
+ *
+ * ## P5-2.2 新機能
+ * - closeIssue: Issue をクローズ（コメント付き可能）
+ * - addLabelToIssue: Issue にラベルを追加
+ * - processLifecycleDecision: ライフサイクル判定に基づいて適切な処理を実行
+ *   - CLOSE_NO_EFFECT: コメント + close
+ *   - REDESIGN_REQUIRED: コメント + label追加
+ *   - CONTINUE: 何もしない
+ * - すべての操作は冪等性を持つ（重複実行されない）
  */
 
 import { isMockMode } from '@/lib/supabase/client';
@@ -53,6 +63,20 @@ export interface IssueResult<T> {
 }
 
 /**
+ * Lifecycle decision types for issue processing
+ */
+export type LifecycleDecision = 'CLOSE_NO_EFFECT' | 'REDESIGN_REQUIRED' | 'CONTINUE';
+
+/**
+ * Lifecycle evaluation result
+ */
+export interface LifecycleResult {
+  decision: LifecycleDecision;
+  comment: string;
+  label?: string;
+}
+
+/**
  * Open issue info for duplicate checking
  */
 export interface OpenIssue {
@@ -66,6 +90,10 @@ export interface OpenIssue {
 let mockCreatedIssues: CreatedIssue[] = [];
 let mockOpenIssues: OpenIssue[] = [];
 let mockClosedIssues: OpenIssue[] = [];
+
+// Mock storage for issue state and labels
+const mockIssueStates: Map<number, 'open' | 'closed'> = new Map();
+const mockIssueLabels: Map<number, string[]> = new Map();
 
 /**
  * Set mock open issues for testing
@@ -95,6 +123,44 @@ export function resetMockIssueData(): void {
   mockCreatedIssues = [];
   mockOpenIssues = [];
   mockClosedIssues = [];
+  mockIssueStates.clear();
+  mockIssueLabels.clear();
+}
+
+/**
+ * Set mock issue state for testing (mock mode only)
+ */
+export function setMockIssueState(issueNumber: number, state: 'open' | 'closed'): void {
+  mockIssueStates.set(issueNumber, state);
+
+  // Update mockOpenIssues and mockClosedIssues accordingly
+  if (state === 'closed') {
+    const issueIndex = mockOpenIssues.findIndex((issue) => issue.number === issueNumber);
+    if (issueIndex !== -1) {
+      const [issue] = mockOpenIssues.splice(issueIndex, 1);
+      mockClosedIssues.push(issue);
+    }
+  } else {
+    const issueIndex = mockClosedIssues.findIndex((issue) => issue.number === issueNumber);
+    if (issueIndex !== -1) {
+      const [issue] = mockClosedIssues.splice(issueIndex, 1);
+      mockOpenIssues.push(issue);
+    }
+  }
+}
+
+/**
+ * Get mock issue state for testing (mock mode only)
+ */
+export function getMockIssueState(issueNumber: number): 'open' | 'closed' | null {
+  return mockIssueStates.get(issueNumber) || null;
+}
+
+/**
+ * Get mock issue labels for testing (mock mode only)
+ */
+export function getMockIssueLabels(issueNumber: number): string[] {
+  return mockIssueLabels.get(issueNumber) || [];
 }
 
 /**
@@ -373,18 +439,25 @@ export async function createIssue(params: CreateIssueParams): Promise<IssueResul
   // Mock mode
   if (isMockMode) {
     const title = buildIssueTitle(lessonSlug, lessonTitle, hintType);
+    const issueNumber = mockCreatedIssues.length + 1;
     const issue: CreatedIssue = {
-      number: mockCreatedIssues.length + 1,
-      url: `https://github.com/mock/repo/issues/${mockCreatedIssues.length + 1}`,
+      number: issueNumber,
+      url: `https://github.com/mock/repo/issues/${issueNumber}`,
       title,
     };
     mockCreatedIssues.push(issue);
 
+    const labels = getIssueLabels(lessonSlug, hintType);
+
     // Also add to open issues for duplicate detection
     mockOpenIssues.push({
       ...issue,
-      labels: getIssueLabels(lessonSlug, hintType),
+      labels,
     });
+
+    // Initialize mock state and labels
+    mockIssueStates.set(issueNumber, 'open');
+    mockIssueLabels.set(issueNumber, [...labels]);
 
     return { data: issue, error: null };
   }
@@ -713,5 +786,226 @@ export async function listAllClosedImprovementIssues(): Promise<
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
     };
+  }
+}
+
+/**
+ * Close a GitHub issue with an optional comment
+ *
+ * P5-2.2: Close issue functionality for lifecycle automation
+ *
+ * @param issueNumber - GitHub issue number to close
+ * @param comment - Optional comment to post before closing
+ * @returns Success or error result
+ */
+export async function closeIssue(
+  issueNumber: number,
+  comment?: string
+): Promise<IssueResult<void>> {
+  // Mock mode
+  if (isMockMode) {
+    const currentState = mockIssueStates.get(issueNumber);
+    if (currentState === 'closed') {
+      // Already closed - idempotent behavior
+      return { data: undefined, error: null };
+    }
+
+    // Post comment first if provided
+    if (comment) {
+      const { createIssueComment } = await import('./githubIssueCommentService');
+      const commentResult = await createIssueComment(issueNumber, comment);
+      if (commentResult.error) {
+        return { data: null, error: commentResult.error };
+      }
+    }
+
+    // Update state to closed
+    setMockIssueState(issueNumber, 'closed');
+    return { data: undefined, error: null };
+  }
+
+  // Check for required env vars
+  if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
+    return {
+      data: null,
+      error: 'GitHub API credentials not configured',
+    };
+  }
+
+  try {
+    // Post comment first if provided
+    if (comment) {
+      const { createIssueComment } = await import('./githubIssueCommentService');
+      const commentResult = await createIssueComment(issueNumber, comment);
+      if (commentResult.error) {
+        return { data: null, error: commentResult.error };
+      }
+    }
+
+    // Close the issue
+    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${issueNumber}`;
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        state: 'closed',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        data: null,
+        error: `Failed to close issue: ${response.status} ${errorText}`,
+      };
+    }
+
+    return { data: undefined, error: null };
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Add a label to a GitHub issue
+ *
+ * P5-2.2: Add label functionality for lifecycle automation
+ *
+ * @param issueNumber - GitHub issue number
+ * @param label - Label to add
+ * @returns Success or error result
+ */
+export async function addLabelToIssue(
+  issueNumber: number,
+  label: string
+): Promise<IssueResult<void>> {
+  // Mock mode
+  if (isMockMode) {
+    const existingLabels = mockIssueLabels.get(issueNumber) || [];
+
+    // Idempotent - don't add if already present
+    if (existingLabels.includes(label)) {
+      return { data: undefined, error: null };
+    }
+
+    mockIssueLabels.set(issueNumber, [...existingLabels, label]);
+
+    // Also update the mockOpenIssues or mockClosedIssues
+    const updateIssueLabels = (issues: OpenIssue[]) => {
+      const issue = issues.find((i) => i.number === issueNumber);
+      if (issue && !issue.labels.includes(label)) {
+        issue.labels.push(label);
+      }
+    };
+
+    updateIssueLabels(mockOpenIssues);
+    updateIssueLabels(mockClosedIssues);
+
+    return { data: undefined, error: null };
+  }
+
+  // Check for required env vars
+  if (!GITHUB_TOKEN || !GITHUB_OWNER || !GITHUB_REPO) {
+    return {
+      data: null,
+      error: 'GitHub API credentials not configured',
+    };
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${issueNumber}/labels`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        labels: [label],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        data: null,
+        error: `Failed to add label: ${response.status} ${errorText}`,
+      };
+    }
+
+    return { data: undefined, error: null };
+  } catch (err) {
+    return {
+      data: null,
+      error: err instanceof Error ? err.message : 'Unknown error occurred',
+    };
+  }
+}
+
+/**
+ * Process a lifecycle decision and take appropriate action
+ *
+ * P5-2.2: Process lifecycle evaluation results
+ *
+ * Actions by decision:
+ * - CLOSE_NO_EFFECT: Post comment and close issue
+ * - REDESIGN_REQUIRED: Post comment and add label
+ * - CONTINUE: Do nothing
+ *
+ * This function is idempotent - it can be called multiple times with the same result.
+ *
+ * @param issueNumber - GitHub issue number
+ * @param result - Lifecycle evaluation result
+ * @returns Success or error result
+ */
+export async function processLifecycleDecision(
+  issueNumber: number,
+  result: LifecycleResult
+): Promise<IssueResult<void>> {
+  switch (result.decision) {
+    case 'CLOSE_NO_EFFECT':
+      // Close with comment
+      return await closeIssue(issueNumber, result.comment);
+
+    case 'REDESIGN_REQUIRED': {
+      // Add label and comment
+      if (result.label) {
+        const labelResult = await addLabelToIssue(issueNumber, result.label);
+        if (labelResult.error) {
+          return labelResult;
+        }
+      }
+
+      // Post comment
+      const { createIssueComment } = await import('./githubIssueCommentService');
+      const commentResult = await createIssueComment(issueNumber, result.comment);
+      if (commentResult.error) {
+        return { data: null, error: commentResult.error };
+      }
+
+      return { data: undefined, error: null };
+    }
+
+    case 'CONTINUE':
+      // Do nothing
+      return { data: undefined, error: null };
+
+    default:
+      return {
+        data: null,
+        error: `Unknown lifecycle decision: ${result.decision}`,
+      };
   }
 }
