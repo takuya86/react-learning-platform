@@ -2,11 +2,12 @@
 
 ## クイックリンク
 
-| ドキュメント                               | 内容                       |
-| ------------------------------------------ | -------------------------- |
-| [Getting Started](./getting-started.md)    | 環境構築・初回セットアップ |
-| [アーキテクチャ](./design/architecture.md) | システム全体設計           |
-| [開発ガイド](./guides/development.md)      | 開発フロー・コマンド       |
+| ドキュメント                                                     | 内容                       |
+| ---------------------------------------------------------------- | -------------------------- |
+| [Getting Started](./getting-started.md)                          | 環境構築・初回セットアップ |
+| [アーキテクチャ](./design/architecture.md)                       | システム全体設計           |
+| [開発ガイド](./guides/development.md)                            | 開発フロー・コマンド       |
+| [設計判断チェックリスト](./guides/design-judgment-checklists.md) | レビュー・面談で使える観点 |
 
 ## ドキュメント構成
 
@@ -26,7 +27,8 @@ docs/
 │   ├── quiz.md
 │   └── notes.md
 └── guides/                # 開発ガイド
-    └── development.md
+    ├── development.md
+    └── design-judgment-checklists.md  # 設計判断チェックリスト
 ```
 
 ## 目的別リンク
