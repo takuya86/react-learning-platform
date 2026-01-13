@@ -1,0 +1,572 @@
+---
+title: 'テスト入門：Vitest & Testing Library'
+slug: 'testing-basics'
+description: 'テストの目的は「安心して変更するため」。何をテストし、何をテストしないか判断できるようになります。'
+tags: ['react', 'testing', 'vitest', 'testing-library', 'advanced']
+difficulty: 'advanced'
+estimatedMinutes: 35
+prerequisites: ['custom-hooks']
+---
+
+# テスト入門：Vitest & Testing Library
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **Unit / Integration / E2E の役割を説明し、適切なレイヤーを選択できる**
+2. **「このテストは何を守っているか」を言語化でき、不要なテストを書かない判断ができる**
+3. **実装依存テストを避け、リファクタリングに強いテストを設計できる**
+
+---
+
+## テストでやっていいこと / やらなくていいこと
+
+### やっていいこと
+- ユーザーが見る結果（テキスト、UI状態、エラーメッセージ）を検証
+- 重要なビジネスロジックの境界値・異常系をカバー
+- role / label でアクセシブルな要素を取得
+- 壊れたら困る「契約」をテスト
+
+### やらなくていいこと
+- 内部の state / props の値を直接検証
+- CSS クラス名、data 属性の詳細をテスト
+- サードパーティライブラリの動作を再テスト
+- 「テストがあること」を目的にテストを書く
+
+### テストレイヤーの判断基準
+
+| 質問 | Yes → | No → |
+|------|-------|------|
+| 壊れたらユーザーが困るか？ | テスト書く | 書かなくてよい |
+| 他のテストでカバー済みか？ | 重複を避ける | 新規で書く |
+| 実装を変えたら壊れるか？ | 設計を見直す | OK |
+| 手動で毎回確認してるか？ | 自動化する | 低優先 |
+
+---
+
+## テストピラミッド
+
+```
+        ┌─────┐
+        │ E2E │  ← 少数・高コスト・本番に近い
+       ─┴─────┴─
+      ┌─────────┐
+      │Integration│ ← 複数コンポーネントの連携
+     ─┴───────────┴─
+    ┌───────────────┐
+    │    Unit       │ ← 多数・低コスト・高速
+    └───────────────┘
+```
+
+| レイヤー | 対象 | 速度 | 信頼性 | 例 |
+|----------|------|------|--------|-----|
+| Unit | 関数、フック | 速い | 高い | validateEmail, useCounter |
+| Integration | コンポーネント連携 | 中程度 | 中程度 | LoginForm, UserList |
+| E2E | ユーザーフロー全体 | 遅い | 環境依存 | 会員登録→ログイン→購入 |
+
+**原則**: 下層（Unit）を厚く、上層（E2E）は薄く。E2Eは「クリティカルパス」のみ。
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: ユーザー視点のテスト、テストピラミッドの実践、適切なモック活用を実装しています。
+
+```tsx
+// ============================================
+// 1. Unit テスト（ロジックの検証）
+// ============================================
+
+// src/utils/validation.ts
+export function validateEmail(email: string): string | null {
+  if (!email.trim()) return 'メールアドレスは必須です';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return '有効なメールアドレスを入力してください';
+  }
+  return null;
+}
+
+export function validatePassword(password: string): string | null {
+  if (!password) return 'パスワードは必須です';
+  if (password.length < 8) return 'パスワードは8文字以上で入力してください';
+  return null;
+}
+
+// src/utils/validation.test.ts
+import { describe, it, expect } from 'vitest';
+import { validateEmail, validatePassword } from './validation';
+
+// ✅ ロジックのテストはUnitで
+describe('validateEmail', () => {
+  it('空文字列でエラーを返す', () => {
+    expect(validateEmail('')).toBe('メールアドレスは必須です');
+  });
+
+  it('無効な形式でエラーを返す', () => {
+    expect(validateEmail('invalid')).toBe('有効なメールアドレスを入力してください');
+  });
+
+  it('有効なメールアドレスでnullを返す', () => {
+    expect(validateEmail('test@example.com')).toBeNull();
+  });
+});
+
+describe('validatePassword', () => {
+  it('空文字列でエラーを返す', () => {
+    expect(validatePassword('')).toBe('パスワードは必須です');
+  });
+
+  it('7文字以下でエラーを返す', () => {
+    expect(validatePassword('1234567')).toBe('パスワードは8文字以上で入力してください');
+  });
+
+  it('8文字以上でnullを返す', () => {
+    expect(validatePassword('12345678')).toBeNull();
+  });
+});
+
+// ============================================
+// 2. Integration テスト（コンポーネントの連携）
+// ============================================
+
+// src/components/LoginForm.tsx
+import { useState, FormEvent } from 'react';
+import { validateEmail, validatePassword } from '../utils/validation';
+
+type LoginFormProps = {
+  onSubmit: (data: { email: string; password: string }) => Promise<void>;
+};
+
+export function LoginForm({ onSubmit }: LoginFormProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+
+    // バリデーション
+    const newErrors: Record<string, string> = {};
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    if (emailError) newErrors.email = emailError;
+    if (passwordError) newErrors.password = passwordError;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit({ email, password });
+    } catch (err) {
+      setSubmitError((err as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} aria-label="ログインフォーム">
+      <div>
+        <label htmlFor="email">メールアドレス</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          aria-describedby={errors.email ? 'email-error' : undefined}
+        />
+        {errors.email && (
+          <p id="email-error" role="alert">{errors.email}</p>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor="password">パスワード</label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          aria-describedby={errors.password ? 'password-error' : undefined}
+        />
+        {errors.password && (
+          <p id="password-error" role="alert">{errors.password}</p>
+        )}
+      </div>
+
+      {submitError && <p role="alert">{submitError}</p>}
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'ログイン中...' : 'ログイン'}
+      </button>
+    </form>
+  );
+}
+
+// src/components/LoginForm.test.tsx
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { LoginForm } from './LoginForm';
+
+describe('LoginForm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ✅ ユーザーの操作と結果をテスト（実装詳細ではない）
+  describe('正常系', () => {
+    it('有効な入力で送信するとonSubmitが呼ばれる', async () => {
+      const user = userEvent.setup();
+      const handleSubmit = vi.fn().mockResolvedValue(undefined);
+
+      render(<LoginForm onSubmit={handleSubmit} />);
+
+      await user.type(screen.getByLabelText('メールアドレス'), 'test@example.com');
+      await user.type(screen.getByLabelText('パスワード'), 'password123');
+      await user.click(screen.getByRole('button', { name: 'ログイン' }));
+
+      await waitFor(() => {
+        expect(handleSubmit).toHaveBeenCalledWith({
+          email: 'test@example.com',
+          password: 'password123',
+        });
+      });
+    });
+
+    it('送信中はボタンが無効化され、テキストが変わる', async () => {
+      const user = userEvent.setup();
+      const handleSubmit = vi.fn().mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100))
+      );
+
+      render(<LoginForm onSubmit={handleSubmit} />);
+
+      await user.type(screen.getByLabelText('メールアドレス'), 'test@example.com');
+      await user.type(screen.getByLabelText('パスワード'), 'password123');
+      await user.click(screen.getByRole('button', { name: 'ログイン' }));
+
+      // ユーザーに見える状態を検証
+      expect(screen.getByRole('button', { name: 'ログイン中...' })).toBeDisabled();
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'ログイン' })).not.toBeDisabled();
+      });
+    });
+  });
+
+  // ✅ エラー表示のテスト（UIとの連携を確認）
+  describe('バリデーションエラー', () => {
+    it('空のメールアドレスでエラーが表示される', async () => {
+      const user = userEvent.setup();
+      render(<LoginForm onSubmit={vi.fn()} />);
+
+      await user.type(screen.getByLabelText('パスワード'), 'password123');
+      await user.click(screen.getByRole('button', { name: 'ログイン' }));
+
+      expect(await screen.findByText('メールアドレスは必須です')).toBeInTheDocument();
+    });
+  });
+
+  // ✅ APIエラーのテスト
+  describe('APIエラー', () => {
+    it('API エラー時にエラーメッセージが表示される', async () => {
+      const user = userEvent.setup();
+      const handleSubmit = vi.fn().mockRejectedValue(new Error('認証に失敗しました'));
+
+      render(<LoginForm onSubmit={handleSubmit} />);
+
+      await user.type(screen.getByLabelText('メールアドレス'), 'test@example.com');
+      await user.type(screen.getByLabelText('パスワード'), 'password123');
+      await user.click(screen.getByRole('button', { name: 'ログイン' }));
+
+      expect(await screen.findByText('認証に失敗しました')).toBeInTheDocument();
+    });
+  });
+});
+
+// ============================================
+// 3. カスタムフックのテスト
+// ============================================
+
+// src/hooks/useCounter.ts
+import { useState, useCallback } from 'react';
+
+export function useCounter(initialValue = 0) {
+  const [count, setCount] = useState(initialValue);
+
+  const increment = useCallback(() => setCount((c) => c + 1), []);
+  const decrement = useCallback(() => setCount((c) => c - 1), []);
+  const reset = useCallback(() => setCount(initialValue), [initialValue]);
+
+  return { count, increment, decrement, reset };
+}
+
+// src/hooks/useCounter.test.ts
+import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { useCounter } from './useCounter';
+
+describe('useCounter', () => {
+  it('初期値を設定できる', () => {
+    const { result } = renderHook(() => useCounter(10));
+    expect(result.current.count).toBe(10);
+  });
+
+  it('incrementでカウントが増える', () => {
+    const { result } = renderHook(() => useCounter());
+
+    act(() => {
+      result.current.increment();
+    });
+
+    expect(result.current.count).toBe(1);
+  });
+
+  it('resetで初期値に戻る', () => {
+    const { result } = renderHook(() => useCounter(5));
+
+    act(() => {
+      result.current.increment();
+      result.current.increment();
+      result.current.reset();
+    });
+
+    expect(result.current.count).toBe(5);
+  });
+});
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. 実装依存テスト（テストがリファクタリングを阻害する）
+
+内部の state や実装詳細をテストすると、リファクタリングのたびにテストが壊れます。
+
+```tsx
+// ❌ 間違い - 実装詳細をテスト
+it('sets isOpen state to true when clicking button', () => {
+  const { result } = renderHook(() => useModal());
+
+  act(() => {
+    result.current.open();
+  });
+
+  // 内部stateを直接検証 → isOpenをisVisibleに変えただけで壊れる
+  expect(result.current.isOpen).toBe(true);
+});
+
+// ❌ 間違い - CSSクラスに依存
+it('applies open class', () => {
+  render(<Modal isOpen />);
+  expect(screen.getByRole('dialog')).toHaveClass('modal--open');
+});
+
+// ✅ 正しい - ユーザーに見える結果をテスト
+it('モーダルを開くとコンテンツが表示される', async () => {
+  const user = userEvent.setup();
+  render(<ModalDemo />);
+
+  await user.click(screen.getByRole('button', { name: 'モーダルを開く' }));
+
+  // ユーザーに見える結果を検証
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+  expect(screen.getByText('モーダルの内容')).toBeVisible();
+});
+```
+
+**なぜ起きるか**: 「テストを書いた」ことに満足し、「何をテストすべきか」を考えていない。
+
+**どう防ぐか**: 「このテストは何を守っているか？」を自問する。実装を変えても動作が同じなら、テストは通るべき。
+
+### 2. E2E過信（E2Eだけでカバーしようとする）
+
+「E2Eがあるからユニットテストは不要」という考えは危険です。
+
+```tsx
+// ❌ 間違い - E2Eに全部任せる
+// e2e/login.spec.ts で全パターンテスト
+test('ログインフロー - 正常系', async ({ page }) => { /* ... */ });
+test('ログインフロー - メール無効', async ({ page }) => { /* ... */ });
+test('ログインフロー - パスワード短い', async ({ page }) => { /* ... */ });
+test('ログインフロー - サーバーエラー', async ({ page }) => { /* ... */ });
+// → 遅い、不安定、原因特定が難しい
+
+// ✅ 正しい - レイヤーで分担
+// Unit: バリデーションロジック（速い、安定）
+describe('validateEmail', () => { /* 全パターン */ });
+describe('validatePassword', () => { /* 全パターン */ });
+
+// Integration: フォームの連携（中程度）
+describe('LoginForm', () => { /* 主要シナリオ */ });
+
+// E2E: クリティカルパスのみ（遅い、環境依存）
+test('ログイン → ダッシュボード表示', async ({ page }) => { /* 1本だけ */ });
+```
+
+**なぜ起きるか**: E2Eが「本番に近い」ので安心感がある。しかしコスト（時間・不安定さ）を過小評価している。
+
+**どう防ぐか**: 「このテストが落ちたら、原因をすぐ特定できるか？」を考える。E2Eは「動くことの最終確認」、詳細はUnit/Integrationで。
+
+### 3. UIテストでロジックを検証する
+
+UIコンポーネントのテストでビジネスロジックを全パターン検証するのは非効率です。
+
+```tsx
+// ❌ 間違い - UIテストでロジックの全パターン検証
+describe('LoginForm', () => {
+  it('空メールでエラー', async () => { /* ... */ });
+  it('@なしメールでエラー', async () => { /* ... */ });
+  it('ドットなしメールでエラー', async () => { /* ... */ });
+  it('空白のみメールでエラー', async () => { /* ... */ });
+  it('空パスワードでエラー', async () => { /* ... */ });
+  it('7文字パスワードでエラー', async () => { /* ... */ });
+  // ... 10パターン以上 → 遅い、重複が多い
+});
+
+// ✅ 正しい - ロジックはUnitで、UIは連携確認だけ
+// Unit（全パターン）
+describe('validateEmail', () => { /* 5パターン */ });
+describe('validatePassword', () => { /* 3パターン */ });
+
+// Integration（連携確認のみ）
+describe('LoginForm', () => {
+  it('無効入力でエラー表示される', async () => { /* 1パターンで十分 */ });
+  it('有効入力で送信できる', async () => { /* 正常系 */ });
+});
+```
+
+**なぜ起きるか**: 「このフォームをテストする」と考え、責務の分離を意識していない。
+
+**どう防ぐか**: ロジックとUIを分離して実装する。ロジックはUnitで厚く、UIは「繋がっているか」の確認だけ。
+
+### 4. テストのためのテスト（カバレッジ100%信仰）
+
+カバレッジ100%を目指すと、意味のないテストが増えます。
+
+```tsx
+// ❌ 間違い - カバレッジのためだけのテスト
+it('renders without crashing', () => {
+  render(<Footer />);
+  // 何も検証しない → 意味がない
+});
+
+it('displays copyright', () => {
+  render(<Footer />);
+  expect(screen.getByText(/© 2024/)).toBeInTheDocument();
+  // 静的テキストのテスト → 壊れることがほぼない
+});
+
+// ✅ 正しい - 意味のあるテストだけ書く
+// Footerのようなシンプルなコンポーネントはテスト不要
+// 代わりに、壊れたら困るものをテスト
+describe('Cart', () => {
+  it('商品追加で合計金額が更新される', async () => { /* 価値あり */ });
+});
+```
+
+**なぜ起きるか**: カバレッジを品質指標と勘違いしている。
+
+**どう防ぐか**: 「このテストが落ちたら、誰が困るか？」を考える。答えられないならそのテストは不要。
+
+---
+
+## Design Decisions
+
+### なぜ「全部テストしない」のか
+
+**理由**: テストはメンテナンスコストがかかる。価値のないテストは負債になる。
+
+**他の選択肢**:
+- カバレッジ100%を目指す → テストの維持コストが増大、リファクタリングが困難に
+- E2Eだけで済ませる → 遅い、不安定、原因特定が困難
+
+**破綻条件**: 「テストがないから変更が怖い」状態になったら、カバーが足りていない。
+
+### なぜ「ユーザー視点」でテストするのか
+
+**理由**: 実装の変更に強い。リファクタリングしてもテストが通る。
+
+**他の選択肢**:
+- 実装詳細をテスト → 実装変更のたびにテストを書き直し
+- スナップショットテスト → 変更の意図が分からず、無意味なdiffが増える
+
+**破綻条件**: ユーザーが見えない重要なロジック（計算、変換）は内部テストが必要。
+
+### なぜテストピラミッドなのか
+
+**理由**: 下層は速くて安定、上層は遅くて不安定。コスト効率を最大化する。
+
+**他の選択肢**:
+- 逆ピラミッド（E2E重視）→ CIが遅くなり、開発速度低下
+- 全部Integration → 遅い、原因特定が難しい
+
+**破綻条件**: チームが小さく、手動テストで回せる規模なら、最初からピラミッドを意識しなくてもよい。ただし規模が大きくなったら必ず必要。
+
+---
+
+## 現場チェックリスト
+
+- [ ] **守るべきものを守っているか**: 壊れたらユーザーが困る機能をテストしているか
+- [ ] **実装依存していないか**: 実装を変えても動作が同じならテストは通るか
+- [ ] **レイヤーが適切か**: ロジックはUnit、連携はIntegration、フローはE2E
+- [ ] **適切な待機**: `findBy`または`waitFor`を使い、固定時間待機を避けているか
+- [ ] **モックリセット**: `beforeEach`で`vi.clearAllMocks()`を呼んでいるか
+- [ ] **テスト名が明確か**: テスト名だけで何をテストしているか分かるか
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| テストの目的 | 安心して変更するため |
+| テストピラミッド | Unit多め、E2E少なめ |
+| ユーザー視点 | 実装ではなく結果をテスト |
+| 書かない勇気 | 価値のないテストは負債 |
+
+---
+
+## 練習問題
+
+1. **易**: `formatPrice(1234)` が `"¥1,234"` を返す関数を実装し、Unitテストを書いてください。境界値（0、負数、大きな数）もテストしてください。
+
+2. **普通**: 検索フォームコンポーネントのIntegrationテストを書いてください。
+   - 入力して検索ボタンをクリック → `onSearch`が呼ばれる
+   - 空入力で検索 → エラーメッセージ表示
+   - ロジック（空チェック）はUnit、UIはIntegrationで分担してください
+
+3. **応用（レビュー型）**: 以下のテストコードをレビューしてください。問題点を3つ以上指摘し、改善案を提示してください。
+
+```tsx
+describe('UserProfile', () => {
+  it('handles everything', async () => {
+    const mockFetch = vi.fn()
+      .mockResolvedValueOnce({ name: 'John' })
+      .mockRejectedValueOnce(new Error('fail'));
+
+    render(<UserProfile userId="1" />);
+
+    await new Promise(r => setTimeout(r, 500));
+    expect(screen.getByText('John')).toBeInTheDocument();
+    expect(document.querySelector('.user-card')).toHaveClass('loaded');
+
+    render(<UserProfile userId="2" />);
+    await new Promise(r => setTimeout(r, 500));
+    expect(screen.getByText('エラー')).toBeInTheDocument();
+  });
+});
+```
+
+**観点**: テストの分割、待機方法、実装依存、モックの設定

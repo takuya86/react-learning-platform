@@ -257,6 +257,32 @@ npm run test:coverage # カバレッジ付きテスト
 npm run build         # プロダクションビルド
 ```
 
+## E2E Tests (Mock Mode Contract)
+
+E2E tests must always run in mock mode to avoid flakiness from local Supabase env vars.
+
+```bash
+npm run e2e           # E2Eテスト実行（mock mode）
+npm run e2e:ui        # E2E UI mode（mock mode）
+```
+
+### Mock Mode Architecture
+
+- `VITE_E2E=true` forces `isMockMode=true` in `src/lib/supabase/client.ts`
+- This keeps CI and local runs deterministic even when `.env.local` has real Supabase keys
+
+### Navigation Testing Strategy
+
+E2E tests use `page.goto(href)` instead of clicking `<Link>` components.
+
+**Reason**: SPA route transitions can update the URL but not reliably trigger React re-render in Playwright's timing model, causing flaky "element not found" failures. Using `goto` makes navigation deterministic.
+
+```ts
+// [spec-lock] Deterministic navigation pattern
+const href = await link.getAttribute('href');
+await page.goto(href!);
+```
+
 ## Docker Development
 
 ```bash

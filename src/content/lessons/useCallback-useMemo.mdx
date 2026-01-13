@@ -1,0 +1,466 @@
+---
+title: 'useCallback/useMemo：パフォーマンス最適化'
+slug: 'useCallback-useMemo'
+description: 'useCallbackとuseMemoを使ったパフォーマンス最適化を学びます。'
+tags: ['react', 'hooks', 'useCallback', 'useMemo', 'performance']
+difficulty: 'intermediate'
+estimatedMinutes: 25
+prerequisites: ['useState-hook', 'useEffect-hook']
+---
+
+# useCallback/useMemo：パフォーマンス最適化
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **useMemoで重い計算結果をキャッシュし、不要な再計算を防げる**
+2. **useCallbackとReact.memoを組み合わせて、子コンポーネントの不要な再レンダリングを防げる**
+3. **メモ化が必要な場面と不要な場面を判断できる**
+
+---
+
+## なぜ最適化が必要か
+
+Reactは親コンポーネントが再レンダリングすると、子コンポーネントも再レンダリングします。
+不要な再レンダリングはパフォーマンス低下の原因になります。
+
+## useMemo：計算結果のメモ化
+
+重い計算の結果をキャッシュします。
+
+### 基本的な使い方
+
+```tsx
+import { useMemo } from 'react';
+
+function ExpensiveComponent({ items }: { items: number[] }) {
+  // itemsが変わらない限り、再計算しない
+  const total = useMemo(() => {
+    console.log('計算中...');
+    return items.reduce((sum, item) => sum + item, 0);
+  }, [items]);
+
+  return <div>合計: {total}</div>;
+}
+```
+
+### フィルタリング・ソート
+
+```tsx
+function UserList({ users, filter }: { users: User[]; filter: string }) {
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) =>
+      user.name.toLowerCase().includes(filter.toLowerCase())
+    );
+  }, [users, filter]);
+
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredUsers]);
+
+  return (
+    <ul>
+      {sortedUsers.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## useCallback：関数のメモ化
+
+関数の参照をキャッシュします。
+
+### 基本的な使い方
+
+```tsx
+import { useCallback } from 'react';
+
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  // countが変わらない限り、同じ関数参照を返す
+  const handleClick = useCallback(() => {
+    console.log('Clicked!', count);
+  }, [count]);
+
+  return <Child onClick={handleClick} />;
+}
+```
+
+### React.memoと組み合わせる
+
+```tsx
+// React.memoでラップした子コンポーネント
+const ExpensiveChild = React.memo(function ExpensiveChild({
+  onClick,
+}: {
+  onClick: () => void;
+}) {
+  console.log('Child rendered');
+  return <button onClick={onClick}>Click me</button>;
+});
+
+function Parent() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState('');
+
+  // useCallbackがないと、textが変わるたびにExpensiveChildが再レンダリング
+  const handleClick = useCallback(() => {
+    setCount((c) => c + 1);
+  }, []);
+
+  return (
+    <div>
+      <input value={text} onChange={(e) => setText(e.target.value)} />
+      <ExpensiveChild onClick={handleClick} />
+      <p>Count: {count}</p>
+    </div>
+  );
+}
+```
+
+## いつ使うべきか
+
+### useMemoを使うべき場合
+
+1. **重い計算**: 配列のフィルタ/ソート、複雑な計算
+2. **参照の安定化**: オブジェクトをuseEffectの依存配列に渡す場合
+
+```tsx
+// ✅ 重い計算
+const sortedItems = useMemo(() => heavySort(items), [items]);
+
+// ✅ オブジェクトの参照を安定化
+const options = useMemo(() => ({ page, limit }), [page, limit]);
+useEffect(() => {
+  fetchData(options);
+}, [options]);
+```
+
+### useCallbackを使うべき場合
+
+1. **React.memoされた子に渡す関数**
+2. **useEffectの依存配列に含まれる関数**
+
+```tsx
+// ✅ memo化された子コンポーネントに渡す
+const MemoizedChild = React.memo(Child);
+const handleClick = useCallback(() => {}, []);
+<MemoizedChild onClick={handleClick} />
+
+// ✅ useEffectの依存に含める
+const fetchData = useCallback(() => {
+  // fetch logic
+}, [userId]);
+
+useEffect(() => {
+  fetchData();
+}, [fetchData]);
+```
+
+## React.memo
+
+コンポーネント自体をメモ化します。
+
+```tsx
+const UserCard = React.memo(function UserCard({ user }: { user: User }) {
+  console.log('UserCard rendered');
+  return (
+    <div>
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+    </div>
+  );
+});
+
+// propsが変わらない限り再レンダリングされない
+```
+
+### カスタム比較関数
+
+```tsx
+const UserCard = React.memo(
+  function UserCard({ user }: { user: User }) {
+    return <div>{user.name}</div>;
+  },
+  (prevProps, nextProps) => {
+    // trueを返すと再レンダリングをスキップ
+    return prevProps.user.id === nextProps.user.id;
+  }
+);
+```
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: React.memoなしでuseCallbackを使っても効果がありません。チェックボックスで切り替えて、レンダリング回数の違いを確認してください。
+
+```tsx
+import { useState, useCallback, useMemo, memo } from 'react';
+
+// --- 重い計算をシミュレート ---
+function heavyCalculation(items: number[]): number {
+  console.log('🔥 重い計算を実行中...');
+  // 意図的に遅い処理（実際には使わない）
+  let result = 0;
+  for (const item of items) {
+    result += item;
+  }
+  return result;
+}
+
+// --- 子コンポーネント（memo化あり/なし切り替え） ---
+function ChildWithoutMemo({ onClick, label }: { onClick: () => void; label: string }) {
+  console.log(`📦 ChildWithoutMemo (${label}) rendered`);
+  return (
+    <button onClick={onClick} style={{ marginRight: '8px' }}>
+      {label}
+    </button>
+  );
+}
+
+const ChildWithMemo = memo(function ChildWithMemo({
+  onClick,
+  label,
+}: {
+  onClick: () => void;
+  label: string;
+}) {
+  console.log(`📦 ChildWithMemo (${label}) rendered`);
+  return (
+    <button onClick={onClick} style={{ marginRight: '8px' }}>
+      {label}
+    </button>
+  );
+});
+
+// --- メインアプリ ---
+function App() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState('');
+  const [useMemoization, setUseMemoization] = useState(false);
+
+  // 配列データ
+  const [items] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+  // --- useMemoの効果 ---
+  // useMemoなし: textが変わるたびに再計算
+  const totalWithoutMemo = heavyCalculation(items);
+
+  // useMemoあり: itemsが変わらない限り再計算しない
+  const totalWithMemo = useMemo(() => heavyCalculation(items), [items]);
+
+  // --- useCallbackの効果 ---
+  // useCallbackなし: 毎回新しい関数が生成される
+  const handleClickWithoutCallback = () => {
+    setCount((c) => c + 1);
+  };
+
+  // useCallbackあり: 同じ関数参照を再利用
+  const handleClickWithCallback = useCallback(() => {
+    setCount((c) => c + 1);
+  }, []);
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h2>useCallback/useMemo デモ</h2>
+
+      <div style={{ marginBottom: '16px', padding: '12px', background: '#f0f0f0', borderRadius: '8px' }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={useMemoization}
+            onChange={(e) => setUseMemoization(e.target.checked)}
+          />
+          {' '}メモ化を有効にする（コンソールを確認）
+        </label>
+      </div>
+
+      {/* useMemoセクション */}
+      <section style={{ marginBottom: '24px', padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h3>useMemo: 計算結果のキャッシュ</h3>
+        <p>合計: {useMemoization ? totalWithMemo : totalWithoutMemo}</p>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="ここに入力（再レンダリング発生）"
+            style={{ padding: '8px', width: '250px' }}
+          />
+        </div>
+        <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+          {useMemoization
+            ? '✅ useMemo有効: テキスト入力しても再計算されない'
+            : '❌ useMemo無効: テキスト入力のたびに再計算される'}
+        </p>
+      </section>
+
+      {/* useCallbackセクション */}
+      <section style={{ padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h3>useCallback + React.memo: 関数のキャッシュ</h3>
+        <p>カウント: {count}</p>
+
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ margin: '4px 0', fontWeight: 'bold' }}>memo化なしの子:</p>
+          <ChildWithoutMemo
+            onClick={useMemoization ? handleClickWithCallback : handleClickWithoutCallback}
+            label="カウントアップ"
+          />
+        </div>
+
+        <div style={{ marginBottom: '12px' }}>
+          <p style={{ margin: '4px 0', fontWeight: 'bold' }}>memo化ありの子:</p>
+          <ChildWithMemo
+            onClick={useMemoization ? handleClickWithCallback : handleClickWithoutCallback}
+            label="カウントアップ"
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="ここに入力（親が再レンダリング）"
+            style={{ padding: '8px', width: '250px' }}
+          />
+        </div>
+
+        <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+          {useMemoization
+            ? '✅ useCallback有効: memo化した子はテキスト入力で再レンダリングされない'
+            : '❌ useCallback無効: すべての子がテキスト入力で再レンダリングされる'}
+        </p>
+      </section>
+
+      <div style={{ marginTop: '16px', padding: '12px', background: '#fff3cd', borderRadius: '8px' }}>
+        <strong>ブラウザのコンソールを開いて確認してください。</strong>
+        <br />
+        🔥 = 重い計算、📦 = 子コンポーネントのレンダリング
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. 軽い計算もメモ化する（不要なメモ化）
+
+メモ化自体にもコストがかかります。軽い計算は直接実行した方が速いことがあります。
+
+```tsx
+// ❌ 不要 - 単純な計算はメモ化不要
+const double = useMemo(() => count * 2, [count]);
+
+// ✅ 直接計算で十分
+const double = count * 2;
+
+// ❌ 不要 - 文字列の結合程度はメモ化不要
+const fullName = useMemo(() => `${firstName} ${lastName}`, [firstName, lastName]);
+
+// ✅ 直接結合で十分
+const fullName = `${firstName} ${lastName}`;
+```
+
+**なぜ起きるか**: 「メモ化すれば速くなる」と誤解し、すべてをメモ化しようとします。
+
+**どう防ぐか**: メモ化は「重い計算」や「参照の安定化」が必要な場合のみ使います。目安として、配列の操作（filter/sort/map）や複雑なオブジェクト生成が対象です。
+
+### 2. React.memoなしでuseCallbackを使う
+
+useCallbackだけでは子コンポーネントの再レンダリングは防げません。
+
+```tsx
+// ❌ 効果なし - ChildがReact.memoされていない
+function Parent() {
+  const handleClick = useCallback(() => {}, []);
+  return <Child onClick={handleClick} />;  // Childは毎回再レンダリング
+}
+
+function Child({ onClick }: { onClick: () => void }) {
+  console.log('Child rendered');  // 親が再レンダリングするたびに実行される
+  return <button onClick={onClick}>Click</button>;
+}
+
+// ✅ 効果あり - React.memoと組み合わせる
+const Child = React.memo(function Child({ onClick }: { onClick: () => void }) {
+  console.log('Child rendered');  // propsが変わらなければ実行されない
+  return <button onClick={onClick}>Click</button>;
+});
+
+function Parent() {
+  const handleClick = useCallback(() => {}, []);
+  return <Child onClick={handleClick} />;  // Childは再レンダリングされない
+}
+```
+
+**なぜ起きるか**: useCallbackが「再レンダリングを防ぐ」と誤解しています。実際には「関数の参照を安定させる」だけです。
+
+**どう防ぐか**: useCallbackは必ず`React.memo`された子コンポーネントとセットで使います。「useCallbackを使う → 子をmemo化する」をセットで考えましょう。
+
+### 3. 依存配列の漏れ
+
+依存配列に必要な値を入れ忘れると、古い値を参照し続けるバグになります。
+
+```tsx
+// ❌ 間違い - userIdが依存配列にない
+const fetchUser = useCallback(() => {
+  console.log(`Fetching user: ${userId}`);  // 古いuserIdを参照し続ける
+  fetch(`/api/users/${userId}`);
+}, []);  // userIdが変わっても関数は更新されない
+
+// ✅ 正しい - 依存する値を配列に含める
+const fetchUser = useCallback(() => {
+  console.log(`Fetching user: ${userId}`);
+  fetch(`/api/users/${userId}`);
+}, [userId]);  // userIdが変わったら関数も更新
+
+// useMemoでも同様
+// ❌ 間違い
+const filtered = useMemo(() => items.filter(i => i.type === filterType), [items]);
+// filterTypeが変わっても再計算されない
+
+// ✅ 正しい
+const filtered = useMemo(() => items.filter(i => i.type === filterType), [items, filterType]);
+```
+
+**なぜ起きるか**: 依存配列を「空にすれば再計算されない」と誤解し、必要な依存を省略してしまいます。
+
+**どう防ぐか**:
+- ESLintの`exhaustive-deps`ルールを有効にする
+- 「この関数/計算で使っている変数は何か？」を確認する
+- 依存配列を空にするのは「本当に依存がない」場合のみ
+
+---
+
+## まとめ
+
+| Hook | 用途 | 使いどころ |
+|------|------|-----------|
+| useMemo | 計算結果のキャッシュ | 重い計算、オブジェクト参照の安定化 |
+| useCallback | 関数のキャッシュ | memo子への関数props、useEffect依存 |
+| React.memo | コンポーネントのメモ化 | 頻繁に再レンダリングされる子 |
+
+### 最適化の原則
+
+1. **まず計測する**: 問題がなければ最適化不要
+2. **過度な最適化を避ける**: メモ化にもコストがある
+3. **React.memoとセットで使う**: useCallbackだけでは効果なし
+
+---
+
+## 練習問題
+
+1. **易**: 1000個のアイテムを持つ配列をフィルタリングするコンポーネントを作成し、`useMemo`でフィルタリング結果をキャッシュしてください。フィルタ条件が変わった時だけ再計算されることをコンソールログで確認してください。
+
+2. **普通**: 親コンポーネントから関数を受け取る子コンポーネントを作成し、`React.memo`と`useCallback`を組み合わせて、親の無関係な状態変更時に子が再レンダリングされないようにしてください。メモ化なしの場合との違いをコンソールで比較してください。
+
+3. **応用**: 商品リスト（フィルタ、ソート、検索機能付き）を作成してください。`useMemo`でフィルタリング・ソート結果をキャッシュし、`useCallback`でイベントハンドラをメモ化してください。各商品を`React.memo`化した`ProductCard`で表示し、1つの商品を選択しても他の商品が再レンダリングされないことを確認してください。

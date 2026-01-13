@@ -1,0 +1,371 @@
+---
+title: '条件付きレンダリング'
+slug: 'conditional-rendering'
+description: '条件に応じてUIを切り替える方法を学びます。'
+tags: ['react', 'conditional', 'rendering']
+difficulty: 'beginner'
+estimatedMinutes: 15
+prerequisites: ['event-handling']
+---
+
+# 条件付きレンダリング
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **if文・三項演算子・&&演算子を使い分けてUIを切り替えられる**
+2. **複数条件の分岐をオブジェクトマッピングで実装できる**
+3. **falsyな値（0、空文字）のレンダリングの罠を回避できる**
+
+---
+
+## 条件付きレンダリングとは
+
+ユーザーの状態やデータに応じて、表示する内容を切り替える仕組みです。
+JavaScriptの条件分岐をそのまま使えます。
+
+## if文を使う
+
+### コンポーネント内で分岐
+
+```tsx
+function Greeting({ isLoggedIn }: { isLoggedIn: boolean }) {
+  if (isLoggedIn) {
+    return <h1>おかえりなさい！</h1>;
+  }
+  return <h1>ログインしてください</h1>;
+}
+```
+
+### 早期リターン
+
+```tsx
+function UserProfile({ user }: { user: User | null }) {
+  if (!user) {
+    return <p>ユーザーが見つかりません</p>;
+  }
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+```
+
+## 三項演算子
+
+JSX内で条件分岐する場合によく使います。
+
+```tsx
+function StatusBadge({ isActive }: { isActive: boolean }) {
+  return (
+    <span className={isActive ? 'badge-active' : 'badge-inactive'}>
+      {isActive ? 'アクティブ' : '非アクティブ'}
+    </span>
+  );
+}
+```
+
+## 論理AND演算子（&&）
+
+条件がtrueの時だけ表示する場合に便利です。
+
+```tsx
+function Notification({ count }: { count: number }) {
+  return (
+    <div>
+      <h1>通知</h1>
+      {count > 0 && <span className="badge">{count}</span>}
+    </div>
+  );
+}
+```
+
+## 論理OR演算子（||）とNull合体演算子（??）
+
+デフォルト値を設定する場合に使います。
+
+```tsx
+function Welcome({ name }: { name?: string }) {
+  return <h1>こんにちは、{name || 'ゲスト'}さん！</h1>;
+}
+
+// ?? は null/undefined のみを対象
+function Price({ value }: { value?: number }) {
+  return <span>{value ?? '未設定'}円</span>;
+}
+```
+
+## 複数条件の分岐
+
+### オブジェクトマッピング
+
+```tsx
+type Status = 'pending' | 'approved' | 'rejected';
+
+function StatusLabel({ status }: { status: Status }) {
+  const labels: Record<Status, string> = {
+    pending: '審査中',
+    approved: '承認済み',
+    rejected: '却下',
+  };
+
+  const colors: Record<Status, string> = {
+    pending: 'orange',
+    approved: 'green',
+    rejected: 'red',
+  };
+
+  return (
+    <span style={{ color: colors[status] }}>
+      {labels[status]}
+    </span>
+  );
+}
+```
+
+### switch文を使う
+
+```tsx
+function Icon({ type }: { type: 'success' | 'error' | 'warning' }) {
+  switch (type) {
+    case 'success':
+      return <span>✓</span>;
+    case 'error':
+      return <span>✗</span>;
+    case 'warning':
+      return <span>⚠</span>;
+    default:
+      return null;
+  }
+}
+```
+
+---
+
+## 動作するサンプルコード
+
+以下のコードをコピペして動作を確認してください。
+
+```tsx
+import { useState } from 'react';
+
+type Status = 'idle' | 'loading' | 'success' | 'error';
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [status, setStatus] = useState<Status>('idle');
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  // ステータスに応じたメッセージ
+  const statusMessages: Record<Status, string> = {
+    idle: '待機中',
+    loading: '読み込み中...',
+    success: '完了しました！',
+    error: 'エラーが発生しました',
+  };
+
+  const statusColors: Record<Status, string> = {
+    idle: '#666',
+    loading: '#0066cc',
+    success: '#00aa00',
+    error: '#cc0000',
+  };
+
+  // ステータスを順番に変更
+  const simulateLoading = () => {
+    setStatus('loading');
+    setTimeout(() => {
+      const isSuccess = Math.random() > 0.3;
+      setStatus(isSuccess ? 'success' : 'error');
+      setTimeout(() => setStatus('idle'), 2000);
+    }, 1500);
+  };
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      {/* if文相当：ログイン状態で切り替え */}
+      <section style={{ marginBottom: '24px' }}>
+        <h2>ログイン状態</h2>
+        {isLoggedIn ? (
+          <div>
+            <p>おかえりなさい、ユーザーさん！</p>
+            <button onClick={() => setIsLoggedIn(false)}>ログアウト</button>
+          </div>
+        ) : (
+          <div>
+            <p>ログインしてください</p>
+            <button onClick={() => setIsLoggedIn(true)}>ログイン</button>
+          </div>
+        )}
+      </section>
+
+      {/* オブジェクトマッピング：ステータス表示 */}
+      <section style={{ marginBottom: '24px' }}>
+        <h2>ステータス表示</h2>
+        <p style={{ color: statusColors[status], fontWeight: 'bold' }}>
+          {statusMessages[status]}
+        </p>
+        <button onClick={simulateLoading} disabled={status === 'loading'}>
+          処理を実行
+        </button>
+      </section>
+
+      {/* &&演算子：通知バッジ */}
+      <section style={{ marginBottom: '24px' }}>
+        <h2>通知</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>通知</span>
+          {notificationCount > 0 && (
+            <span style={{
+              background: 'red',
+              color: 'white',
+              borderRadius: '50%',
+              padding: '2px 8px',
+              fontSize: '14px'
+            }}>
+              {notificationCount}
+            </span>
+          )}
+        </div>
+        <div style={{ marginTop: '8px' }}>
+          <button onClick={() => setNotificationCount(c => c + 1)}>
+            通知を追加
+          </button>
+          <button
+            onClick={() => setNotificationCount(0)}
+            style={{ marginLeft: '8px' }}
+          >
+            すべて既読
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. JSX内でif文を使おうとする
+
+JSXの`{}`内には**式**しか書けません。if文は**文**なのでエラーになります。
+
+```tsx
+// ❌ 間違い - JSX内でif文は使えない（構文エラー）
+return (
+  <div>
+    {if (isLoggedIn) { <UserMenu /> }}
+  </div>
+);
+
+// ✅ 正しい - 三項演算子を使う
+return (
+  <div>
+    {isLoggedIn ? <UserMenu /> : <LoginButton />}
+  </div>
+);
+
+// ✅ 正しい - &&演算子を使う（片方だけ表示の場合）
+return (
+  <div>
+    {isLoggedIn && <UserMenu />}
+  </div>
+);
+```
+
+**なぜ起きるか**: 他の言語やテンプレートエンジン（EJSなど）では`<% if %>`のような構文が使えるため、同じ感覚で書いてしまいます。
+
+**どう防ぐか**: 「JSXの`{}`内は**式のみ**」と覚えましょう。条件分岐は三項演算子か`&&`を使います。
+
+### 2. &&演算子で0が表示される
+
+`&&`演算子は左側がfalsyなら左側の値をそのまま返します。`0`はfalsyですが、Reactは`0`を文字として描画します。
+
+```tsx
+// ❌ 間違い - countが0の時、画面に「0」が表示される
+function Badge({ count }: { count: number }) {
+  return (
+    <div>
+      {count && <span>{count}件の通知</span>}
+    </div>
+  );
+}
+// count=0 の場合、<div>0</div> がレンダリングされる
+
+// ✅ 正しい - 明示的にbooleanに変換
+function Badge({ count }: { count: number }) {
+  return (
+    <div>
+      {count > 0 && <span>{count}件の通知</span>}
+    </div>
+  );
+}
+```
+
+**なぜ起きるか**: JavaScriptの`&&`演算子は、左側がfalsyなら左側の値を返します。`0 && <span>...</span>`は`0`を返し、Reactは数値`0`を描画します。
+
+**どう防ぐか**: 数値を条件に使う場合は必ず**比較演算子で明示的にbooleanに変換**します。`count > 0 &&`や`!!count &&`を使いましょう。
+
+### 3. 三項演算子のネストで可読性が低下
+
+```tsx
+// ❌ 読みにくい - ネストした三項演算子
+function StatusMessage({ status }: { status: string }) {
+  return (
+    <span>
+      {status === 'loading'
+        ? 'Loading...'
+        : status === 'error'
+          ? 'Error!'
+          : status === 'success'
+            ? 'Done!'
+            : 'Unknown'}
+    </span>
+  );
+}
+
+// ✅ 読みやすい - オブジェクトマッピングを使う
+function StatusMessage({ status }: { status: string }) {
+  const messages: Record<string, string> = {
+    loading: 'Loading...',
+    error: 'Error!',
+    success: 'Done!',
+  };
+
+  return <span>{messages[status] ?? 'Unknown'}</span>;
+}
+```
+
+**なぜ起きるか**: 最初は2択だった条件が、機能追加で3択、4択と増えていくことがあります。
+
+**どう防ぐか**: 条件が3つ以上になったら**オブジェクトマッピング**か**switch文**に切り替えます。将来の拡張も容易になります。
+
+---
+
+## まとめ
+
+| パターン | 用途 | 例 |
+|---------|------|----|
+| `if`文 | コンポーネント内で早期リターン | `if (!user) return null;` |
+| 三項演算子 | JSX内で2択の分岐 | `{isActive ? 'ON' : 'OFF'}` |
+| `&&`演算子 | 条件がtrueの時だけ表示 | `{hasError && <Error />}` |
+| `??`演算子 | null/undefinedのデフォルト値 | `{name ?? 'ゲスト'}` |
+| オブジェクト | 3つ以上の条件分岐 | `messages[status]` |
+
+---
+
+## 練習問題
+
+1. **易**: `isAdmin`プロパティを受け取り、`true`なら「管理者」、`false`なら「一般ユーザー」と表示するコンポーネントを作成してください。
+
+2. **普通**: ログイン状態に応じてUIを切り替えるコンポーネントを作成してください。ログイン前は「ログイン」ボタンを表示、ログイン後は「ようこそ、{ユーザー名}さん」とログアウトボタンを表示します。`useState`でログイン状態を管理してください。
+
+3. **応用**: APIリクエストの状態を表示するコンポーネントを作成してください。状態は`'idle'` | `'loading'` | `'success'` | `'error'`の4種類で、各状態に応じたメッセージとアイコン（絵文字可）を表示します。オブジェクトマッピングを使用し、「リクエスト送信」ボタンで状態を切り替えてください（setTimeoutで擬似的に遷移）。**ヒント**: `Record<Status, { message: string; icon: string }>`のように、メッセージとアイコンをまとめたオブジェクトを作ると管理しやすいです。

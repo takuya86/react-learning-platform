@@ -1,0 +1,400 @@
+---
+title: '状態の持ち上げ'
+slug: 'lifting-state-up'
+description: '複数のコンポーネント間で状態を共有する方法を学びます。'
+tags: ['react', 'state', 'lifting-state']
+difficulty: 'beginner'
+estimatedMinutes: 20
+prerequisites: ['useState-hook']
+---
+
+# 状態の持ち上げ
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **兄弟コンポーネント間で状態を共有するため、親に状態を持ち上げられる**
+2. **「状態をどこに置くか」の判断基準を説明できる**
+3. **子から親への値の受け渡し（コールバック関数）を実装できる**
+
+---
+
+## 状態の持ち上げとは
+
+複数のコンポーネントで同じデータを共有したい場合、共通の親コンポーネントに状態を移動させる手法です。
+これを「状態の持ち上げ（Lifting State Up）」と呼びます。
+
+## なぜ必要か
+
+### 問題：兄弟コンポーネント間でデータを共有できない
+
+```tsx
+// ❌ この設計では、2つのパネルが同期しない
+function App() {
+  return (
+    <div>
+      <Panel1 /> {/* 独自の状態を持つ */}
+      <Panel2 /> {/* 独自の状態を持つ */}
+    </div>
+  );
+}
+```
+
+### 解決：親に状態を持ち上げる
+
+```tsx
+// ✅ 親が状態を管理し、子に渡す
+function App() {
+  const [value, setValue] = useState('');
+
+  return (
+    <div>
+      <Panel1 value={value} onChange={setValue} />
+      <Panel2 value={value} onChange={setValue} />
+    </div>
+  );
+}
+```
+
+## 実践例：温度コンバーター
+
+### Before: 状態が分離している
+
+```tsx
+function CelsiusInput() {
+  const [celsius, setCelsius] = useState('');
+  return (
+    <input
+      value={celsius}
+      onChange={(e) => setCelsius(e.target.value)}
+      placeholder="摂氏"
+    />
+  );
+}
+
+function FahrenheitInput() {
+  const [fahrenheit, setFahrenheit] = useState('');
+  return (
+    <input
+      value={fahrenheit}
+      onChange={(e) => setFahrenheit(e.target.value)}
+      placeholder="華氏"
+    />
+  );
+}
+```
+
+### After: 状態を親に持ち上げる
+
+```tsx
+type TemperatureInputProps = {
+  scale: 'c' | 'f';
+  temperature: string;
+  onTemperatureChange: (value: string) => void;
+};
+
+function TemperatureInput({ scale, temperature, onTemperatureChange }: TemperatureInputProps) {
+  const label = scale === 'c' ? '摂氏' : '華氏';
+
+  return (
+    <label>
+      {label}:
+      <input
+        value={temperature}
+        onChange={(e) => onTemperatureChange(e.target.value)}
+      />
+    </label>
+  );
+}
+
+function TemperatureConverter() {
+  const [temperature, setTemperature] = useState('');
+  const [scale, setScale] = useState<'c' | 'f'>('c');
+
+  const handleCelsiusChange = (value: string) => {
+    setScale('c');
+    setTemperature(value);
+  };
+
+  const handleFahrenheitChange = (value: string) => {
+    setScale('f');
+    setTemperature(value);
+  };
+
+  // 変換計算
+  const celsius = scale === 'f'
+    ? ((parseFloat(temperature) - 32) * 5 / 9).toFixed(2)
+    : temperature;
+  const fahrenheit = scale === 'c'
+    ? ((parseFloat(temperature) * 9 / 5) + 32).toFixed(2)
+    : temperature;
+
+  return (
+    <div>
+      <TemperatureInput
+        scale="c"
+        temperature={celsius}
+        onTemperatureChange={handleCelsiusChange}
+      />
+      <TemperatureInput
+        scale="f"
+        temperature={fahrenheit}
+        onTemperatureChange={handleFahrenheitChange}
+      />
+    </div>
+  );
+}
+```
+
+## 状態をどこに置くか判断する
+
+1. **その状態を使うコンポーネントを特定する**
+2. **共通の親を見つける**
+3. **その親に状態を置く**
+
+```
+    App           ← 状態をここに置く
+   /   \
+Panel1  Panel2   ← 両方がこの状態を使う
+```
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: 2つの入力フィールドとプレビューが同期します。どちらのフィールドを編集しても、すべてのコンポーネントに反映されます。これが「状態の持ち上げ」の効果です。
+
+```tsx
+import { useState } from 'react';
+
+// --- 子コンポーネント: 入力フィールド ---
+type InputFieldProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+};
+
+function InputField({ label, value, onChange }: InputFieldProps) {
+  return (
+    <div style={{ marginBottom: '12px' }}>
+      <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
+        {label}
+      </label>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ padding: '8px', fontSize: '16px', width: '200px' }}
+      />
+    </div>
+  );
+}
+
+// --- 子コンポーネント: プレビュー ---
+type PreviewProps = {
+  name: string;
+  email: string;
+};
+
+function Preview({ name, email }: PreviewProps) {
+  return (
+    <div style={{
+      padding: '16px',
+      background: '#f5f5f5',
+      borderRadius: '8px',
+      marginTop: '16px',
+    }}>
+      <h3 style={{ margin: '0 0 8px 0' }}>プレビュー</h3>
+      <p style={{ margin: '4px 0' }}>名前: {name || '（未入力）'}</p>
+      <p style={{ margin: '4px 0' }}>メール: {email || '（未入力）'}</p>
+    </div>
+  );
+}
+
+// --- 子コンポーネント: 同期されたコピー ---
+type SyncedDisplayProps = {
+  name: string;
+};
+
+function SyncedDisplay({ name }: SyncedDisplayProps) {
+  return (
+    <div style={{
+      padding: '12px',
+      border: '2px dashed #007bff',
+      borderRadius: '8px',
+      marginTop: '16px',
+    }}>
+      <p style={{ margin: 0 }}>
+        別のコンポーネントでも同じ値: <strong>{name || '（未入力）'}</strong>
+      </p>
+    </div>
+  );
+}
+
+// --- 親コンポーネント: 状態を持ち上げ ---
+function App() {
+  // 状態を親で管理（持ち上げ）
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '400px' }}>
+      <h2>状態の持ち上げデモ</h2>
+      <p style={{ color: '#666', fontSize: '14px' }}>
+        どちらの入力フィールドを編集しても、すべてのコンポーネントが同期されます。
+      </p>
+
+      {/* 入力フィールド1 */}
+      <InputField
+        label="名前を入力"
+        value={name}
+        onChange={setName}
+      />
+
+      {/* 入力フィールド2 */}
+      <InputField
+        label="メールを入力"
+        value={email}
+        onChange={setEmail}
+      />
+
+      {/* プレビュー（同じ状態を参照） */}
+      <Preview name={name} email={email} />
+
+      {/* 別のコンポーネント（同じ状態を参照） */}
+      <SyncedDisplay name={name} />
+
+      {/* 状態のリセット */}
+      <button
+        onClick={() => {
+          setName('');
+          setEmail('');
+        }}
+        style={{
+          marginTop: '16px',
+          padding: '8px 16px',
+          fontSize: '14px',
+          cursor: 'pointer',
+        }}
+      >
+        リセット
+      </button>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. propsをローカルstateにコピーする（状態の二重管理）
+
+親から受け取ったpropsを子のstateに入れると、同期がズレる原因になります。
+
+```tsx
+// ❌ 間違い - propsをstateにコピー
+function Child({ value }: { value: string }) {
+  const [localValue, setLocalValue] = useState(value); // 重複！
+
+  return <input value={localValue} onChange={(e) => setLocalValue(e.target.value)} />;
+}
+// 親のvalueが変わってもlocalValueは古いまま
+
+// ✅ 正しい - propsを直接使う
+function Child({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return <input value={value} onChange={(e) => onChange(e.target.value)} />;
+}
+```
+
+**なぜ起きるか**: 「子コンポーネント内で状態を持ちたい」という発想で書いてしまいます。しかしpropsから初期化したstateは、その後propsが変わっても更新されません。
+
+**どう防ぐか**: 親から渡されたpropsはそのまま使い、変更はコールバック関数で親に通知します。子は「制御されたコンポーネント」として振る舞います。
+
+### 2. onChangeを渡し忘れる（読み取り専用になる）
+
+valueだけ渡してonChangeを渡し忘れると、入力できないフィールドになります。
+
+```tsx
+// ❌ 間違い - onChangeがない
+function Parent() {
+  const [text, setText] = useState('');
+  return <Child value={text} />;  // onChangeを渡し忘れ！
+}
+
+function Child({ value }: { value: string }) {
+  return <input value={value} />;  // 入力しても変わらない
+}
+
+// ✅ 正しい - valueとonChangeをセットで渡す
+function Parent() {
+  const [text, setText] = useState('');
+  return <Child value={text} onChange={setText} />;
+}
+
+function Child({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return <input value={value} onChange={(e) => onChange(e.target.value)} />;
+}
+```
+
+**なぜ起きるか**: 制御されたコンポーネントは「value + onChange」がセットで必要という認識が不足しています。
+
+**どう防ぐか**: 「valueを渡したら、onChangeも必ずセット」と覚えます。TypeScriptで型定義すれば、渡し忘れがコンパイルエラーになります。
+
+### 3. 過度な持ち上げ（すべてをトップレベルに）
+
+すべての状態をAppに置くと、無関係なコンポーネントまで再レンダリングされます。
+
+```tsx
+// ❌ 過度な持ち上げ - Appにすべての状態
+function App() {
+  const [userName, setUserName] = useState('');
+  const [cartItems, setCartItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  // ... 大量の状態
+
+  return (
+    <>
+      <Header userName={userName} />
+      <SearchBar query={searchQuery} onChange={setSearchQuery} />
+      <Cart items={cartItems} />
+      <Modal open={modalOpen} />
+    </>
+  );
+}
+// searchQueryが変わるとCart/Modal/Headerも再レンダリング
+
+// ✅ 適切な持ち上げ - 必要な範囲で
+function SearchSection() {
+  const [searchQuery, setSearchQuery] = useState(''); // ローカルで十分
+  return <SearchBar query={searchQuery} onChange={setSearchQuery} />;
+}
+```
+
+**なぜ起きるか**: 「状態は親に持ち上げる」を過剰に適用し、すべての状態をルートに集めてしまいます。
+
+**どう防ぐか**: 状態は「その状態を使うコンポーネントの最も近い共通の親」に置きます。ローカルで完結する状態（モーダルの開閉など）は持ち上げる必要はありません。
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| 状態の持ち上げ | 共有したい状態を共通の親に移動する |
+| 制御されたコンポーネント | value + onChange で親が制御する |
+| 配置の判断基準 | 「使う場所の最も近い共通の親」に置く |
+| ローカル状態 | 1つのコンポーネントで完結する状態は持ち上げ不要 |
+
+---
+
+## 練習問題
+
+1. **易**: 2つの`<input>`フィールドを作成し、どちらを編集しても両方に同じ値が表示されるようにしてください。状態は親コンポーネントで管理します。
+
+2. **普通**: 商品リスト（名前・単価・数量）と合計金額を表示するコンポーネントを作成してください。数量を変更すると合計金額がリアルタイムで更新されること。商品データと数量の状態を親に持ち上げて、`ProductList`と`TotalPrice`コンポーネントで共有してください。
+
+3. **応用**: 温度コンバーターを作成してください。摂氏と華氏の2つの入力フィールドがあり、どちらかを編集するともう一方が自動的に変換されます。さらに、「水が沸騰するか」「水が凍るか」を判定して表示するコンポーネントも追加してください（摂氏100度以上で沸騰、0度以下で凍結）。

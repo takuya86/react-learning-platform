@@ -1,0 +1,239 @@
+---
+title: 'Propsの基本：データの受け渡し'
+slug: 'props-basics'
+description: 'コンポーネント間でデータを受け渡すPropsの仕組みを学びます。'
+tags: ['react', 'props', 'component']
+difficulty: 'beginner'
+estimatedMinutes: 15
+prerequisites: ['react-basics']
+---
+
+# Propsの基本：データの受け渡し
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **Propsを使って親から子へデータを渡せる**
+2. **TypeScriptでPropsの型を定義できる**
+3. **デフォルト値とオプショナルなPropsを設定できる**
+
+---
+
+## Propsとは
+
+Props（プロパティ）は、親コンポーネントから子コンポーネントにデータを渡すための仕組みです。
+関数の引数のように、コンポーネントに値を渡すことができます。
+
+## 基本的な使い方
+
+### Propsを受け取る
+
+```tsx
+// 子コンポーネント
+function Greeting(props: { name: string }) {
+  return <h1>こんにちは、{props.name}さん！</h1>;
+}
+
+// 親コンポーネントで使用
+function App() {
+  return <Greeting name="太郎" />;
+}
+```
+
+### 分割代入を使う
+
+より簡潔に書くために、分割代入を使うのが一般的です。
+
+```tsx
+function Greeting({ name }: { name: string }) {
+  return <h1>こんにちは、{name}さん！</h1>;
+}
+```
+
+### 型定義を分離する
+
+複数のPropsがある場合は、型を分離すると読みやすくなります。
+
+```tsx
+type UserCardProps = {
+  name: string;
+  age: number;
+  email: string;
+};
+
+function UserCard({ name, age, email }: UserCardProps) {
+  return (
+    <div className="card">
+      <h2>{name}</h2>
+      <p>年齢: {age}歳</p>
+      <p>メール: {email}</p>
+    </div>
+  );
+}
+```
+
+## デフォルト値とオプショナルProps
+
+Propsにデフォルト値を設定できます。
+
+```tsx
+type ButtonProps = {
+  label: string;
+  variant?: 'primary' | 'secondary'; // ?でオプショナル
+};
+
+function Button({ label, variant = 'primary' }: ButtonProps) {
+  return (
+    <button className={`btn btn-${variant}`}>
+      {label}
+    </button>
+  );
+}
+
+// 使用例
+<Button label="送信" />           // variant は 'primary'
+<Button label="キャンセル" variant="secondary" />
+```
+
+---
+
+## 動作するサンプルコード
+
+以下のコードをコピペして動作を確認してください。
+
+```tsx
+import { useState } from 'react';
+
+// Props型定義
+type ProfileCardProps = {
+  name: string;
+  role: string;
+  isOnline?: boolean;
+};
+
+// 子コンポーネント
+function ProfileCard({ name, role, isOnline = false }: ProfileCardProps) {
+  return (
+    <div style={{
+      border: '1px solid #ccc',
+      padding: '16px',
+      borderRadius: '8px',
+      maxWidth: '200px'
+    }}>
+      <h3>{name}</h3>
+      <p style={{ color: '#666' }}>{role}</p>
+      <span style={{
+        color: isOnline ? 'green' : 'gray',
+        fontSize: '14px'
+      }}>
+        {isOnline ? '🟢 オンライン' : '⚪ オフライン'}
+      </span>
+    </div>
+  );
+}
+
+// 親コンポーネント
+function App() {
+  return (
+    <div style={{ display: 'flex', gap: '16px' }}>
+      <ProfileCard name="山田太郎" role="エンジニア" isOnline={true} />
+      <ProfileCard name="佐藤花子" role="デザイナー" />
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. Propsを直接変更しようとする
+
+Propsは**読み取り専用**です。変更しようとするとエラーになります。
+
+```tsx
+// ❌ 間違い - Propsは読み取り専用
+function BadComponent({ count }: { count: number }) {
+  count = count + 1; // エラー！Propsは変更できない
+  return <span>{count}</span>;
+}
+
+// ✅ 正しい - 変更が必要なら状態管理を使う
+function GoodComponent({ initialCount }: { initialCount: number }) {
+  const [count, setCount] = useState(initialCount);
+  return (
+    <button onClick={() => setCount(count + 1)}>
+      {count}
+    </button>
+  );
+}
+```
+
+**なぜ起きるか**: Propsは親から渡される値なので、子が勝手に変更するとデータの流れが壊れます。
+
+**どう防ぐか**: 変更が必要な値は`useState`で管理し、Propsは初期値として使います。
+
+### 2. 型定義を忘れてanyになる
+
+TypeScriptでは必ずPropsの型を定義しましょう。
+
+```tsx
+// ❌ 型がない - anyになり補完が効かない
+function Greeting(props) {
+  return <h1>{props.name}</h1>; // propsがany型
+}
+
+// ✅ 型を定義 - 補完とエラーチェックが効く
+function Greeting({ name }: { name: string }) {
+  return <h1>{name}</h1>;
+}
+```
+
+**なぜ起きるか**: 急いでいる時や、JSから移行した時に型定義を省略しがちです。
+
+**どう防ぐか**: コンポーネントを作成したら最初に型定義を書く習慣をつけます。
+
+### 3. 不要な再レンダリングを起こすオブジェクトProps
+
+```tsx
+// ❌ 毎回新しいオブジェクトが作られる
+function Parent() {
+  return <Child style={{ color: 'red' }} />; // レンダリング毎に新オブジェクト
+}
+
+// ✅ オブジェクトを外に出すか、useMemoを使う
+const childStyle = { color: 'red' };
+
+function Parent() {
+  return <Child style={childStyle} />;
+}
+```
+
+**なぜ起きるか**: JSXの中で`{}`を使うと毎回新しいオブジェクトが生成されます。
+
+**どう防ぐか**: 固定値は外に定義するか、`useMemo`でメモ化します。
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| Props | 親から子へデータを渡す仕組み |
+| 分割代入 | `{ name }` で簡潔に受け取る |
+| 型定義 | TypeScriptで安全に使える |
+| デフォルト値 | `= 'value'` で設定可能 |
+| 読み取り専用 | Propsは変更不可 |
+
+---
+
+## 練習問題
+
+1. **易**: `Greeting`コンポーネントを作成し、`name`プロパティを受け取って「こんにちは、{name}さん！」と表示してください。
+
+2. **普通**: `ProductCard`コンポーネントを作成してください。`name`（商品名・必須）、`price`（価格・必須）、`isSale`（セール中・オプショナル・デフォルトfalse）を受け取り、セール中の場合は「SALE」バッジを表示します。
+
+3. **応用**: `UserList`と`UserItem`コンポーネントを設計してください。`UserList`は`users`配列を受け取り各ユーザーを`UserItem`で表示、`UserItem`は`name`、`email`、`role`を表示します。型定義を適切に分離し再利用可能な形にしてください。**ヒント**: まず`User`型を定義し、それを`UserItemProps`と`UserListProps`で使い回しましょう。

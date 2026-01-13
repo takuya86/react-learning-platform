@@ -1,0 +1,347 @@
+---
+title: 'childrenとスロットパターン'
+slug: 'children-props'
+description: 'childrenを使った柔軟なコンポーネント設計を学びます。'
+tags: ['react', 'children', 'composition', 'slots']
+difficulty: 'beginner'
+estimatedMinutes: 20
+prerequisites: ['props-basics']
+---
+
+# childrenとスロットパターン
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **childrenを使って「枠」コンポーネントを作成できる**
+2. **複数スロット（header/footer等）を持つレイアウトを設計できる**
+3. **React.Childrenユーティリティを安全に使える**
+
+---
+
+## childrenとは
+
+`children`は特別なpropsで、コンポーネントの開始タグと終了タグの間に渡された要素を受け取ります。
+
+```tsx
+function Card({ children }: { children: React.ReactNode }) {
+  return <div className="card">{children}</div>;
+}
+
+// 使用例
+<Card>
+  <h2>タイトル</h2>
+  <p>コンテンツ</p>
+</Card>
+```
+
+## React.ReactNodeとは
+
+childrenの型には`React.ReactNode`を使います。これは以下のすべてを含む型です：
+
+- JSX要素
+- 文字列・数値
+- null / undefined
+- 配列（複数の子要素）
+- boolean（レンダリングされない）
+
+```tsx
+type CardProps = {
+  children: React.ReactNode;
+};
+```
+
+## 枠コンポーネント
+
+```tsx
+function Panel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '16px',
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// 使用例：何を入れても枠がつく
+<Panel>
+  <p>任意のコンテンツ</p>
+</Panel>
+```
+
+## 複数スロット
+
+childrenだけでなく、複数の「スロット」を持つこともできます。
+
+```tsx
+type PageProps = {
+  header: React.ReactNode;
+  sidebar: React.ReactNode;
+  children: React.ReactNode;
+};
+
+function Page({ header, sidebar, children }: PageProps) {
+  return (
+    <div className="page">
+      <header>{header}</header>
+      <div className="body">
+        <aside>{sidebar}</aside>
+        <main>{children}</main>
+      </div>
+    </div>
+  );
+}
+
+// 使用例
+<Page
+  header={<h1>ダッシュボード</h1>}
+  sidebar={<Navigation />}
+>
+  <DashboardContent />
+</Page>
+```
+
+## Render Props との違い（参考）
+
+childrenに**関数**を渡すパターンもあります（Render Props）。ただし、現代のReactではカスタムフックで代替できることが多いです。
+
+```tsx
+// Render Props（関数をchildrenに渡す）
+<MouseTracker>
+  {({ x, y }) => <p>マウス位置: ({x}, {y})</p>}
+</MouseTracker>
+
+// 今はカスタムフックが主流
+const { x, y } = useMousePosition();
+```
+
+このレッスンでは**JSX要素を渡すchildren**に集中します。Render Propsは上級パターンとして別途学習してください。
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: `Card`コンポーネントが「枠」を提供し、中身は使用側が自由に決められます。複数スロット（title, actions, children）で柔軟なレイアウトを実現しています。
+
+```tsx
+import { useState } from 'react';
+
+// --- 枠コンポーネント ---
+type CardProps = {
+  title?: React.ReactNode;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+};
+
+function Card({ title, actions, children }: CardProps) {
+  return (
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      marginBottom: '16px',
+    }}>
+      {title && (
+        <div style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid #ddd',
+          background: '#f5f5f5',
+          fontWeight: 'bold',
+        }}>
+          {title}
+        </div>
+      )}
+      <div style={{ padding: '16px' }}>
+        {children}
+      </div>
+      {actions && (
+        <div style={{
+          padding: '12px 16px',
+          borderTop: '1px solid #ddd',
+          background: '#fafafa',
+          textAlign: 'right',
+        }}>
+          {actions}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- 使用例 ---
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '400px' }}>
+      <h2>Card コンポーネントの例</h2>
+
+      {/* シンプルな使い方 */}
+      <Card>
+        <p>childrenだけのシンプルなカード</p>
+      </Card>
+
+      {/* titleスロットを使用 */}
+      <Card title="ユーザー情報">
+        <p>名前: 田中太郎</p>
+        <p>メール: tanaka@example.com</p>
+      </Card>
+
+      {/* 全スロットを使用 */}
+      <Card
+        title="カウンター"
+        actions={
+          <>
+            <button onClick={() => setCount(0)} style={{ marginRight: '8px' }}>
+              リセット
+            </button>
+            <button onClick={() => setCount(c => c + 1)}>
+              +1
+            </button>
+          </>
+        }
+      >
+        <p style={{ fontSize: '24px', textAlign: 'center' }}>
+          {count}
+        </p>
+      </Card>
+
+      {/* childrenに複数要素 */}
+      <Card title="リスト">
+        <ul style={{ margin: 0, paddingLeft: '20px' }}>
+          <li>アイテム1</li>
+          <li>アイテム2</li>
+          <li>アイテム3</li>
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. childrenが「常にJSX要素」と思い込む
+
+childrenには文字列、数値、配列、nullなど様々な値が渡される可能性があります。
+
+```tsx
+// ❌ 間違い - childrenがJSX要素だと仮定
+function Badge({ children }: { children: React.ReactNode }) {
+  // children.props にアクセスしようとするとエラー
+  return <span>{children.props.text}</span>;
+}
+
+// ✅ 正しい - childrenをそのまま使う
+function Badge({ children }: { children: React.ReactNode }) {
+  return <span className="badge">{children}</span>;
+}
+
+// 様々な使い方が可能
+<Badge>テキスト</Badge>
+<Badge>{42}</Badge>
+<Badge><strong>強調</strong></Badge>
+```
+
+**なぜ起きるか**: childrenの型が`React.ReactNode`（広い型）であることを忘れがちです。
+
+**どう防ぐか**: childrenは「何でも入る箱」と考え、構造を仮定したアクセスは避けます。
+
+### 2. childrenを直接mapしようとする
+
+childrenは配列とは限りません。単一要素や文字列の場合、`map`はエラーになります。
+
+```tsx
+// ❌ 間違い - childrenが配列でないとエラー
+function List({ children }: { children: React.ReactNode }) {
+  return (
+    <ul>
+      {children.map((child, i) => <li key={i}>{child}</li>)}
+    </ul>
+  );
+}
+
+// ✅ 正しい - React.Children.map を使う
+import { Children } from 'react';
+
+function List({ children }: { children: React.ReactNode }) {
+  return (
+    <ul>
+      {Children.map(children, (child, i) => (
+        <li key={i}>{child}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**なぜ起きるか**: JSXで複数要素を渡すと配列になりますが、1つだけ渡すと単一要素になります。
+
+**どう防ぐか**: `React.Children.map`や`React.Children.count`など、専用ユーティリティを使います。
+
+### 3. props drilling と children の使い分けを誤る
+
+```tsx
+// ❌ 過剰なprops drilling - 中間コンポーネントが不要なpropsを持つ
+function App() {
+  const user = { name: '田中' };
+  return <Layout user={user} />; // Layoutはuserを使わない
+}
+
+function Layout({ user }: { user: User }) {
+  return <Sidebar user={user} />; // Sidebarもuserを素通り
+}
+
+function Sidebar({ user }: { user: User }) {
+  return <UserInfo user={user} />; // やっと使う
+}
+
+// ✅ childrenで責務を分離
+function App() {
+  const user = { name: '田中' };
+  return (
+    <Layout>
+      <Sidebar>
+        <UserInfo user={user} />  {/* 必要な場所で直接渡す */}
+      </Sidebar>
+    </Layout>
+  );
+}
+
+function Layout({ children }: { children: React.ReactNode }) {
+  return <div className="layout">{children}</div>;
+}
+```
+
+**なぜ起きるか**: すべてをpropsで渡そうとすると、中間コンポーネントが関係ないデータを持つことになります。
+
+**どう防ぐか**: 「枠」を提供するコンポーネントはchildrenを使い、データは必要な場所で直接渡します。
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| `children` | タグ間のコンテンツを受け取る特別なprop |
+| `React.ReactNode` | childrenの型（JSX/文字列/null等すべて含む） |
+| 複数スロット | header/footer等を別propsで受け取る |
+| `React.Children` | childrenを安全に操作するユーティリティ |
+
+---
+
+## 練習問題
+
+1. **易**: `Panel`コンポーネントを作成し、childrenを枠線付きのdivで囲んで表示してください。
+
+2. **普通**: `Dialog`コンポーネントを作成してください。`title`（ヘッダー）、`children`（本文）、`footer`（ボタン領域）の3つのスロットを持ち、それぞれ適切な位置に配置されること。使用例を2パターン示してください。
+
+3. **応用**: 再利用可能な`Accordion`コンポーネントを作成してください。複数の`AccordionItem`を受け取り、クリックで開閉できること。childrenの数をカウントして「○件のセクション」と表示してください。

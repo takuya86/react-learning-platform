@@ -1,0 +1,491 @@
+---
+title: 'ローディングとエラー状態の管理'
+slug: 'loading-error-states'
+description: '非同期処理のローディング・エラー状態を適切に管理する方法を学びます。'
+tags: ['react', 'loading', 'error', 'async', 'ux']
+difficulty: 'intermediate'
+estimatedMinutes: 25
+prerequisites: ['data-fetching']
+---
+
+# ローディングとエラー状態の管理
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **loading / error / empty / success の4状態を明示的に分岐できる**
+2. **race conditionを意識した安全なデータ取得を実装できる**
+3. **エラー発生時に「次のアクション」を提供するUIを設計できる**
+
+---
+
+## 非同期UIでやっていいこと / ダメなこと
+
+### やっていいこと
+- 4つの状態（loading / error / empty / success）を明示的に管理
+- try/catch/finallyで状態更新を責務分離
+- スケルトンでレイアウトシフトを防止
+- エラー時に「再試行」ボタンを提供
+
+### やってはダメなこと
+- loadingをbooleanだけで管理（状態が不明確になる）
+- errorを無視して「何も表示されない」UIを作る
+- useEffectの依存配列を誤って多重fetchを発生させる
+- unmount後にsetStateを呼ぶ
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: 4状態の明示的管理、race conditionの簡易対策、try/catch/finallyの責務分離を実装しています。
+
+```tsx
+import { useState, useEffect, useRef } from 'react';
+
+// --- 型定義 ---
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+// 4状態を明示的に表現する型（Discriminated Union）
+type AsyncState<T> =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; error: Error }
+  | { status: 'empty' }
+  | { status: 'success'; data: T };
+
+// --- カスタムフック ---
+function useFetch<T>(url: string) {
+  const [state, setState] = useState<AsyncState<T>>({ status: 'idle' });
+
+  // race condition対策: 最新のリクエストのみ処理
+  const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    const currentRequestId = ++requestIdRef.current;
+
+    const fetchData = async () => {
+      setState({ status: 'loading' });
+
+      try {
+        const response = await fetch(url);
+
+        // race condition: 古いリクエストの結果は無視
+        if (currentRequestId !== requestIdRef.current) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // 空配列チェック（empty状態）
+        if (Array.isArray(data) && data.length === 0) {
+          setState({ status: 'empty' });
+          return;
+        }
+
+        setState({ status: 'success', data });
+      } catch (err) {
+        // race condition: 古いリクエストのエラーは無視
+        if (currentRequestId !== requestIdRef.current) {
+          return;
+        }
+
+        setState({
+          status: 'error',
+          error: err instanceof Error ? err : new Error('不明なエラー'),
+        });
+      }
+    };
+
+    fetchData();
+  }, [url]);
+
+  // 再試行関数
+  const retry = () => {
+    requestIdRef.current++; // 現在のリクエストをキャンセル
+    setState({ status: 'idle' });
+    // useEffectが再実行されないので、手動で呼ぶ
+    // 実務では refetch トリガーを state で管理する
+  };
+
+  return { ...state, retry };
+}
+
+// --- UIコンポーネント ---
+
+// ローディングスケルトン
+function UserCardSkeleton() {
+  return (
+    <div
+      style={{
+        padding: '16px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        background: '#f5f5f5',
+      }}
+    >
+      <div
+        style={{
+          width: '60%',
+          height: '20px',
+          background: '#e0e0e0',
+          borderRadius: '4px',
+          marginBottom: '8px',
+        }}
+      />
+      <div
+        style={{
+          width: '80%',
+          height: '16px',
+          background: '#e0e0e0',
+          borderRadius: '4px',
+        }}
+      />
+    </div>
+  );
+}
+
+// エラー表示（復旧手段付き）
+function ErrorMessage({
+  error,
+  onRetry,
+}: {
+  error: Error;
+  onRetry?: () => void;
+}) {
+  return (
+    <div
+      role="alert"
+      style={{
+        padding: '16px',
+        background: '#ffeaea',
+        border: '1px solid #f5c6cb',
+        borderRadius: '8px',
+        color: '#721c24',
+      }}
+    >
+      <p style={{ margin: '0 0 12px', fontWeight: 'bold' }}>
+        エラーが発生しました
+      </p>
+      <p style={{ margin: '0 0 12px', fontSize: '14px' }}>{error.message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          style={{
+            padding: '8px 16px',
+            background: '#dc3545',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          再試行
+        </button>
+      )}
+    </div>
+  );
+}
+
+// 空状態
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div
+      style={{
+        padding: '32px',
+        textAlign: 'center',
+        color: '#666',
+        background: '#f9f9f9',
+        borderRadius: '8px',
+      }}
+    >
+      <p style={{ margin: 0 }}>{message}</p>
+    </div>
+  );
+}
+
+// ユーザーカード
+function UserCard({ user }: { user: User }) {
+  return (
+    <div
+      style={{
+        padding: '16px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+      }}
+    >
+      <h3 style={{ margin: '0 0 8px' }}>{user.name}</h3>
+      <p style={{ margin: 0, color: '#666' }}>{user.email}</p>
+    </div>
+  );
+}
+
+// --- メインコンポーネント ---
+function UserList() {
+  const state = useFetch<User[]>('/api/users');
+
+  // 4状態を明示的に分岐
+  switch (state.status) {
+    case 'idle':
+    case 'loading':
+      return (
+        <div style={{ display: 'grid', gap: '12px' }}>
+          <UserCardSkeleton />
+          <UserCardSkeleton />
+          <UserCardSkeleton />
+        </div>
+      );
+
+    case 'error':
+      return <ErrorMessage error={state.error} onRetry={state.retry} />;
+
+    case 'empty':
+      return <EmptyState message="ユーザーがまだ登録されていません" />;
+
+    case 'success':
+      return (
+        <div style={{ display: 'grid', gap: '12px' }}>
+          {state.data.map((user) => (
+            <UserCard key={user.id} user={user} />
+          ))}
+        </div>
+      );
+  }
+}
+
+// --- App ---
+function App() {
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '600px' }}>
+      <h1>ユーザー一覧</h1>
+
+      <div
+        style={{
+          marginBottom: '20px',
+          padding: '12px',
+          background: '#e3f2fd',
+          borderRadius: '8px',
+        }}
+      >
+        <strong>4状態の管理:</strong>
+        <ol style={{ margin: '8px 0 0', paddingLeft: '20px' }}>
+          <li>idle / loading → スケルトン表示</li>
+          <li>error → エラー + 再試行ボタン</li>
+          <li>empty → 空状態メッセージ</li>
+          <li>success → データ表示</li>
+        </ol>
+      </div>
+
+      <UserList />
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. loadingをbooleanだけで管理して破綻する
+
+`isLoading: boolean` だけで管理すると、「idle」「empty」「error」の区別がつかず、UIが不安定になります。
+
+```tsx
+// ❌ 間違い - boolean だけでは状態が曖昧
+const [data, setData] = useState<User[] | null>(null);
+const [isLoading, setIsLoading] = useState(false);
+const [error, setError] = useState<Error | null>(null);
+
+// data === null は「まだ読み込んでいない」？「エラー」？「空」？
+if (!isLoading && !error && !data) {
+  // ??? 何を表示すべき？
+}
+
+// ✅ 正しい - Discriminated Union で状態を明示
+type AsyncState<T> =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; error: Error }
+  | { status: 'empty' }
+  | { status: 'success'; data: T };
+
+// status で分岐すれば曖昧さがない
+switch (state.status) {
+  case 'idle':
+  case 'loading':
+    return <Skeleton />;
+  case 'error':
+    return <ErrorMessage error={state.error} />;
+  case 'empty':
+    return <EmptyState />;
+  case 'success':
+    return <DataView data={state.data} />;
+}
+```
+
+**なぜ起きるか**: 「loading終わったらデータがある」という単純なメンタルモデルで実装し、エラーや空配列を考慮していない。
+
+**どう防ぐか**: 状態を**Discriminated Union型**で定義し、switch文で**すべてのケースを網羅**する。
+
+### 2. エラー表示を忘れて「無反応UI」になる
+
+APIエラーをcatchしても、UIに反映しないと「何も表示されない」状態になります。
+
+```tsx
+// ❌ 間違い - エラーをUI反映しない
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const data = await fetch('/api/users').then(r => r.json());
+      setUsers(data);
+    } catch (err) {
+      console.error(err);  // ← コンソールに出すだけ
+    }
+  };
+  fetchData();
+}, []);
+
+// 画面: 何も表示されない → ユーザーは「壊れてる？」と混乱
+
+// ✅ 正しい - エラーをUIに反映し、次のアクションを提供
+useEffect(() => {
+  const fetchData = async () => {
+    setState({ status: 'loading' });
+    try {
+      const data = await fetch('/api/users').then(r => r.json());
+      setState({ status: 'success', data });
+    } catch (err) {
+      setState({
+        status: 'error',
+        error: err instanceof Error ? err : new Error('不明なエラー'),
+      });
+    }
+  };
+  fetchData();
+}, []);
+
+// 画面: 「エラーが発生しました」+ 再試行ボタン
+```
+
+**なぜ起きるか**: 「正常系」だけを実装し、「異常系」を後回しにする。
+
+**どう防ぐか**: エラー状態のUIを**最初から設計**する。再試行ボタンなど「次にユーザーができること」を必ず含める。
+
+### 3. useEffectの依存配列ミスで多重fetch
+
+依存配列の設定を誤ると、無限ループや不要なリクエストが発生します。
+
+```tsx
+// ❌ 間違い - オブジェクトを依存配列に入れて無限ループ
+function UserList({ filters }: { filters: { status: string } }) {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetch(`/api/users?status=${filters.status}`)
+      .then(r => r.json())
+      .then(setUsers);
+  }, [filters]);  // ← オブジェクトは毎回新しい参照 → 無限ループ！
+}
+
+// ✅ 正しい - プリミティブ値を依存配列に
+function UserList({ filters }: { filters: { status: string } }) {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetch(`/api/users?status=${filters.status}`)
+      .then(r => r.json())
+      .then(setUsers);
+  }, [filters.status]);  // ← プリミティブ値だけを依存配列に
+}
+```
+
+**なぜ起きるか**: オブジェクトや配列は毎回新しい参照が作られることを理解していない。
+
+**どう防ぐか**: 依存配列には**プリミティブ値**を入れる。オブジェクトが必要なら`useMemo`で安定させる。
+
+### 4. race conditionでUIが壊れる
+
+高速で操作すると、古いリクエストの結果が後から返って表示が壊れます。
+
+```tsx
+// ❌ 間違い - race condition を考慮していない
+function UserSearch({ query }: { query: string }) {
+  const [results, setResults] = useState([]);
+
+  useEffect(() => {
+    fetch(`/api/search?q=${query}`)
+      .then(r => r.json())
+      .then(setResults);  // ← query="ab" の結果が query="abc" より遅く返ると上書きされる
+  }, [query]);
+}
+
+// ✅ 正しい - requestIdで古いリクエストを無視
+function UserSearch({ query }: { query: string }) {
+  const [results, setResults] = useState([]);
+  const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    const currentId = ++requestIdRef.current;
+
+    fetch(`/api/search?q=${query}`)
+      .then(r => r.json())
+      .then(data => {
+        // 古いリクエストの結果は無視
+        if (currentId === requestIdRef.current) {
+          setResults(data);
+        }
+      });
+  }, [query]);
+}
+```
+
+**なぜ起きるか**: ネットワークのレイテンシは一定ではなく、後から発行したリクエストが先に返ることがある。
+
+**どう防ぐか**: リクエストごとにIDを発行し、最新のIDと一致する場合のみ状態を更新する。または、前のリクエストをキャンセルする（AbortController）。
+
+---
+
+## 現場チェックリスト
+
+本番デプロイ前に確認すべき項目：
+
+- [ ] **4状態網羅**: idle / loading / error / empty / success すべてに対応したUIがあるか
+- [ ] **エラー復旧**: エラー時に「再試行」ボタンまたは「ホームに戻る」リンクがあるか
+- [ ] **スケルトン**: レイアウトシフトを防ぐスケルトンUIがあるか
+- [ ] **race condition**: 高速操作で古いデータが表示されないか
+- [ ] **依存配列**: useEffectの依存配列が正しく設定されているか
+- [ ] **アクセシビリティ**: ローディング/エラーに `role="status"` / `role="alert"` があるか
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| 4状態管理 | idle / loading / error / empty / success |
+| Discriminated Union | 状態を型で明示し、switchで網羅 |
+| race condition対策 | requestIdで古いリクエストを無視 |
+| try/catch/finally | 状態更新の責務分離 |
+
+---
+
+## 練習問題
+
+1. **易**: `useState`と`useEffect`を使って、APIからデータを取得し、loading中はスケルトンを表示するコンポーネントを作成してください。
+
+2. **普通**: 4状態（idle / loading / error / empty / success）を`Discriminated Union`型で管理し、それぞれ異なるUIを表示するコンポーネントを作成してください。エラー時には「再試行」ボタンを表示してください。
+
+3. **応用**: 検索フォームを作成し、入力値が変わるたびにAPIを呼ぶ実装をしてください。以下の要件を満たすこと：
+   - race conditionが発生しないこと（高速入力でテスト）
+   - debounceを入れて不要なリクエストを減らすこと
+   - 「なぜこの実装にしたか」を説明できるようにしてください

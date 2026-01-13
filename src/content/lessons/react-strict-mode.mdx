@@ -1,0 +1,226 @@
+---
+title: 'StrictModeと開発のベストプラクティス'
+slug: 'react-strict-mode'
+description: 'React StrictModeの役割と開発時のベストプラクティスを学びます。'
+tags: ['react', 'strict-mode', 'best-practices']
+difficulty: 'beginner'
+estimatedMinutes: 15
+prerequisites: ['useEffect-hook']
+---
+
+# StrictModeと開発のベストプラクティス
+
+## StrictModeとは
+
+`<React.StrictMode>`は、アプリケーションの潜在的な問題を検出するための開発ツールです。
+本番ビルドでは無効化され、パフォーマンスに影響しません。
+
+## 有効化方法
+
+```tsx
+// main.tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+```
+
+## StrictModeが検出する問題
+
+### 1. 安全でないライフサイクルメソッド
+
+古いクラスコンポーネントのライフサイクルメソッドを検出します。
+
+```tsx
+// ⚠️ 警告が出る（非推奨）
+componentWillMount() { }
+componentWillReceiveProps() { }
+componentWillUpdate() { }
+```
+
+### 2. 非純粋なレンダリング
+
+StrictModeは開発時にコンポーネントを**2回レンダリング**します。
+これにより、レンダリング中の副作用を検出できます。
+
+```tsx
+// ❌ レンダリング中に副作用
+function BadComponent() {
+  // これは2回実行される → 問題が明らかになる
+  localStorage.setItem('count', String(renderCount++));
+
+  return <div>...</div>;
+}
+
+// ✅ useEffectで副作用を実行
+function GoodComponent() {
+  useEffect(() => {
+    localStorage.setItem('count', String(count));
+  }, [count]);
+
+  return <div>...</div>;
+}
+```
+
+### 3. useEffectのクリーンアップ漏れ
+
+StrictModeはuseEffectを**マウント→アンマウント→マウント**の順で実行します。
+
+```tsx
+// ❌ クリーンアップがない
+useEffect(() => {
+  const id = setInterval(() => {
+    console.log('tick');
+  }, 1000);
+  // クリーンアップがないと、インターバルが重複する
+}, []);
+
+// ✅ クリーンアップを実装
+useEffect(() => {
+  const id = setInterval(() => {
+    console.log('tick');
+  }, 1000);
+
+  return () => clearInterval(id); // クリーンアップ
+}, []);
+```
+
+## なぜ2回レンダリングするのか
+
+### 純粋関数の確認
+
+Reactコンポーネントは「純粋関数」であるべきです。
+同じpropsとstateで、同じ結果を返す必要があります。
+
+```tsx
+// ✅ 純粋 - 同じ入力で同じ出力
+function Pure({ name }: { name: string }) {
+  return <h1>Hello, {name}</h1>;
+}
+
+// ❌ 非純粋 - 外部状態に依存
+let count = 0;
+function Impure() {
+  count++; // 呼び出すたびに結果が変わる
+  return <span>{count}</span>;
+}
+```
+
+### 副作用の検出
+
+2回実行することで、意図しない副作用が明らかになります。
+
+```tsx
+// 2回実行されると問題が見える
+function Component() {
+  // ❌ APIが2回呼ばれる → バグが明らか
+  fetch('/api/data');
+
+  return <div>...</div>;
+}
+```
+
+## 開発のベストプラクティス
+
+### 1. コンポーネントを純粋に保つ
+
+```tsx
+// ✅ 良い例
+function UserCard({ user }: { user: User }) {
+  // props/stateのみに依存
+  return (
+    <div>
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+```
+
+### 2. 副作用はuseEffectで
+
+```tsx
+// ✅ 副作用はuseEffect内で
+function DataLoader({ id }: { id: string }) {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetchData(id).then(setData);
+  }, [id]);
+
+  return <div>{data}</div>;
+}
+```
+
+### 3. イベントハンドラで状態を更新
+
+```tsx
+// ✅ ユーザーアクションに応じた更新
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  const handleClick = () => {
+    setCount((c) => c + 1); // イベントハンドラ内で更新
+  };
+
+  return <button onClick={handleClick}>{count}</button>;
+}
+```
+
+### 4. クリーンアップを忘れない
+
+```tsx
+useEffect(() => {
+  // セットアップ
+  const controller = new AbortController();
+
+  fetch('/api/data', { signal: controller.signal })
+    .then(/* ... */);
+
+  // クリーンアップ
+  return () => controller.abort();
+}, []);
+```
+
+## StrictModeを無効化すべきでない理由
+
+StrictModeで検出される問題は、本番環境でバグになる可能性があります。
+
+- メモリリーク
+- データの不整合
+- 競合状態
+
+一時的に無効化しても、根本的な問題は残ります。
+
+## よくある質問
+
+### Q: なぜconsole.logが2回出る？
+
+A: StrictModeの仕様です。本番では1回だけ実行されます。
+
+### Q: APIが2回呼ばれる？
+
+A: クリーンアップでリクエストをキャンセルするか、
+React Query / SWR などのライブラリを使いましょう。
+
+### Q: 無効化できる？
+
+A: 可能ですが推奨しません。問題を隠すだけです。
+
+## まとめ
+
+- **StrictMode**は開発時の問題検出ツール
+- 2回レンダリングで**純粋性**と**副作用**をチェック
+- コンポーネントは**純粋関数**として実装
+- 副作用は**useEffect**で、**クリーンアップ**を忘れずに
+- 本番では影響なし、無効化せずに問題を修正する
+
+## 練習問題
+
+1. 意図的にクリーンアップを省略したuseEffectを書き、StrictModeでどう動作するか確認してみましょう
+2. レンダリング中に副作用を実行するコードを書き、問題を特定してuseEffectに移動してみましょう

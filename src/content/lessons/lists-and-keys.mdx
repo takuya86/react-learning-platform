@@ -1,0 +1,317 @@
+---
+title: 'リストとKey：配列の表示'
+slug: 'lists-and-keys'
+description: '配列データをリストとして表示する方法とkeyの重要性を学びます。'
+tags: ['react', 'lists', 'key', 'map']
+difficulty: 'beginner'
+estimatedMinutes: 20
+prerequisites: ['conditional-rendering']
+---
+
+# リストとKey：配列の表示
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **map()を使って配列データをリストとしてレンダリングできる**
+2. **keyの役割を理解し、適切な値を選択できる**
+3. **index keyが引き起こすバグを説明し、回避できる**
+
+---
+
+## 配列をリストとして表示
+
+配列データを画面に表示するには、`map()`メソッドを使います。
+
+```tsx
+function FruitList() {
+  const fruits = ['りんご', 'みかん', 'ぶどう'];
+
+  return (
+    <ul>
+      {fruits.map((fruit) => (
+        <li key={fruit}>{fruit}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## keyの重要性
+
+### なぜkeyが必要か
+
+Reactはkeyを使って、どの要素が変更・追加・削除されたかを識別します。
+keyがないと、リスト全体を再レンダリングしてしまい、パフォーマンスが低下します。
+
+```tsx
+// ❌ keyがない - 警告が出る
+{items.map((item) => <li>{item}</li>)}
+
+// ✅ keyを指定
+{items.map((item) => <li key={item.id}>{item.name}</li>)}
+```
+
+### 良いkeyの選び方
+
+```tsx
+// ✅ 一意のIDを使う（推奨）
+{users.map((user) => <UserCard key={user.id} user={user} />)}
+
+// ✅ 一意の文字列を使う
+{categories.map((cat) => <Category key={cat.slug} data={cat} />)}
+
+// ⚠️ indexは最終手段（並び替えや削除がない場合のみ）
+{staticItems.map((item, index) => <li key={index}>{item}</li>)}
+```
+
+## オブジェクトの配列を表示
+
+```tsx
+type User = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+function UserList() {
+  const users: User[] = [
+    { id: 1, name: '田中太郎', email: 'tanaka@example.com' },
+    { id: 2, name: '鈴木花子', email: 'suzuki@example.com' },
+  ];
+
+  return (
+    <div>
+      {users.map((user) => (
+        <div key={user.id}>
+          <h3>{user.name}</h3>
+          <p>{user.email}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## フィルタリングと組み合わせ
+
+```tsx
+function FilteredList() {
+  const [filter, setFilter] = useState('all');
+
+  const tasks = [
+    { id: 1, title: 'タスク1', completed: true },
+    { id: 2, title: 'タスク2', completed: false },
+  ];
+
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === 'completed') return task.completed;
+    if (filter === 'active') return !task.completed;
+    return true;
+  });
+
+  return (
+    <div>
+      <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <option value="all">すべて</option>
+        <option value="active">未完了</option>
+        <option value="completed">完了</option>
+      </select>
+      <ul>
+        {filteredTasks.map((task) => (
+          <li key={task.id}>{task.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: index keyを使うと、並び替え時に入力状態が正しく追従しません。idをkeyに切り替えると問題が解消されます。
+
+```tsx
+import { useState } from 'react';
+
+type Item = { id: number; name: string };
+
+function App() {
+  const [items, setItems] = useState<Item[]>([
+    { id: 1, name: 'りんご' },
+    { id: 2, name: 'みかん' },
+    { id: 3, name: 'ぶどう' },
+  ]);
+  const [useIdKey, setUseIdKey] = useState(false);
+
+  // 先頭に追加（index keyだとバグる）
+  const addToTop = () => {
+    const newId = Math.max(...items.map((i) => i.id)) + 1;
+    setItems([{ id: newId, name: `新アイテム${newId}` }, ...items]);
+  };
+
+  // 並び替え（index keyだとバグる）
+  const shuffle = () => {
+    setItems([...items].sort(() => Math.random() - 0.5));
+  };
+
+  // 削除
+  const remove = (id: number) => {
+    setItems(items.filter((item) => item.id !== id));
+  };
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h2>Key の違いを体験する</h2>
+
+      <div style={{ marginBottom: '16px' }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={useIdKey}
+            onChange={(e) => setUseIdKey(e.target.checked)}
+          />
+          {' '}id を key に使う（推奨）
+        </label>
+      </div>
+
+      <div style={{ marginBottom: '16px' }}>
+        <button onClick={addToTop} style={{ marginRight: '8px' }}>
+          先頭に追加
+        </button>
+        <button onClick={shuffle}>シャッフル</button>
+      </div>
+
+      <p style={{ color: '#666', fontSize: '14px' }}>
+        各入力欄に文字を入力してから「シャッフル」を押してみてください。
+        <br />
+        index key だと入力値がズレます。id key だと正しく追従します。
+      </p>
+
+      <ul style={{ listStyle: 'none', padding: 0 }}>
+        {items.map((item, index) => (
+          <li
+            key={useIdKey ? item.id : index}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '8px',
+              padding: '8px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+            }}
+          >
+            <span style={{ width: '80px' }}>{item.name}</span>
+            <input
+              type="text"
+              placeholder="ここに入力"
+              style={{ padding: '4px' }}
+            />
+            <span style={{ color: '#999', fontSize: '12px' }}>
+              key={useIdKey ? item.id : index}
+            </span>
+            <button onClick={() => remove(item.id)}>削除</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. index を key に使って並び替え/削除でバグる
+
+配列の順序が変わると、indexも変わります。Reactは「同じkeyは同じ要素」と判断するため、入力状態やアニメーションがズレます。
+
+```tsx
+// ❌ 間違い - 並び替えでバグる
+{items.map((item, index) => (
+  <TodoItem key={index} item={item} />
+))}
+// 削除: ['A','B','C'] → ['A','C'] で、key=1 が 'B' → 'C' に変わる
+// React は「key=1 は同じ要素」と誤認し、B の状態が C に残る
+
+// ✅ 正しい - 一意のIDを使う
+{items.map((item) => (
+  <TodoItem key={item.id} item={item} />
+))}
+```
+
+**なぜ起きるか**: indexは「位置」を表すだけで、データの「同一性」を表しません。
+
+**どう防ぐか**: データに一意のID（DBのprimary keyやUUID）を持たせ、それをkeyに使います。
+
+### 2. key を子コンポーネント内で参照しようとする
+
+`key`はReact内部で使われる特殊なプロパティで、propsとして渡されません。
+
+```tsx
+// ❌ 間違い - keyはpropsに渡らない
+function ListItem({ key, text }: { key: number; text: string }) {
+  console.log(key); // undefined
+  return <li>{text}</li>;
+}
+
+// ✅ 正しい - 別のpropとして渡す
+function ListItem({ id, text }: { id: number; text: string }) {
+  console.log(id); // 値が取れる
+  return <li>{text}</li>;
+}
+
+// 使用側
+<ListItem key={item.id} id={item.id} text={item.text} />
+```
+
+**なぜ起きるか**: 他の言語ではkeyがそのまま渡ることがあるため、混同しがちです。
+
+**どう防ぐか**: keyと同じ値が子で必要なら、**別のprop名**（`id`など）で明示的に渡します。
+
+### 3. 重複key / 不安定なkey（Math.random等）
+
+```tsx
+// ❌ 間違い - keyが重複
+{items.map(() => <li key="same">アイテム</li>)}
+// 警告: Encountered two children with the same key
+
+// ❌ 間違い - 毎回変わるkey（レンダリング毎に再生成）
+{items.map((item) => <li key={Math.random()}>{item}</li>)}
+// 全要素が毎回アンマウント→マウントされる
+
+// ✅ 正しい - 一意で安定したkey
+{items.map((item) => <li key={item.id}>{item.name}</li>)}
+```
+
+**なぜ起きるか**: keyの一意性・安定性の要件を理解していないと起きます。
+
+**どう防ぐか**: 「keyはデータのライフサイクル中に変わらない一意の値」と覚えましょう。
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| `map()` | 配列をJSX要素のリストに変換 |
+| `key` | 各要素を一意に識別（React内部用） |
+| 良いkey | データのID、slug など一意で安定した値 |
+| 悪いkey | index（動的リスト）、Math.random()、重複値 |
+
+---
+
+## 練習問題
+
+1. **易**: 商品名の配列を`<ul><li>`でレンダリングし、各`<li>`に適切なkeyを設定してください。
+
+2. **普通**: TODOリストを作成し、追加・削除・完了切り替え機能を実装してください。並び替えても入力状態が保持されることを確認してください。
+
+3. **応用**: 「名前順」「価格順」「追加順」で並び替え可能な商品リストを作成してください。index keyとid keyの両方を試し、並び替え時の挙動の違いをコメントで説明してください。

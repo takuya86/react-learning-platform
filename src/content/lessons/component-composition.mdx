@@ -1,0 +1,582 @@
+---
+title: 'コンポーネント設計：分割と再利用'
+slug: 'component-composition'
+description: 'コンポーネントを適切に分割し、再利用可能な設計を学びます。'
+tags: ['react', 'component', 'composition', 'design']
+difficulty: 'beginner'
+estimatedMinutes: 25
+prerequisites: ['children-props']
+---
+
+# コンポーネント設計：分割と再利用
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **単一責任の原則に基づいてコンポーネントを分割できる**
+2. **汎用コンポーネントと特化コンポーネントの設計パターンを使い分けられる**
+3. **Props Drilling問題を認識し、回避策を説明できる**
+
+---
+
+## なぜコンポーネントを分割するか
+
+1. **再利用性**: 同じUIを複数箇所で使える
+2. **保守性**: 小さなコンポーネントは理解しやすい
+3. **テスト容易性**: 単体テストが書きやすい
+
+## 分割の基準
+
+### 1. 単一責任の原則
+
+1つのコンポーネントは1つの役割に集中させます。
+
+```tsx
+// ❌ 1つのコンポーネントに複数の責任
+function UserPage() {
+  return (
+    <div>
+      {/* ヘッダー部分 */}
+      <header>...</header>
+      {/* ユーザー情報 */}
+      <div>...</div>
+      {/* 投稿リスト */}
+      <ul>...</ul>
+      {/* フッター */}
+      <footer>...</footer>
+    </div>
+  );
+}
+
+// ✅ 責任ごとに分割
+function UserPage() {
+  return (
+    <div>
+      <Header />
+      <UserProfile user={user} />
+      <PostList posts={posts} />
+      <Footer />
+    </div>
+  );
+}
+```
+
+### 2. 再利用の可能性
+
+複数箇所で使われるUIは分割します。
+
+```tsx
+// 汎用的なButtonコンポーネント
+type ButtonProps = {
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  children: React.ReactNode;
+  onClick?: () => void;
+};
+
+function Button({ variant = 'primary', size = 'md', children, onClick }: ButtonProps) {
+  return (
+    <button
+      className={`btn btn-${variant} btn-${size}`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+// 使用例
+<Button variant="primary">送信</Button>
+<Button variant="danger" size="sm">削除</Button>
+```
+
+### 3. 複雑さの管理
+
+100行を超えるコンポーネントは分割を検討します。
+
+## コンポジションパターン
+
+### コンテナとプレゼンテーション
+
+```tsx
+// プレゼンテーション: 見た目だけを担当
+function UserCard({ name, email, avatar }: UserCardProps) {
+  return (
+    <div className="card">
+      <img src={avatar} alt={name} />
+      <h3>{name}</h3>
+      <p>{email}</p>
+    </div>
+  );
+}
+
+// コンテナ: データ取得を担当
+function UserCardContainer({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    fetchUser(userId).then(setUser);
+  }, [userId]);
+
+  if (!user) return <Loading />;
+
+  return <UserCard name={user.name} email={user.email} avatar={user.avatar} />;
+}
+```
+
+### レイアウトコンポーネント
+
+```tsx
+// レイアウトコンポーネント
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h3>{title}</h3>
+      </div>
+      <div className="card-body">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// 使用例
+<Card title="ユーザー情報">
+  <p>名前: 田中太郎</p>
+  <p>メール: tanaka@example.com</p>
+</Card>
+```
+
+### 特殊化パターン
+
+汎用コンポーネントを特化させます。
+
+```tsx
+// 汎用的なDialog
+function Dialog({ title, children, onClose }: DialogProps) {
+  return (
+    <div className="dialog">
+      <h2>{title}</h2>
+      {children}
+      <button onClick={onClose}>閉じる</button>
+    </div>
+  );
+}
+
+// 特化したConfirmDialog
+function ConfirmDialog({ message, onConfirm, onCancel }: ConfirmDialogProps) {
+  return (
+    <Dialog title="確認" onClose={onCancel}>
+      <p>{message}</p>
+      <div className="buttons">
+        <Button variant="secondary" onClick={onCancel}>キャンセル</Button>
+        <Button variant="primary" onClick={onConfirm}>OK</Button>
+      </div>
+    </Dialog>
+  );
+}
+```
+
+## ファイル構成
+
+```
+src/
+├── components/
+│   └── ui/           # 汎用UIコンポーネント
+│       ├── Button.tsx
+│       ├── Card.tsx
+│       ├── Input.tsx
+│       └── index.ts
+├── features/
+│   └── user/         # 機能単位
+│       ├── components/
+│       │   ├── UserCard.tsx
+│       │   └── UserList.tsx
+│       └── hooks/
+│           └── useUser.ts
+└── pages/
+    └── UserPage.tsx
+```
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: 汎用的な`Card`コンポーネントを作成し、それを特化した`UserCard`、`ProductCard`として再利用しています。また、`Button`コンポーネントはvariantとsizeで見た目を変えられる汎用設計です。
+
+```tsx
+import { useState } from 'react';
+
+// --- 汎用コンポーネント: Button ---
+type ButtonProps = {
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'sm' | 'md';
+  children: React.ReactNode;
+  onClick?: () => void;
+};
+
+function Button({ variant = 'primary', size = 'md', children, onClick }: ButtonProps) {
+  const baseStyle: React.CSSProperties = {
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+  };
+
+  const variantStyles: Record<string, React.CSSProperties> = {
+    primary: { background: '#007bff', color: 'white' },
+    secondary: { background: '#6c757d', color: 'white' },
+    danger: { background: '#dc3545', color: 'white' },
+  };
+
+  const sizeStyles: Record<string, React.CSSProperties> = {
+    sm: { padding: '4px 8px', fontSize: '12px' },
+    md: { padding: '8px 16px', fontSize: '14px' },
+  };
+
+  return (
+    <button
+      style={{ ...baseStyle, ...variantStyles[variant], ...sizeStyles[size] }}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+// --- 汎用コンポーネント: Card ---
+type CardProps = {
+  title: string;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+};
+
+function Card({ title, children, footer }: CardProps) {
+  return (
+    <div style={{
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      marginBottom: '16px',
+    }}>
+      <div style={{
+        padding: '12px 16px',
+        background: '#f8f9fa',
+        borderBottom: '1px solid #ddd',
+        fontWeight: 'bold',
+      }}>
+        {title}
+      </div>
+      <div style={{ padding: '16px' }}>
+        {children}
+      </div>
+      {footer && (
+        <div style={{
+          padding: '12px 16px',
+          background: '#f8f9fa',
+          borderTop: '1px solid #ddd',
+          textAlign: 'right',
+        }}>
+          {footer}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- 特化コンポーネント: UserCard ---
+type User = { id: number; name: string; email: string };
+
+function UserCard({ user, onDelete }: { user: User; onDelete: (id: number) => void }) {
+  return (
+    <Card
+      title={user.name}
+      footer={
+        <Button variant="danger" size="sm" onClick={() => onDelete(user.id)}>
+          削除
+        </Button>
+      }
+    >
+      <p style={{ margin: 0, color: '#666' }}>{user.email}</p>
+    </Card>
+  );
+}
+
+// --- 特化コンポーネント: ProductCard ---
+type Product = { id: number; name: string; price: number };
+
+function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: (id: number) => void }) {
+  return (
+    <Card
+      title={product.name}
+      footer={
+        <Button variant="primary" size="sm" onClick={() => onAddToCart(product.id)}>
+          カートに追加
+        </Button>
+      }
+    >
+      <p style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>
+        ¥{product.price.toLocaleString()}
+      </p>
+    </Card>
+  );
+}
+
+// --- メインアプリ ---
+function App() {
+  const [users, setUsers] = useState<User[]>([
+    { id: 1, name: '田中太郎', email: 'tanaka@example.com' },
+    { id: 2, name: '鈴木花子', email: 'suzuki@example.com' },
+  ]);
+
+  const [products] = useState<Product[]>([
+    { id: 1, name: 'ノートPC', price: 98000 },
+    { id: 2, name: 'マウス', price: 3500 },
+  ]);
+
+  const [cartCount, setCartCount] = useState(0);
+
+  const handleDeleteUser = (id: number) => {
+    setUsers(users.filter((u) => u.id !== id));
+  };
+
+  const handleAddToCart = (id: number) => {
+    setCartCount((c) => c + 1);
+    console.log(`商品ID ${id} をカートに追加`);
+  };
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '500px' }}>
+      <h2>コンポーネント設計デモ</h2>
+      <p style={{ color: '#666', fontSize: '14px' }}>
+        汎用Card/Buttonを特化したUserCard/ProductCardで再利用しています。
+      </p>
+
+      <h3>ユーザー一覧</h3>
+      {users.map((user) => (
+        <UserCard key={user.id} user={user} onDelete={handleDeleteUser} />
+      ))}
+
+      <h3>商品一覧（カート: {cartCount}件）</h3>
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+      ))}
+
+      <div style={{ marginTop: '16px' }}>
+        <h4>Buttonのバリエーション</h4>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <Button variant="primary">Primary</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="danger">Danger</Button>
+          <Button variant="primary" size="sm">Small</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. 過度な分割（1行コンポーネント）
+
+単純な表示を別コンポーネントに分けると、かえって理解しにくくなります。
+
+```tsx
+// ❌ 過度な分割 - 1行だけの無意味なコンポーネント
+function Username({ name }: { name: string }) {
+  return <span>{name}</span>;
+}
+
+function Email({ email }: { email: string }) {
+  return <span>{email}</span>;
+}
+
+function UserInfo({ user }: { user: User }) {
+  return (
+    <div>
+      <Username name={user.name} />
+      <Email email={user.email} />
+    </div>
+  );
+}
+
+// ✅ シンプルなものはインラインで十分
+function UserInfo({ user }: { user: User }) {
+  return (
+    <div>
+      <span>{user.name}</span>
+      <span>{user.email}</span>
+    </div>
+  );
+}
+```
+
+**なぜ起きるか**: 「コンポーネントは小さく分割すべき」という原則を過剰に適用してしまいます。
+
+**どう防ぐか**: 分割の目的を考えましょう。再利用しない、ロジックがない、テスト不要なら分割は不要です。「このコンポーネントは他でも使うか？」と自問してください。
+
+### 2. Props Drilling（深い階層へのバケツリレー）
+
+propsを何層も経由して渡すと、中間コンポーネントが不要なpropsを持つことになります。
+
+```tsx
+// ❌ Props Drilling - 3層経由でuserを渡す
+function App() {
+  const user = { name: '田中' };
+  return <Layout user={user} />;
+}
+
+function Layout({ user }: { user: User }) {
+  // Layoutはuserを使わない！ただ渡すだけ
+  return <Sidebar user={user} />;
+}
+
+function Sidebar({ user }: { user: User }) {
+  // Sidebarもuserを使わない！
+  return <UserAvatar user={user} />;
+}
+
+function UserAvatar({ user }: { user: User }) {
+  return <img alt={user.name} />;  // やっとここで使う
+}
+
+// ✅ children で責務を分離
+function App() {
+  const user = { name: '田中' };
+  return (
+    <Layout>
+      <Sidebar>
+        <UserAvatar user={user} />  {/* 必要な場所で直接渡す */}
+      </Sidebar>
+    </Layout>
+  );
+}
+
+function Layout({ children }: { children: React.ReactNode }) {
+  return <div className="layout">{children}</div>;
+}
+
+function Sidebar({ children }: { children: React.ReactNode }) {
+  return <aside>{children}</aside>;
+}
+```
+
+**なぜ起きるか**: すべてのデータをpropsで渡そうとすると、中間コンポーネントが「バケツリレー」の役割を担うことになります。
+
+**どう防ぐか**:
+- `children`パターンで「枠」と「中身」を分離する
+- 深い階層なら`Context`を検討する（別レッスンで学習）
+- 「このコンポーネントはこのpropsを本当に使っているか？」を確認する
+
+### 3. 責任の曖昧なコンポーネント（God Component）
+
+1つのコンポーネントがデータ取得、状態管理、表示をすべて担当すると、肥大化して保守困難になります。
+
+```tsx
+// ❌ God Component - すべてを1つで担当
+function UserDashboard() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  useEffect(() => {
+    fetch('/api/users').then(r => r.json()).then(data => {
+      setUsers(data);
+      setLoading(false);
+    });
+  }, []);
+
+  const filteredUsers = users.filter(u => u.name.includes(filter));
+  const sortedUsers = [...filteredUsers].sort((a, b) =>
+    sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+  );
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <input value={filter} onChange={e => setFilter(e.target.value)} />
+      <button onClick={() => setSortOrder(s => s === 'asc' ? 'desc' : 'asc')}>
+        ソート
+      </button>
+      <ul>
+        {sortedUsers.map(u => (
+          <li key={u.id}>{u.name} - {u.email}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ✅ 責任を分割
+// データ取得ロジック（カスタムフックに分離）
+function useUsers() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch('/api/users').then(r => r.json()).then(data => {
+      setUsers(data);
+      setLoading(false);
+    });
+  }, []);
+  return { users, loading };
+}
+
+// フィルター・ソートUI
+function UserFilter({ filter, onFilterChange, sortOrder, onSortChange }) {
+  return (
+    <div>
+      <input value={filter} onChange={e => onFilterChange(e.target.value)} />
+      <button onClick={() => onSortChange(sortOrder === 'asc' ? 'desc' : 'asc')}>
+        ソート
+      </button>
+    </div>
+  );
+}
+
+// 表示コンポーネント
+function UserList({ users }) {
+  return (
+    <ul>
+      {users.map(u => <li key={u.id}>{u.name}</li>)}
+    </ul>
+  );
+}
+```
+
+**なぜ起きるか**: 最初は小さかったコンポーネントに機能を追加し続けた結果、巨大化します。
+
+**どう防ぐか**:
+- データ取得 → カスタムフック
+- 状態管理 → 親コンポーネント
+- 表示 → プレゼンテーションコンポーネント
+- 100行を超えたら分割を検討
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| 単一責任 | 1コンポーネント = 1役割 |
+| 汎用化 | variant/size などで柔軟に使えるよう設計 |
+| 特殊化 | 汎用コンポーネントをラップして特化 |
+| レイアウト | children で「枠」を提供 |
+
+---
+
+## 練習問題
+
+1. **易**: 汎用的な`Badge`コンポーネントを作成してください。`variant`プロパティで`success`（緑）、`warning`（黄）、`error`（赤）の3種類の色を切り替えられるようにしてください。
+
+2. **普通**: 汎用的な`Modal`コンポーネント（title, children, onClose）を作成し、それを継承して`AlertModal`（メッセージとOKボタン）と`ConfirmModal`（メッセージとキャンセル/OKボタン）を作成してください。
+
+3. **応用**: ダッシュボードページを設計してください。`DashboardLayout`（ヘッダー、サイドバー、メインエリアのスロットを持つ）、`StatCard`（アイコン、タイトル、数値を表示）、`RecentActivityList`（アクティビティ一覧）の3つのコンポーネントを作成し、組み合わせて完成させてください。Props Drillingを避け、childrenパターンを活用すること。

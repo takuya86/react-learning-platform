@@ -1,0 +1,425 @@
+---
+title: 'データ取得：fetch/axios入門'
+slug: 'data-fetching'
+description: 'Reactでのデータ取得の基本とベストプラクティスを学びます。'
+tags: ['react', 'fetch', 'api', 'async']
+difficulty: 'intermediate'
+estimatedMinutes: 30
+prerequisites: ['useEffect-hook']
+---
+
+# データ取得：fetch/axios入門
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **useEffectとfetchを組み合わせて、安全にデータを取得できる**
+2. **AbortControllerを使ってrace conditionとメモリリークを防げる**
+3. **loading / error / empty / success の4状態を適切に表示できる**
+
+---
+
+## Reactでのデータ取得の基本
+
+Reactでは、useEffectを使って非同期にデータを取得します。
+ただし、単純に書くと**バグの温床**になります。
+
+```tsx
+// ⚠️ 問題のある実装（後で修正します）
+useEffect(() => {
+  fetch('/api/users')
+    .then(r => r.json())
+    .then(setUsers);
+}, []);
+```
+
+この実装には以下の問題があります：
+- コンポーネントがアンマウントされた後に`setUsers`が呼ばれる
+- 連続リクエストで古いデータが新しいデータを上書きする
+- エラーハンドリングがない
+
+---
+
+## 設計判断の基準
+
+データ取得のパターンを選ぶ際の判断基準：
+
+### いつ自前で実装するか
+- 学習目的
+- 非常にシンプルな1回限りの取得
+- 外部ライブラリを入れられない制約がある
+
+### いつライブラリを使うか（実務推奨）
+- キャッシュが必要（SWR、React Query）
+- 複数コンポーネントで同じデータを共有
+- 再取得、ポーリング、楽観的更新が必要
+
+このレッスンでは**基礎を理解するため**に自前実装を学びます。
+実務では SWR や TanStack Query の使用を強く推奨します。
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: AbortControllerでキャンセル、4状態のUI分岐、再試行ボタンを実装しています。
+
+```tsx
+import { useState, useEffect, useCallback } from 'react';
+
+// --- 型定義 ---
+type User = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+type FetchState<T> =
+  | { status: 'loading' }
+  | { status: 'error'; error: string; retry: () => void }
+  | { status: 'empty' }
+  | { status: 'success'; data: T };
+
+// --- データ取得フック ---
+function useFetch<T>(url: string): FetchState<T[]> {
+  const [state, setState] = useState<FetchState<T[]>>({ status: 'loading' });
+  const [retryCount, setRetryCount] = useState(0);
+
+  const retry = useCallback(() => {
+    setRetryCount((c) => c + 1);
+  }, []);
+
+  useEffect(() => {
+    // AbortControllerでキャンセル可能にする
+    const controller = new AbortController();
+
+    const fetchData = async () => {
+      setState({ status: 'loading' });
+
+      try {
+        const response = await fetch(url, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: T[] = await response.json();
+
+        // 空配列のチェック
+        if (data.length === 0) {
+          setState({ status: 'empty' });
+        } else {
+          setState({ status: 'success', data });
+        }
+      } catch (err) {
+        // AbortErrorは無視（正常なキャンセル）
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+
+        setState({
+          status: 'error',
+          error: err instanceof Error ? err.message : '不明なエラー',
+          retry,
+        });
+      }
+    };
+
+    fetchData();
+
+    // クリーンアップ：コンポーネントがアンマウントされたらキャンセル
+    return () => {
+      controller.abort();
+    };
+  }, [url, retryCount, retry]);
+
+  return state;
+}
+
+// --- UIコンポーネント ---
+function UserList() {
+  const state = useFetch<User>('https://jsonplaceholder.typicode.com/users');
+
+  // 4状態の分岐
+  switch (state.status) {
+    case 'loading':
+      return (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <p>読み込み中...</p>
+          <div style={{ fontSize: '24px' }}>⏳</div>
+        </div>
+      );
+
+    case 'error':
+      return (
+        <div style={{ padding: '20px', background: '#fee', borderRadius: '8px' }}>
+          <p style={{ color: '#c00', fontWeight: 'bold' }}>
+            エラーが発生しました
+          </p>
+          <p style={{ color: '#666' }}>{state.error}</p>
+          <button
+            onClick={state.retry}
+            style={{
+              padding: '8px 16px',
+              background: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            再試行
+          </button>
+        </div>
+      );
+
+    case 'empty':
+      return (
+        <div style={{ padding: '20px', background: '#f5f5f5', borderRadius: '8px' }}>
+          <p style={{ color: '#666' }}>ユーザーが見つかりませんでした</p>
+        </div>
+      );
+
+    case 'success':
+      return (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {state.data.map((user) => (
+            <li
+              key={user.id}
+              style={{
+                padding: '12px',
+                borderBottom: '1px solid #eee',
+              }}
+            >
+              <strong>{user.name}</strong>
+              <br />
+              <span style={{ color: '#666', fontSize: '14px' }}>{user.email}</span>
+            </li>
+          ))}
+        </ul>
+      );
+  }
+}
+
+// --- メインコンポーネント ---
+function App() {
+  const [userId, setUserId] = useState<string>('');
+  const [showList, setShowList] = useState(true);
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '500px' }}>
+      <h2>データ取得デモ</h2>
+
+      {/* マウント/アンマウントのテスト */}
+      <div style={{ marginBottom: '16px' }}>
+        <button
+          onClick={() => setShowList(!showList)}
+          style={{ padding: '8px 16px', marginRight: '8px' }}
+        >
+          {showList ? 'リストを非表示' : 'リストを表示'}
+        </button>
+        <span style={{ fontSize: '12px', color: '#666' }}>
+          非表示でAbortControllerがキャンセルを実行
+        </span>
+      </div>
+
+      {/* ユーザーリスト */}
+      {showList && (
+        <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px' }}>
+          <h3 style={{ marginTop: 0 }}>ユーザー一覧</h3>
+          <UserList />
+        </div>
+      )}
+
+      {/* 検索（連続リクエストのデモ） */}
+      <div style={{ marginTop: '20px' }}>
+        <h3>検索（race condition対策）</h3>
+        <input
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+          placeholder="ユーザーIDを入力"
+          style={{ padding: '8px', width: '200px' }}
+        />
+        <p style={{ fontSize: '12px', color: '#666' }}>
+          高速に入力しても、AbortControllerで古いリクエストがキャンセルされます
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. Race Condition（連続リクエストで古いデータが上書き）
+
+ユーザーが検索ボックスに高速で入力すると、リクエストの完了順が入れ替わり、古いデータが表示されることがあります。
+
+```tsx
+// ❌ 間違い - race conditionが起きる
+function SearchResults({ query }: { query: string }) {
+  const [results, setResults] = useState([]);
+
+  useEffect(() => {
+    fetch(`/api/search?q=${query}`)
+      .then(r => r.json())
+      .then(setResults);
+    // 「React」→「Vue」と入力すると、
+    // Vueのリクエストが先に返り、後からReactの結果で上書きされる可能性
+  }, [query]);
+}
+
+// ✅ 正しい - AbortControllerでキャンセル
+function SearchResults({ query }: { query: string }) {
+  const [results, setResults] = useState([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(`/api/search?q=${query}`, { signal: controller.signal })
+      .then(r => r.json())
+      .then(setResults)
+      .catch(err => {
+        if (err.name !== 'AbortError') throw err;
+      });
+
+    // 次のリクエストが始まる前に、前のリクエストをキャンセル
+    return () => controller.abort();
+  }, [query]);
+}
+```
+
+**なぜ起きるか**: ネットワークリクエストは「送信した順」ではなく「サーバーが応答した順」に完了します。古いリクエストが遅いサーバーに当たると、新しいリクエストより後に完了します。
+
+**どう防ぐか**: AbortControllerを使って、新しいリクエストを始める前に古いリクエストをキャンセルする。または、リクエストIDを使って古いレスポンスを無視する。
+
+### 2. Unmounted後のsetState（メモリリーク警告）
+
+コンポーネントがアンマウントされた後に`setState`を呼ぶと、メモリリークの警告が出ます。
+
+```tsx
+// ❌ 間違い - アンマウント後にsetStateが呼ばれる
+useEffect(() => {
+  fetch('/api/users')
+    .then(r => r.json())
+    .then(data => {
+      setUsers(data);  // コンポーネントが消えた後に実行される可能性
+      setLoading(false);
+    });
+}, []);
+
+// ✅ 正しい - AbortControllerでリクエスト自体をキャンセル
+useEffect(() => {
+  const controller = new AbortController();
+
+  fetch('/api/users', { signal: controller.signal })
+    .then(r => r.json())
+    .then(data => {
+      setUsers(data);
+      setLoading(false);
+    })
+    .catch(err => {
+      // AbortErrorは正常なキャンセルなので無視
+      if (err.name !== 'AbortError') {
+        setError(err.message);
+      }
+    });
+
+  return () => controller.abort();
+}, []);
+```
+
+**なぜ起きるか**: ユーザーが別のページに移動しても、APIリクエストはバックグラウンドで継続します。レスポンスが返ってきたとき、もう存在しないコンポーネントの状態を更新しようとします。
+
+**どう防ぐか**: AbortControllerでリクエストをキャンセルする。または、フラグ変数（`isMounted`）を使ってsetStateを条件付きで実行する（ただしAbortControllerが推奨）。
+
+### 3. loading / error / empty の状態分岐漏れ
+
+すべての状態を考慮しないと、意図しない表示やエラーが発生します。
+
+```tsx
+// ❌ 間違い - 状態分岐が不完全
+function UserList() {
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => { /* fetch */ }, []);
+
+  // loadingがない → 初回描画で空リストが一瞬表示
+  // emptyがない → 「0件です」が表示されない
+  // errorがない → エラー時に何も表示されない
+
+  return (
+    <ul>
+      {users.map(user => <li key={user.id}>{user.name}</li>)}
+    </ul>
+  );
+}
+
+// ✅ 正しい - 4状態を明示的に分岐
+type State =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'empty' }
+  | { status: 'success'; users: User[] };
+
+function UserList() {
+  const [state, setState] = useState<State>({ status: 'loading' });
+
+  useEffect(() => {
+    fetch('/api/users')
+      .then(r => r.json())
+      .then(users => {
+        if (users.length === 0) {
+          setState({ status: 'empty' });
+        } else {
+          setState({ status: 'success', users });
+        }
+      })
+      .catch(err => {
+        setState({ status: 'error', message: err.message });
+      });
+  }, []);
+
+  switch (state.status) {
+    case 'loading': return <p>読み込み中...</p>;
+    case 'error': return <p>エラー: {state.message}</p>;
+    case 'empty': return <p>ユーザーがいません</p>;
+    case 'success': return (
+      <ul>
+        {state.users.map(user => <li key={user.id}>{user.name}</li>)}
+      </ul>
+    );
+  }
+}
+```
+
+**なぜ起きるか**: 「正常系だけ」を考えて実装し、異常系やエッジケースを後回しにしてしまいます。
+
+**どう防ぐか**: データ取得には必ず4状態（loading / error / empty / success）があると最初から意識する。TypeScriptの判別共用体（Discriminated Union）を使うと漏れを防げる。
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| AbortController | リクエストのキャンセルに使う |
+| Race Condition | 連続リクエストで古いデータが上書きされる問題 |
+| 4状態 | loading / error / empty / success |
+| cleanup関数 | useEffectの返り値でリクエストをキャンセル |
+
+---
+
+## 練習問題
+
+1. **易**: ユーザー一覧を取得し、loading状態とerror状態を表示するコンポーネントを作成してください。（まだAbortControllerは不要）
+
+2. **普通**: 検索ボックスを追加し、入力のたびにAPIを呼び出す実装にAbortControllerを追加してください。コンソールで「リクエストがキャンセルされた」ことを確認できるようにしてください。
+
+3. **応用**: 再試行機能を実装してください。エラー時に「再試行」ボタンを表示し、クリックで最大3回まで自動リトライする仕組みを作ってください。リトライ回数も表示してください。

@@ -1,0 +1,515 @@
+---
+title: 'Error Boundary：エラーハンドリング'
+slug: 'error-boundaries'
+description: 'Error Boundaryを使ったReactアプリケーションのエラーハンドリングを学びます。'
+tags: ['react', 'error', 'error-boundary', 'handling']
+difficulty: 'intermediate'
+estimatedMinutes: 25
+prerequisites: ['react-basics']
+---
+
+# Error Boundary：エラーハンドリング
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **Error Boundaryがキャッチできるエラーとできないエラーを区別できる**
+2. **粒度を意識してError Boundaryを配置し、障害の影響範囲を最小化できる**
+3. **本番環境でのエラー復旧フローを設計できる**
+
+---
+
+## Error Boundaryでやっていいこと / ダメなこと
+
+### やっていいこと
+- レンダリング中のエラーをキャッチしてフォールバックUIを表示
+- コンポーネント単位でエラーを隔離
+- エラーログを外部サービスに送信
+- ユーザーに「再試行」の手段を提供
+
+### やってはダメなこと
+- イベントハンドラのエラーをError Boundaryで処理しようとする
+- 非同期処理（fetch、setTimeout）のエラーをそのままError Boundaryに任せる
+- アプリ全体を1つのError Boundaryで囲んで「これで安心」と思う
+
+### Error Boundary配置の設計判断
+
+| 配置場所 | 用途 | 障害時の影響 |
+|----------|------|-------------|
+| アプリ全体 | 最後の砦 | 全機能停止 |
+| ページ単位 | ページごとの隔離 | 該当ページのみ停止 |
+| 機能単位 | ウィジェットの隔離 | 該当機能のみ停止 |
+
+**推奨**: 3層構造で配置する
+1. アプリ全体（最後の砦）
+2. ページ/ルート単位
+3. 重要なウィジェット単位
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: Error Boundaryの3層配置、再試行機能、エラーログ送信、非同期エラーの委譲を実装しています。
+
+```tsx
+import { Component, ErrorInfo, ReactNode, useState, useEffect } from 'react';
+
+// --- 型定義 ---
+type ErrorBoundaryProps = {
+  children: ReactNode;
+  fallback?: ReactNode | ((props: { error: Error; retry: () => void }) => ReactNode);
+  onError?: (error: Error, info: ErrorInfo) => void;
+  level?: 'app' | 'page' | 'widget';
+};
+
+type ErrorBoundaryState = {
+  hasError: boolean;
+  error: Error | null;
+};
+
+// --- Error Boundary クラスコンポーネント ---
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    // エラーログを送信
+    console.error(`[${this.props.level || 'unknown'}] Error caught:`, error);
+    console.error('Component stack:', info.componentStack);
+
+    // 外部に通知
+    this.props.onError?.(error, info);
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      const { fallback, level } = this.props;
+      const { error } = this.state;
+
+      // fallbackがrender propsの場合
+      if (typeof fallback === 'function') {
+        return fallback({ error: error!, retry: this.handleRetry });
+      }
+
+      // fallbackがReactNodeの場合
+      if (fallback) {
+        return fallback;
+      }
+
+      // デフォルトのフォールバック
+      return (
+        <div
+          role="alert"
+          style={{
+            padding: '20px',
+            background: level === 'app' ? '#ffeaea' : '#fff3cd',
+            border: `1px solid ${level === 'app' ? '#f5c6cb' : '#ffc107'}`,
+            borderRadius: '8px',
+            margin: '8px 0',
+          }}
+        >
+          <h3 style={{ margin: '0 0 8px', color: '#721c24' }}>
+            {level === 'app' ? 'アプリでエラーが発生しました' : 'エラーが発生しました'}
+          </h3>
+          <p style={{ color: '#856404', margin: '0 0 12px' }}>{error?.message}</p>
+          <button
+            onClick={this.handleRetry}
+            style={{
+              padding: '8px 16px',
+              background: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            再試行
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// --- エラーを投げる（手動でBoundaryに委譲する）カスタムフック ---
+// ※ 実際はreact-error-boundaryのuseErrorBoundaryを使用
+function useErrorHandler() {
+  const [error, setError] = useState<Error | null>(null);
+
+  if (error) {
+    throw error; // Error Boundaryにキャッチさせる
+  }
+
+  return { showBoundary: setError };
+}
+
+// --- デモ用コンポーネント ---
+
+// わざとエラーを起こすコンポーネント
+function BuggyWidget({ shouldError }: { shouldError: boolean }) {
+  if (shouldError) {
+    throw new Error('ウィジェットでレンダリングエラーが発生しました');
+  }
+  return (
+    <div style={{ padding: '12px', background: '#e7f5e7', borderRadius: '4px' }}>
+      ウィジェット: 正常に動作中
+    </div>
+  );
+}
+
+// 非同期エラーをError Boundaryに委譲するコンポーネント
+function AsyncWidget() {
+  const [data, setData] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { showBoundary } = useErrorHandler();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 模擬的なAPI呼び出し（50%の確率で失敗）
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (Math.random() > 0.5) {
+          throw new Error('APIリクエストが失敗しました');
+        }
+        setData('データ取得成功！');
+      } catch (err) {
+        // Error Boundaryに委譲
+        showBoundary(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [showBoundary]);
+
+  if (loading) return <p>読み込み中...</p>;
+  return (
+    <div style={{ padding: '12px', background: '#e7f5e7', borderRadius: '4px' }}>
+      {data}
+    </div>
+  );
+}
+
+// イベントハンドラのエラー（Error Boundaryではキャッチされない）
+function ButtonWithError() {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClick = () => {
+    try {
+      throw new Error('ボタンクリック時のエラー');
+    } catch (err) {
+      // 自分でハンドリング（Error Boundaryではキャッチされない）
+      setError((err as Error).message);
+    }
+  };
+
+  return (
+    <div style={{ padding: '12px', background: '#f0f0f0', borderRadius: '4px' }}>
+      <button onClick={handleClick} style={{ marginRight: '8px' }}>
+        エラーを発生させる
+      </button>
+      {error && <span style={{ color: 'red' }}>エラー: {error}</span>}
+      <p style={{ fontSize: '12px', color: '#666', margin: '8px 0 0' }}>
+        ※ イベントハンドラのエラーはtry-catchで自分でハンドリング
+      </p>
+    </div>
+  );
+}
+
+// ダッシュボード（複数ウィジェット）
+function Dashboard() {
+  const [triggerError, setTriggerError] = useState(false);
+
+  return (
+    <div style={{ display: 'grid', gap: '16px' }}>
+      <h3 style={{ margin: 0 }}>ダッシュボード</h3>
+
+      {/* ウィジェット1: エラーを起こす */}
+      <ErrorBoundary level="widget">
+        <div>
+          <h4 style={{ margin: '0 0 8px' }}>ウィジェット1（手動でエラー）</h4>
+          <button
+            onClick={() => setTriggerError(true)}
+            style={{ marginBottom: '8px' }}
+          >
+            エラーを発生させる
+          </button>
+          <BuggyWidget shouldError={triggerError} />
+        </div>
+      </ErrorBoundary>
+
+      {/* ウィジェット2: 非同期エラー */}
+      <ErrorBoundary level="widget">
+        <div>
+          <h4 style={{ margin: '0 0 8px' }}>ウィジェット2（非同期データ取得）</h4>
+          <AsyncWidget />
+        </div>
+      </ErrorBoundary>
+
+      {/* ウィジェット3: イベントハンドラ */}
+      <div>
+        <h4 style={{ margin: '0 0 8px' }}>ウィジェット3（イベントハンドラ）</h4>
+        <ButtonWithError />
+      </div>
+    </div>
+  );
+}
+
+// --- メインアプリ ---
+function App() {
+  // エラーログ送信の模擬
+  const handleAppError = (error: Error, info: ErrorInfo) => {
+    console.log('🚨 エラーログを送信:', {
+      message: error.message,
+      stack: error.stack,
+      componentStack: info.componentStack,
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  return (
+    // レベル1: アプリ全体のError Boundary（最後の砦）
+    <ErrorBoundary level="app" onError={handleAppError}>
+      <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '600px' }}>
+        <h2>Error Boundary デモ</h2>
+
+        <div style={{ marginBottom: '20px', padding: '12px', background: '#e3f2fd', borderRadius: '8px' }}>
+          <strong>3層構造のError Boundary:</strong>
+          <ol style={{ margin: '8px 0 0', paddingLeft: '20px' }}>
+            <li>アプリ全体（最後の砦）</li>
+            <li>ページ単位</li>
+            <li>ウィジェット単位</li>
+          </ol>
+        </div>
+
+        {/* レベル2: ページ単位のError Boundary */}
+        <ErrorBoundary level="page">
+          <Dashboard />
+        </ErrorBoundary>
+
+        <div style={{ marginTop: '20px', padding: '12px', background: '#f5f5f5', borderRadius: '8px' }}>
+          <h4 style={{ margin: '0 0 8px' }}>Error Boundaryの特徴</h4>
+          <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px' }}>
+            <li>レンダリング中のエラーをキャッチ</li>
+            <li>非同期エラーは<code>showBoundary</code>で委譲</li>
+            <li>イベントハンドラはtry-catchで自分でハンドリング</li>
+            <li>ウィジェット単位で囲むと他への影響を防げる</li>
+          </ul>
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. try/catchでReactのレンダリングエラーをキャッチしようとする
+
+関数コンポーネントのreturn文をtry/catchで囲んでも、子コンポーネントのエラーはキャッチできません。
+
+```tsx
+// ❌ 間違い - try/catchでレンダリングエラーは捕まえられない
+function ParentComponent() {
+  try {
+    return (
+      <div>
+        <BuggyChild />  {/* ここでエラーが起きてもキャッチされない */}
+      </div>
+    );
+  } catch (error) {
+    // ここには絶対に来ない
+    return <p>エラー</p>;
+  }
+}
+
+// ✅ 正しい - Error Boundaryを使う
+function ParentComponent() {
+  return (
+    <ErrorBoundary fallback={<p>エラー</p>}>
+      <BuggyChild />
+    </ErrorBoundary>
+  );
+}
+```
+
+**なぜ起きるか**: Reactのレンダリングは同期的に見えますが、実際にはReactがコンポーネントツリーを構築するプロセスで発生します。try/catchは「その場で投げられたエラー」しかキャッチできず、子コンポーネントの「レンダリング中」に投げられるエラーは別のコールスタックになります。
+
+**どう防ぐか**: レンダリングエラーは必ずError Boundaryで処理する。try/catchはイベントハンドラやuseEffect内の同期処理にのみ使用する。
+
+### 2. アプリ全体を1つのError Boundaryで囲んで終わり
+
+アプリ全体を1つのError Boundaryで囲むだけだと、どこか1箇所でエラーが起きるとアプリ全体がフォールバックUIになります。
+
+```tsx
+// ❌ 間違い - 1つのBoundaryで全体を囲む
+function App() {
+  return (
+    <ErrorBoundary fallback={<p>エラーが発生しました</p>}>
+      <Header />
+      <Sidebar />
+      <MainContent />
+      <Footer />
+    </ErrorBoundary>
+  );
+  // → MainContentでエラー → 全部消えてエラー表示
+}
+
+// ✅ 正しい - 複数のBoundaryで隔離
+function App() {
+  return (
+    <ErrorBoundary fallback={<CriticalErrorPage />}>
+      <Header />
+      <div style={{ display: 'flex' }}>
+        <ErrorBoundary fallback={<SidebarError />}>
+          <Sidebar />
+        </ErrorBoundary>
+        <ErrorBoundary fallback={<ContentError />}>
+          <MainContent />
+        </ErrorBoundary>
+      </div>
+      <Footer />
+    </ErrorBoundary>
+  );
+  // → MainContentでエラー → MainContentだけエラー表示、Sidebarは動く
+}
+```
+
+**なぜ起きるか**: 「Error Boundaryを入れた」ことで安心し、エラー発生時のユーザー体験を検討していません。
+
+**どう防ぐか**: 「このコンポーネントがエラーになったとき、どこまで影響させたいか」を考える。独立して動くべきウィジェットは個別にBoundaryで囲む。
+
+### 3. 非同期エラーをそのままError Boundaryに任せる
+
+fetch、setTimeout、async/awaitのエラーはError Boundaryでは**直接キャッチされません**。
+
+```tsx
+// ❌ 間違い - 非同期エラーはError Boundaryでキャッチされない
+function DataLoader() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/data')
+      .then(r => r.json())
+      .then(setData)
+      .catch(err => {
+        throw err;  // ← これはError Boundaryにキャッチされない！
+      });
+  }, []);
+
+  return <div>{data}</div>;
+}
+
+// ✅ 正しい - useErrorBoundary / showBoundary で明示的に委譲
+import { useErrorBoundary } from 'react-error-boundary';
+
+function DataLoader() {
+  const [data, setData] = useState(null);
+  const { showBoundary } = useErrorBoundary();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/data');
+        if (!response.ok) throw new Error('API Error');
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        showBoundary(error);  // ← 明示的にError Boundaryに委譲
+      }
+    };
+    fetchData();
+  }, [showBoundary]);
+
+  return <div>{data}</div>;
+}
+```
+
+**なぜ起きるか**: Error Boundaryは「レンダリング中」のエラーをキャッチする仕組みです。非同期処理のエラーはレンダリング中に発生しないため、通常のtry/catchパターンでキャッチする必要があります。
+
+**どう防ぐか**: 非同期エラーは`showBoundary(error)`で明示的にError Boundaryに委譲する。または、loading/error状態を自分で管理してUIに反映する。
+
+### 4. フォールバックUIに「復旧手段」がない
+
+エラーが起きたとき、ユーザーが何もできないフォールバックUIは最悪のUXです。
+
+```tsx
+// ❌ 間違い - ユーザーがどうすることもできない
+<ErrorBoundary fallback={<p>エラーが発生しました</p>}>
+  <App />
+</ErrorBoundary>
+
+// ✅ 正しい - 復旧手段を提供
+<ErrorBoundary
+  fallback={({ error, retry }) => (
+    <div>
+      <h2>エラーが発生しました</h2>
+      <p>{error.message}</p>
+      <button onClick={retry}>再試行</button>
+      <button onClick={() => window.location.href = '/'}>ホームに戻る</button>
+    </div>
+  )}
+>
+  <App />
+</ErrorBoundary>
+```
+
+**なぜ起きるか**: エラーハンドリングを「異常系の実装」として後回しにし、最低限の対応で終わらせてしまいます。
+
+**どう防ぐか**: フォールバックUIには必ず「再試行」「ホームに戻る」「サポートに連絡」など、ユーザーが次に取れるアクションを含める。
+
+---
+
+## 現場チェックリスト
+
+本番デプロイ前に確認すべき項目：
+
+- [ ] **3層構造**: アプリ全体、ページ単位、重要ウィジェット単位にError Boundaryがあるか
+- [ ] **復旧手段**: すべてのフォールバックUIに「再試行」または「ホームに戻る」ボタンがあるか
+- [ ] **エラーログ**: `onError`でエラーログを外部サービス（Sentry等）に送信しているか
+- [ ] **非同期エラー**: fetch/APIエラーを`showBoundary`でError Boundaryに委譲しているか
+- [ ] **イベントハンドラ**: ボタンクリック等のエラーはtry/catchで自分で処理しているか
+- [ ] **開発環境テスト**: 意図的にエラーを起こして、フォールバックUIが表示されることを確認したか
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| Error Boundary | レンダリング中のエラーをキャッチするクラスコンポーネント |
+| 3層構造 | アプリ全体 + ページ + ウィジェット |
+| showBoundary | 非同期エラーをError Boundaryに委譲 |
+| フォールバックUI | 必ず復旧手段（再試行、ホームに戻る）を含める |
+
+---
+
+## 練習問題
+
+1. **易**: シンプルなError Boundaryクラスコンポーネントを作成し、`fallback`propsでカスタムエラーUIを表示できるようにしてください。
+
+2. **普通**: ダッシュボードに3つのウィジェット（チャート、テーブル、通知）を配置し、それぞれをError Boundaryで囲んでください。1つがエラーでも他の2つは表示され続けることを確認してください。
+
+3. **応用**: 以下の要件を満たすError Boundary設計を実装してください。
+   - 非同期データ取得でエラーが発生したら`showBoundary`でError Boundaryに委譲
+   - フォールバックUIには「再試行」ボタンがあり、クリックで再度データ取得を試みる
+   - エラー発生時に`console.log`でエラー情報（メッセージ、発生時刻、コンポーネントスタック）を出力
+   - 「なぜこの設計にしたか」を説明できるようにしてください

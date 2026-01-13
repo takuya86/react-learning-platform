@@ -1,0 +1,524 @@
+---
+title: 'パフォーマンス最適化：総合ガイド'
+slug: 'react-performance'
+description: 'Reactアプリケーションのパフォーマンス最適化テクニックを総合的に学びます。'
+tags: ['react', 'performance', 'optimization', 'advanced']
+difficulty: 'advanced'
+estimatedMinutes: 35
+prerequisites: ['useCallback-useMemo']
+---
+
+# パフォーマンス最適化：総合ガイド
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **「計測 → 仮説 → 最適化」の順序で問題に取り組める**
+2. **useMemo/useCallback/React.memoの使い分けを判断できる**
+3. **「最適化すべきでないケース」を説明できる**
+
+---
+
+## 最適化でやっていいこと / やらなくていいこと
+
+### やっていいこと
+- Profilerで計測し、ボトルネックを特定してから最適化
+- 100件以上のリストには仮想化を検討
+- 重い計算（O(n²)以上、または100ms超）をメモ化
+- ルート単位でのコード分割
+
+### やらなくていいこと（早すぎる最適化）
+- 「なんとなく遅そう」でuseMemoを入れる
+- すべてのコンポーネントをReact.memoで囲む
+- 単純な計算（加算、フィルタ数十件）をメモ化
+- 問題が起きていないコードを「念のため」最適化
+
+### 判断基準
+
+| 状況 | 最適化する？ | 理由 |
+|------|-------------|------|
+| ユーザーから「遅い」と報告 | ◎ する | 実際の問題がある |
+| Profilerで16ms超のレンダリング | ◎ する | 60fpsを下回る |
+| 配列が1000件以上 | ○ 検討 | 仮想化の候補 |
+| 配列が50件以下 | × しない | 体感できない |
+| 計算が単純（a + b） | × しない | useMemoのオーバーヘッドの方が大きい |
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: 計測 → 仮説 → 最適化の順序、React.memoとuseCallbackの組み合わせ、仮想化の実装例を示しています。
+
+```tsx
+import { useState, useMemo, useCallback, memo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+// --- 型定義 ---
+type Item = {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+};
+
+// --- Step 1: まず計測できる状態にする ---
+function useRenderCount(label: string) {
+  const count = useRef(0);
+  count.current++;
+
+  // 開発時のみ表示
+  if (import.meta.env.DEV) {
+    console.log(`[${label}] render count: ${count.current}`);
+  }
+}
+
+// --- Step 2: 問題のあるコンポーネント（Before） ---
+function SlowItemCard({ item, onSelect }: { item: Item; onSelect: (id: string) => void }) {
+  useRenderCount(`ItemCard-${item.id}`);
+
+  return (
+    <div
+      onClick={() => onSelect(item.id)}
+      style={{
+        padding: '12px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        cursor: 'pointer',
+      }}
+    >
+      <h4 style={{ margin: '0 0 4px' }}>{item.name}</h4>
+      <p style={{ margin: 0, color: '#666' }}>¥{item.price.toLocaleString()}</p>
+    </div>
+  );
+}
+
+// --- Step 3: 最適化したコンポーネント（After） ---
+const OptimizedItemCard = memo(function ItemCard({
+  item,
+  onSelect,
+}: {
+  item: Item;
+  onSelect: (id: string) => void;
+}) {
+  useRenderCount(`OptimizedItemCard-${item.id}`);
+
+  return (
+    <div
+      onClick={() => onSelect(item.id)}
+      style={{
+        padding: '12px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        cursor: 'pointer',
+      }}
+    >
+      <h4 style={{ margin: '0 0 4px' }}>{item.name}</h4>
+      <p style={{ margin: 0, color: '#666' }}>¥{item.price.toLocaleString()}</p>
+    </div>
+  );
+});
+
+// --- メインコンポーネント ---
+function ItemList({ items }: { items: Item[] }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [filter, setFilter] = useState('');
+
+  // ❌ 悪い例: 毎回新しい関数が作られる → React.memoが効かない
+  // const handleSelect = (id: string) => setSelectedId(id);
+
+  // ✅ 良い例: useCallbackでメモ化 → React.memoが効く
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+  }, []);
+
+  // useMemoの正しい使い方: フィルタリングが重い場合のみ
+  const filteredItems = useMemo(() => {
+    // この計算が100ms以上かかるなら、useMemoの価値がある
+    // 50件程度なら不要（コメントアウトしても体感差なし）
+    return items.filter((item) =>
+      item.name.toLowerCase().includes(filter.toLowerCase())
+    );
+  }, [items, filter]);
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="検索..."
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        style={{ marginBottom: '16px', padding: '8px', width: '100%' }}
+      />
+
+      <p style={{ color: '#666', fontSize: '14px' }}>
+        選択中: {selectedId || 'なし'} / 表示: {filteredItems.length}件
+      </p>
+
+      <div style={{ display: 'grid', gap: '8px' }}>
+        {filteredItems.map((item) => (
+          <OptimizedItemCard
+            key={item.id}
+            item={item}
+            onSelect={handleSelect}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- 仮想化リスト（1000件以上の場合） ---
+function VirtualizedItemList({ items }: { items: Item[] }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+  }, []);
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 60,
+    overscan: 5,
+  });
+
+  return (
+    <div>
+      <p style={{ color: '#666', fontSize: '14px' }}>
+        選択中: {selectedId || 'なし'} / 全{items.length}件（仮想化）
+      </p>
+
+      <div
+        ref={parentRef}
+        style={{
+          height: '400px',
+          overflow: 'auto',
+          border: '1px solid #ddd',
+          borderRadius: '4px',
+        }}
+      >
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const item = items[virtualRow.index];
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                  padding: '0 8px',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <OptimizedItemCard item={item} onSelect={handleSelect} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- App ---
+function App() {
+  // サンプルデータ生成
+  const items: Item[] = useMemo(
+    () =>
+      Array.from({ length: 100 }, (_, i) => ({
+        id: `item-${i}`,
+        name: `商品 ${i + 1}`,
+        price: Math.floor(Math.random() * 10000) + 100,
+        category: ['食品', '家電', '衣類'][i % 3],
+      })),
+    []
+  );
+
+  const manyItems: Item[] = useMemo(
+    () =>
+      Array.from({ length: 5000 }, (_, i) => ({
+        id: `item-${i}`,
+        name: `商品 ${i + 1}`,
+        price: Math.floor(Math.random() * 10000) + 100,
+        category: ['食品', '家電', '衣類'][i % 3],
+      })),
+    []
+  );
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '600px' }}>
+      <h1>パフォーマンス最適化デモ</h1>
+
+      <section style={{ marginBottom: '32px' }}>
+        <h2>通常リスト（100件）</h2>
+        <p style={{ color: '#666', fontSize: '14px' }}>
+          React.memo + useCallback で再レンダリングを最小化
+        </p>
+        <ItemList items={items} />
+      </section>
+
+      <section>
+        <h2>仮想化リスト（5000件）</h2>
+        <p style={{ color: '#666', fontSize: '14px' }}>
+          @tanstack/react-virtual で画面内のみレンダリング
+        </p>
+        <VirtualizedItemList items={manyItems} />
+      </section>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. useMemo/useCallbackを「とりあえず」入れる
+
+メモ化にはオーバーヘッドがあります。単純な計算や小さなリストでは、メモ化しない方が速いことがあります。
+
+```tsx
+// ❌ 間違い - 単純な計算をメモ化
+const total = useMemo(() => a + b, [a, b]);
+// useMemoのオーバーヘッド > 足し算のコスト
+
+// ❌ 間違い - 小さな配列のフィルタをメモ化
+const filtered = useMemo(
+  () => items.filter(item => item.active), // itemsが20件
+  [items]
+);
+
+// ✅ 正しい - 重い計算だけメモ化
+const sorted = useMemo(() => {
+  // 1000件以上のソートは計測して判断
+  return [...largeArray].sort((a, b) => complexCompare(a, b));
+}, [largeArray]);
+```
+
+**なぜ起きるか**: 「最適化 = useMemo」という誤解。または「入れておいて損はない」という思い込み。
+
+**どう防ぐか**: **計測してから**入れる。体感できない最適化は削除する。
+
+### 2. React.memoを入れたのに効かない
+
+React.memoは「propsが同じなら再レンダリングしない」仕組みです。propsに毎回新しいオブジェクトや関数を渡すと効果がありません。
+
+```tsx
+// ❌ 間違い - 毎回新しい関数を渡す
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <MemoizedChild
+      onClick={() => console.log('click')} // ← 毎回新しい関数
+      style={{ color: 'red' }} // ← 毎回新しいオブジェクト
+    />
+  );
+}
+
+// ✅ 正しい - useCallbackとuseMemoで安定させる
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  const handleClick = useCallback(() => {
+    console.log('click');
+  }, []);
+
+  const style = useMemo(() => ({ color: 'red' }), []);
+
+  return <MemoizedChild onClick={handleClick} style={style} />;
+}
+```
+
+**なぜ起きるか**: React.memoの動作原理（shallow comparison）を理解していない。
+
+**どう防ぐか**: React.memoを入れるなら、**すべてのpropsが安定しているか**確認する。
+
+### 3. keyに不安定な値を使う
+
+keyが変わるとReactはコンポーネントを「別物」と判断し、アンマウント→再マウントします。
+
+```tsx
+// ❌ 間違い - インデックスをkeyにする（順序が変わる場合）
+{items.map((item, index) => (
+  <Item key={index} data={item} />
+))}
+// 配列の先頭に追加 → 全アイテムが再マウント
+
+// ❌ 間違い - 毎回変わる値をkeyにする
+{items.map((item) => (
+  <Item key={Math.random()} data={item} /> // 毎回再マウント
+))}
+
+// ✅ 正しい - 一意で安定したIDをkeyにする
+{items.map((item) => (
+  <Item key={item.id} data={item} />
+))}
+```
+
+**なぜ起きるか**: keyの役割（Reactがどの要素が変更されたかを識別する）を理解していない。
+
+**どう防ぐか**: keyには**一意で安定したID**を使う。インデックスは「順序が変わらない、かつ追加/削除がない」場合のみ許容。
+
+### 4. Contextの値が毎回新しいオブジェクトになる
+
+Contextの値が変わると、すべての購読コンポーネントが再レンダリングされます。
+
+```tsx
+// ❌ 間違い - 毎回新しいオブジェクトを渡す
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+
+  return (
+    <ThemeContext.Provider
+      value={{ theme, setTheme }} // ← 毎回新しいオブジェクト
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// ✅ 正しい - useMemoで安定させる
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+
+  const value = useMemo(() => ({ theme, setTheme }), [theme]);
+
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+```
+
+**なぜ起きるか**: Contextの値がオブジェクトの場合、参照が変わると再レンダリングが発生することを知らない。
+
+**どう防ぐか**: Context.Providerのvalueは**useMemoでメモ化**する。または、状態と更新関数を別のContextに分離する。
+
+---
+
+## Design Decisions
+
+### なぜ「計測 → 仮説 → 最適化」の順序なのか
+
+**理由**: 推測で最適化すると、問題のない箇所にコストをかけ、本当の問題を見逃す。
+
+**他の選択肢**:
+- 「最初からすべてメモ化」→ コードが複雑化し、メンテナンスコストが上がる
+- 「問題が起きたら対処」→ 計測の習慣がないと、何が問題かわからない
+
+**破綻するケース**:
+- 計測環境が本番と乖離している（開発モード、少量データ）
+- 計測指標が間違っている（render countではなく、ユーザー体感を見るべき）
+
+### なぜReact.memoを「デフォルトで入れない」のか
+
+**理由**: React.memoにはメモリコストとprops比較コストがある。軽いコンポーネントでは損をする。
+
+**他の選択肢**:
+- 「すべてにReact.memoを入れる」→ Vue/Svelteのようにデフォルトでメモ化する発想
+- React Compilerの自動メモ化（将来）
+
+**破綻するケース**:
+- propsが毎回変わる場合、React.memoは意味がない
+- 子コンポーネントが非常に軽い場合、比較コスト > 再レンダリングコスト
+
+### なぜ仮想化は「100件以上」が目安なのか
+
+**理由**: 100件以下ならDOMノードの数は許容範囲。仮想化の複雑さ（スクロール位置管理、動的高さ対応）がコストを上回る。
+
+**他の選択肢**:
+- ページネーション（サーバーサイド）
+- 無限スクロール（追加読み込み）
+
+**破綻するケース**:
+- アイテムが非常に重い（画像多数、複雑なアニメーション）→ 50件でも仮想化が必要
+- 動的な高さのアイテム → 仮想化ライブラリの設定が複雑になる
+
+---
+
+## 現場チェックリスト
+
+本番デプロイ前に確認すべき項目：
+
+- [ ] **計測済み**: React DevTools Profilerで問題箇所を特定したか
+- [ ] **本番ビルド**: 開発モードではなく本番ビルドで計測したか
+- [ ] **体感確認**: ユーザーが体感できる改善か（数値だけでなく）
+- [ ] **必要最小限**: 問題のない箇所にuseMemoを入れていないか
+- [ ] **propsの安定性**: React.memoを入れた箇所のpropsは安定しているか
+- [ ] **keyの妥当性**: リストのkeyは一意で安定したIDか
+
+---
+
+## まとめ
+
+| 概念 | 使いどころ |
+|------|-----------|
+| useMemo | 重い計算（100ms超）のキャッシュ |
+| useCallback | React.memoと組み合わせてコールバック安定化 |
+| React.memo | propsが安定しているコンポーネントの再レンダリング防止 |
+| 仮想化 | 100件以上のリスト |
+| コード分割 | 初期ロードサイズの削減 |
+
+---
+
+## 練習問題
+
+1. **易**: React DevTools Profilerを使って、自分のアプリで最もレンダリング時間が長いコンポーネントを特定してください。
+
+2. **普通**: 以下の条件を満たすリストコンポーネントを作成してください：
+   - 親の状態が変わっても、変更されたアイテムだけ再レンダリングされる
+   - コンソールで再レンダリングを確認できる
+
+3. **応用（レビュー型）**: 以下のコードをレビューし、問題点と改善案を説明してください。
+
+```tsx
+function ProductList({ products, onSelect }) {
+  const [filter, setFilter] = useState('');
+
+  const filtered = useMemo(
+    () => products.filter(p => p.name.includes(filter)),
+    [products, filter]
+  );
+
+  return (
+    <div>
+      <input value={filter} onChange={e => setFilter(e.target.value)} />
+      {filtered.map((product, index) => (
+        <ProductCard
+          key={index}
+          product={product}
+          onClick={() => onSelect(product.id)}
+          style={{ marginBottom: 8 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+const ProductCard = memo(({ product, onClick, style }) => (
+  <div style={style} onClick={onClick}>
+    {product.name} - ¥{product.price}
+  </div>
+));
+```
+
+**確認ポイント**:
+- この最適化は効果があるか？
+- 将来の地雷はどこにあるか？
+- どう修正すべきか？

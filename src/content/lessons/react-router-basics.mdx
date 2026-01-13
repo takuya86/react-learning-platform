@@ -1,0 +1,331 @@
+---
+title: 'React Router：ページ遷移の基本'
+slug: 'react-router-basics'
+description: 'React Routerを使ったシングルページアプリケーションのルーティングを学びます。'
+tags: ['react', 'router', 'routing', 'spa']
+difficulty: 'intermediate'
+estimatedMinutes: 30
+prerequisites: ['react-basics']
+---
+
+# React Router：ページ遷移の基本
+
+## React Routerとは
+
+React Routerは、Reactアプリケーションでクライアントサイドルーティングを実現するライブラリです。
+ページをリロードせずに、URLに応じた画面を表示できます。
+
+## セットアップ
+
+```bash
+npm install react-router-dom
+```
+
+## 基本的な設定
+
+### ルーターの設定
+
+```tsx
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <HomePage />,
+  },
+  {
+    path: '/about',
+    element: <AboutPage />,
+  },
+  {
+    path: '/users',
+    element: <UsersPage />,
+  },
+]);
+
+function App() {
+  return <RouterProvider router={router} />;
+}
+```
+
+### レイアウトの共有
+
+```tsx
+import { Outlet } from 'react-router-dom';
+
+function Layout() {
+  return (
+    <div>
+      <header>
+        <nav>
+          <Link to="/">ホーム</Link>
+          <Link to="/about">About</Link>
+        </nav>
+      </header>
+      <main>
+        <Outlet /> {/* 子ルートがここに表示される */}
+      </main>
+      <footer>&copy; 2024</footer>
+    </div>
+  );
+}
+
+const router = createBrowserRouter([
+  {
+    element: <Layout />,
+    children: [
+      { path: '/', element: <HomePage /> },
+      { path: '/about', element: <AboutPage /> },
+      { path: '/users', element: <UsersPage /> },
+    ],
+  },
+]);
+```
+
+## ナビゲーション
+
+### Linkコンポーネント
+
+```tsx
+import { Link } from 'react-router-dom';
+
+function Navigation() {
+  return (
+    <nav>
+      <Link to="/">ホーム</Link>
+      <Link to="/about">About</Link>
+      <Link to="/users">ユーザー</Link>
+    </nav>
+  );
+}
+```
+
+### NavLinkでアクティブ状態を表示
+
+```tsx
+import { NavLink } from 'react-router-dom';
+
+function Navigation() {
+  return (
+    <nav>
+      <NavLink
+        to="/"
+        className={({ isActive }) => (isActive ? 'active' : '')}
+      >
+        ホーム
+      </NavLink>
+      <NavLink
+        to="/about"
+        style={({ isActive }) => ({
+          fontWeight: isActive ? 'bold' : 'normal',
+        })}
+      >
+        About
+      </NavLink>
+    </nav>
+  );
+}
+```
+
+### プログラムによる遷移
+
+```tsx
+import { useNavigate } from 'react-router-dom';
+
+function LoginForm() {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (data: LoginData) => {
+    await login(data);
+    navigate('/dashboard'); // ログイン後にダッシュボードへ
+  };
+
+  const handleCancel = () => {
+    navigate(-1); // 前のページに戻る
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* フォーム内容 */}
+      <button type="button" onClick={handleCancel}>キャンセル</button>
+      <button type="submit">ログイン</button>
+    </form>
+  );
+}
+```
+
+## URLパラメータ
+
+### 動的ルート
+
+```tsx
+const router = createBrowserRouter([
+  {
+    path: '/users/:userId',
+    element: <UserProfile />,
+  },
+]);
+```
+
+### パラメータの取得
+
+```tsx
+import { useParams } from 'react-router-dom';
+
+function UserProfile() {
+  const { userId } = useParams<{ userId: string }>();
+
+  // userIdを使ってデータを取得
+  const { data: user } = useFetch<User>(`/api/users/${userId}`);
+
+  return <div>{user?.name}</div>;
+}
+```
+
+## クエリパラメータ
+
+```tsx
+import { useSearchParams } from 'react-router-dom';
+
+function UserList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const page = searchParams.get('page') || '1';
+  const filter = searchParams.get('filter') || '';
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: String(newPage), filter });
+  };
+
+  const handleFilterChange = (newFilter: string) => {
+    setSearchParams({ page: '1', filter: newFilter });
+  };
+
+  return (
+    <div>
+      <input
+        value={filter}
+        onChange={(e) => handleFilterChange(e.target.value)}
+        placeholder="検索..."
+      />
+      {/* ユーザーリスト */}
+      <Pagination page={Number(page)} onChange={handlePageChange} />
+    </div>
+  );
+}
+```
+
+## 404ページ
+
+```tsx
+const router = createBrowserRouter([
+  {
+    element: <Layout />,
+    children: [
+      { path: '/', element: <HomePage /> },
+      { path: '/about', element: <AboutPage /> },
+      { path: '*', element: <NotFoundPage /> }, // どのルートにもマッチしない場合
+    ],
+  },
+]);
+
+function NotFoundPage() {
+  return (
+    <div>
+      <h1>404 - ページが見つかりません</h1>
+      <Link to="/">ホームに戻る</Link>
+    </div>
+  );
+}
+```
+
+## ローディングとエラー
+
+```tsx
+const router = createBrowserRouter([
+  {
+    path: '/users/:userId',
+    element: <UserProfile />,
+    loader: async ({ params }) => {
+      const response = await fetch(`/api/users/${params.userId}`);
+      if (!response.ok) throw new Error('User not found');
+      return response.json();
+    },
+    errorElement: <ErrorPage />,
+  },
+]);
+
+function UserProfile() {
+  const user = useLoaderData() as User;
+  return <div>{user.name}</div>;
+}
+
+function ErrorPage() {
+  const error = useRouteError() as Error;
+  return <div>エラー: {error.message}</div>;
+}
+```
+
+## よくある間違い
+
+### 1. aタグを使ってしまう
+
+```tsx
+// ❌ ページがリロードされる
+<a href="/about">About</a>
+
+// ✅ Linkを使う
+<Link to="/about">About</Link>
+```
+
+### 2. 相対パスと絶対パス
+
+```tsx
+// 現在のURL: /users/123
+
+// 相対パス: /users/123/edit になる
+<Link to="edit">編集</Link>
+
+// 絶対パス: /edit になる
+<Link to="/edit">編集</Link>
+```
+
+### 3. useNavigateをレンダリング中に呼ぶ
+
+```tsx
+// ❌ レンダリング中にナビゲート
+function BadComponent() {
+  const navigate = useNavigate();
+
+  if (!user) {
+    navigate('/login'); // これはNG
+  }
+}
+
+// ✅ useEffectで処理
+function GoodComponent() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+}
+```
+
+## まとめ
+
+| 機能 | フック/コンポーネント |
+|------|---------------------|
+| ルート定義 | createBrowserRouter |
+| リンク | Link, NavLink |
+| プログラム遷移 | useNavigate |
+| URLパラメータ | useParams |
+| クエリパラメータ | useSearchParams |
+| 子ルート表示 | Outlet |
+
+## 練習問題
+
+1. ヘッダー、フッター、サイドバーを持つレイアウトを作成し、3つのページ間を遷移できるようにしてみましょう
+2. ユーザー一覧ページと、ユーザー詳細ページ（/users/:userId）を作成してみましょう

@@ -1,0 +1,291 @@
+---
+title: 'Contextの設計パターン'
+slug: 'context-patterns'
+description: 'Context APIを効果的に使うための設計パターンを学びます。'
+tags: ['react', 'context', 'patterns', 'state-management']
+difficulty: 'intermediate'
+estimatedMinutes: 25
+prerequisites: ['react-context', 'useReducer-hook']
+---
+
+# Contextの設計パターン
+
+## Contextの課題
+
+Context APIは便利ですが、使い方を間違えるとパフォーマンス問題が発生します。
+このレッスンでは、Contextを効果的に使うパターンを学びます。
+
+## パターン1: 状態と更新関数を分離
+
+### 問題：全体が再レンダリングされる
+
+```tsx
+// ❌ 1つのContextに状態と更新関数を入れている
+const AppContext = createContext<{
+  user: User | null;
+  setUser: (user: User) => void;
+} | null>(null);
+
+// userが変わると、setUserだけを使うコンポーネントも再レンダリング
+```
+
+### 解決：別々のContextに分離
+
+```tsx
+// ✅ 状態用Context
+const UserStateContext = createContext<User | null>(null);
+
+// ✅ 更新関数用Context
+const UserDispatchContext = createContext<((user: User) => void) | null>(null);
+
+function UserProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+
+  return (
+    <UserStateContext.Provider value={user}>
+      <UserDispatchContext.Provider value={setUser}>
+        {children}
+      </UserDispatchContext.Provider>
+    </UserStateContext.Provider>
+  );
+}
+
+// 状態だけを使うコンポーネント
+function UserName() {
+  const user = useContext(UserStateContext);
+  return <span>{user?.name}</span>;
+}
+
+// 更新関数だけを使うコンポーネント（userが変わっても再レンダリングされない）
+function LoginButton() {
+  const setUser = useContext(UserDispatchContext);
+  return <button onClick={() => setUser({ id: 1, name: 'User' })}>Login</button>;
+}
+```
+
+## パターン2: useReducerとContext
+
+複雑な状態管理にはuseReducerを使います。
+
+```tsx
+type State = {
+  user: User | null;
+  isLoading: boolean;
+  error: string | null;
+};
+
+type Action =
+  | { type: 'LOGIN_START' }
+  | { type: 'LOGIN_SUCCESS'; payload: User }
+  | { type: 'LOGIN_ERROR'; payload: string }
+  | { type: 'LOGOUT' };
+
+const initialState: State = {
+  user: null,
+  isLoading: false,
+  error: null,
+};
+
+function authReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'LOGIN_START':
+      return { ...state, isLoading: true, error: null };
+    case 'LOGIN_SUCCESS':
+      return { ...state, isLoading: false, user: action.payload };
+    case 'LOGIN_ERROR':
+      return { ...state, isLoading: false, error: action.payload };
+    case 'LOGOUT':
+      return { ...state, user: null };
+    default:
+      return state;
+  }
+}
+
+// Contextの作成
+const AuthStateContext = createContext<State | null>(null);
+const AuthDispatchContext = createContext<React.Dispatch<Action> | null>(null);
+
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  return (
+    <AuthStateContext.Provider value={state}>
+      <AuthDispatchContext.Provider value={dispatch}>
+        {children}
+      </AuthDispatchContext.Provider>
+    </AuthStateContext.Provider>
+  );
+}
+
+// カスタムフックで使いやすく
+function useAuthState() {
+  const context = useContext(AuthStateContext);
+  if (!context) throw new Error('AuthProvider内で使用してください');
+  return context;
+}
+
+function useAuthDispatch() {
+  const context = useContext(AuthDispatchContext);
+  if (!context) throw new Error('AuthProvider内で使用してください');
+  return context;
+}
+```
+
+## パターン3: Provider合成
+
+複数のProviderをネストせずに整理します。
+
+```tsx
+// ❌ Providerのネストが深い
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <UserProvider>
+          <NotificationProvider>
+            <Content />
+          </NotificationProvider>
+        </UserProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
+// ✅ Providerを合成
+function composeProviders(...providers: React.FC<{ children: React.ReactNode }>[]) {
+  return providers.reduce(
+    (Prev, Curr) =>
+      ({ children }) => (
+        <Prev>
+          <Curr>{children}</Curr>
+        </Prev>
+      )
+  );
+}
+
+const AppProviders = composeProviders(
+  ThemeProvider,
+  AuthProvider,
+  UserProvider,
+  NotificationProvider
+);
+
+function App() {
+  return (
+    <AppProviders>
+      <Content />
+    </AppProviders>
+  );
+}
+```
+
+## パターン4: セレクタパターン
+
+必要な値だけを選択して、不要な再レンダリングを防ぎます。
+
+```tsx
+// use-context-selectorライブラリを使用
+import { createContext, useContextSelector } from 'use-context-selector';
+
+const AppContext = createContext<{
+  user: User;
+  settings: Settings;
+  notifications: Notification[];
+} | null>(null);
+
+// 必要な値だけを選択
+function UserName() {
+  const name = useContextSelector(AppContext, (state) => state?.user.name);
+  return <span>{name}</span>;
+}
+
+// settingsが変わってもUserNameは再レンダリングされない
+```
+
+## パターン5: Context + カスタムフック
+
+Contextをカスタムフックでラップして使いやすくします。
+
+```tsx
+// Context定義（内部用）
+const ThemeContext = createContext<{
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+} | null>(null);
+
+// Provider
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+  }, []);
+
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
+
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
+}
+
+// カスタムフック（外部公開用）
+function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+}
+
+// エクスポート（Contextは直接エクスポートしない）
+export { ThemeProvider, useTheme };
+```
+
+## アンチパターン
+
+### 1. 巨大なContext
+
+```tsx
+// ❌ 1つのContextに何でも入れる
+const AppContext = createContext({
+  user: null,
+  theme: 'light',
+  notifications: [],
+  settings: {},
+  cart: [],
+  // ... もっと多くの状態
+});
+
+// ✅ 関連する状態ごとにContextを分ける
+const UserContext = createContext(...);
+const ThemeContext = createContext(...);
+const CartContext = createContext(...);
+```
+
+### 2. 頻繁に変わる値を入れる
+
+```tsx
+// ❌ 毎秒更新される値をContextに入れる
+const ClockContext = createContext(new Date());
+
+// ✅ 頻繁に変わる値はローカルステートで管理
+function Clock() {
+  const [time, setTime] = useState(new Date());
+  // ...
+}
+```
+
+## まとめ
+
+| パターン | 用途 |
+|---------|------|
+| 状態/更新分離 | 不要な再レンダリング防止 |
+| useReducer + Context | 複雑な状態管理 |
+| Provider合成 | ネストの整理 |
+| セレクタ | 部分的な購読 |
+| カスタムフック | API隠蔽と使いやすさ |
+
+## 練習問題
+
+1. 通知機能のContextを作成し、状態と更新関数を分離してみましょう
+2. ショッピングカートのContextをuseReducerパターンで実装してみましょう

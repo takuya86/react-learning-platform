@@ -1,0 +1,511 @@
+---
+title: 'useRef：DOMアクセスと値の保持'
+slug: 'useRef-hook'
+description: 'useRefを使ったDOM操作と再レンダリングを起こさない値の保持を学びます。'
+tags: ['react', 'hooks', 'useRef', 'dom']
+difficulty: 'intermediate'
+estimatedMinutes: 20
+prerequisites: ['useState-hook']
+---
+
+# useRef：DOMアクセスと値の保持
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **DOM要素にrefを設定し、フォーカスやスクロールを制御できる**
+2. **再レンダリングを起こさずに値を保持するユースケースを説明できる**
+3. **useRefとuseStateの使い分けを判断できる**
+
+---
+
+## useRefとは
+
+`useRef`は2つの主な用途があります：
+
+1. **DOM要素への参照**: 直接DOM要素にアクセス
+2. **値の保持**: 再レンダリングを起こさずに値を保持
+
+```tsx
+import { useRef } from 'react';
+
+// DOM参照用
+const inputRef = useRef<HTMLInputElement>(null);
+
+// 値保持用
+const countRef = useRef(0);
+```
+
+## DOM要素へのアクセス
+
+### 基本的な使い方
+
+```tsx
+import { useRef } from 'react';
+
+function TextInput() {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    // DOM要素に直接アクセス
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div>
+      <input ref={inputRef} type="text" />
+      <button onClick={handleClick}>フォーカス</button>
+    </div>
+  );
+}
+```
+
+### スクロール操作
+
+```tsx
+function ScrollToBottom() {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <div>
+      <button onClick={scrollToBottom}>下へスクロール</button>
+      <div style={{ height: '200vh' }}>長いコンテンツ...</div>
+      <div ref={bottomRef}>ここが下端</div>
+    </div>
+  );
+}
+```
+
+### ビデオ/オーディオ操作
+
+```tsx
+function VideoPlayer() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const play = () => videoRef.current?.play();
+  const pause = () => videoRef.current?.pause();
+
+  return (
+    <div>
+      <video ref={videoRef} src="/video.mp4" />
+      <button onClick={play}>再生</button>
+      <button onClick={pause}>停止</button>
+    </div>
+  );
+}
+```
+
+## 値の保持（再レンダリングなし）
+
+useRefは値が変わっても再レンダリングを起こしません。
+
+### 前回の値を保持
+
+```tsx
+import { useRef, useEffect } from 'react';
+
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T>();
+
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+
+  return ref.current;
+}
+
+// 使用例
+function Counter() {
+  const [count, setCount] = useState(0);
+  const prevCount = usePrevious(count);
+
+  return (
+    <div>
+      <p>現在: {count}</p>
+      <p>前回: {prevCount}</p>
+      <button onClick={() => setCount(c => c + 1)}>+1</button>
+    </div>
+  );
+}
+```
+
+### タイマーIDの保持
+
+```tsx
+function Timer() {
+  const [seconds, setSeconds] = useState(0);
+  const intervalRef = useRef<number | null>(null);
+
+  const start = () => {
+    if (intervalRef.current) return;
+
+    intervalRef.current = setInterval(() => {
+      setSeconds((s) => s + 1);
+    }, 1000);
+  };
+
+  const stop = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div>
+      <p>{seconds}秒</p>
+      <button onClick={start}>開始</button>
+      <button onClick={stop}>停止</button>
+    </div>
+  );
+}
+```
+
+## useRef vs useState
+
+| 特徴 | useRef | useState |
+|------|--------|----------|
+| 値の変更で再レンダリング | しない | する |
+| 画面に表示する値 | 不向き | 適切 |
+| DOM参照 | 適切 | 不可 |
+| 前回値の保持 | 適切 | 不向き |
+
+### 使い分けの指針
+
+```tsx
+// ✅ useRefを使うべき場合
+const inputRef = useRef(null);        // DOM参照
+const timerId = useRef(null);         // タイマーID
+const previousValue = useRef(null);   // 前回の値
+const isMounted = useRef(false);      // マウント状態
+
+// ✅ useStateを使うべき場合
+const [count, setCount] = useState(0);    // 表示する値
+const [isOpen, setIsOpen] = useState(false); // UI状態
+```
+
+## forwardRefでrefを渡す
+
+子コンポーネントにrefを渡す場合は`forwardRef`を使います。
+
+```tsx
+import { forwardRef } from 'react';
+
+type InputProps = {
+  label: string;
+};
+
+const CustomInput = forwardRef<HTMLInputElement, InputProps>(
+  ({ label }, ref) => {
+    return (
+      <label>
+        {label}
+        <input ref={ref} />
+      </label>
+    );
+  }
+);
+
+// 使用例
+function Form() {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return <CustomInput ref={inputRef} label="名前" />;
+}
+```
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: useRefとuseStateの違いを体験できます。ref版のカウンターはクリックしても画面が更新されません。DOMフォーカスとタイマーIDの保持も確認できます。
+
+```tsx
+import { useState, useRef, useEffect } from 'react';
+
+function App() {
+  // --- useState版カウンター ---
+  const [stateCount, setStateCount] = useState(0);
+
+  // --- useRef版カウンター（画面は更新されない） ---
+  const refCount = useRef(0);
+  const [, forceUpdate] = useState(0); // 強制再レンダリング用
+
+  // --- DOMフォーカス ---
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // --- タイマーID保持 ---
+  const [seconds, setSeconds] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const intervalRef = useRef<number | null>(null);
+
+  // --- 前回の値を保持 ---
+  const prevStateCount = useRef<number>();
+  useEffect(() => {
+    prevStateCount.current = stateCount;
+  }, [stateCount]);
+
+  // タイマー操作
+  const startTimer = () => {
+    if (intervalRef.current) return;
+    setIsRunning(true);
+    intervalRef.current = setInterval(() => {
+      setSeconds((s) => s + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsRunning(false);
+  };
+
+  const resetTimer = () => {
+    stopTimer();
+    setSeconds(0);
+  };
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h2>useRef vs useState の比較</h2>
+
+      {/* useState版 */}
+      <section style={{ marginBottom: '24px', padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h3>useState版カウンター</h3>
+        <p style={{ fontSize: '24px' }}>{stateCount}</p>
+        <p style={{ color: '#666', fontSize: '14px' }}>前回の値: {prevStateCount.current}</p>
+        <button onClick={() => setStateCount((c) => c + 1)}>+1（画面が更新される）</button>
+      </section>
+
+      {/* useRef版 */}
+      <section style={{ marginBottom: '24px', padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h3>useRef版カウンター</h3>
+        <p style={{ fontSize: '24px' }}>{refCount.current}</p>
+        <p style={{ color: '#666', fontSize: '14px' }}>
+          クリックしても画面は更新されない！
+        </p>
+        <button onClick={() => refCount.current++} style={{ marginRight: '8px' }}>
+          +1（画面は更新されない）
+        </button>
+        <button onClick={() => forceUpdate((n) => n + 1)}>
+          強制再レンダリング
+        </button>
+      </section>
+
+      {/* DOMフォーカス */}
+      <section style={{ marginBottom: '24px', padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h3>DOMフォーカス</h3>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="ここに入力"
+            style={{ padding: '8px', fontSize: '16px' }}
+          />
+          <button onClick={() => inputRef.current?.focus()}>
+            フォーカスを当てる
+          </button>
+        </div>
+      </section>
+
+      {/* タイマー */}
+      <section style={{ padding: '16px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <h3>タイマー（intervalIdをrefで保持）</h3>
+        <p style={{ fontSize: '32px', fontFamily: 'monospace' }}>
+          {String(Math.floor(seconds / 60)).padStart(2, '0')}:
+          {String(seconds % 60).padStart(2, '0')}
+        </p>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={startTimer} disabled={isRunning}>
+            開始
+          </button>
+          <button onClick={stopTimer} disabled={!isRunning}>
+            停止
+          </button>
+          <button onClick={resetTimer}>リセット</button>
+        </div>
+        <p style={{ color: '#666', fontSize: '14px', marginTop: '8px' }}>
+          intervalIdをuseRefで保持しているため、再レンダリングしてもタイマーが継続します。
+        </p>
+      </section>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. ref.currentを変更しても再レンダリングしない（stateと混同）
+
+useRefの値を変更しても画面は更新されません。表示する値にはuseStateを使いましょう。
+
+```tsx
+// ❌ 間違い - ref.currentを画面に表示しても更新されない
+function BadCounter() {
+  const count = useRef(0);
+
+  return (
+    <button onClick={() => count.current++}>
+      {count.current} {/* クリックしても0のまま */}
+    </button>
+  );
+}
+
+// ✅ 正しい - 表示にはuseStateを使う
+function GoodCounter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <button onClick={() => setCount((c) => c + 1)}>
+      {count} {/* クリックで更新される */}
+    </button>
+  );
+}
+```
+
+**なぜ起きるか**: useRefは「再レンダリングを起こさない値」を保持するためのものです。`ref.current`を変更してもReactは変更を検知せず、再レンダリングしません。
+
+**どう防ぐか**: 画面に表示する値は必ず`useState`を使います。useRefは「裏で保持したい値」（タイマーID、前回値、DOM参照など）にのみ使いましょう。
+
+### 2. refを依存配列に入れる/入れないの誤解
+
+`ref`オブジェクト自体は不変なので、依存配列に入れる必要はありません。ただし`ref.current`の値を使う場合は注意が必要です。
+
+```tsx
+// ❌ 間違い - refを依存配列に入れても意味がない
+useEffect(() => {
+  console.log(inputRef.current);
+}, [inputRef]); // inputRef自体は変わらないので、このeffectは初回のみ実行
+
+// ❌ 間違い - ref.currentの変更をトリガーにしようとする
+useEffect(() => {
+  console.log(countRef.current);
+}, [countRef.current]); // 警告が出る。ref.currentは依存として追跡できない
+
+// ✅ 正しい - refの値変更をトリガーにしたいならstateを使う
+const [count, setCount] = useState(0);
+useEffect(() => {
+  console.log(count);
+}, [count]); // countの変更で実行される
+```
+
+**なぜ起きるか**: `useRef`は常に同じオブジェクトを返すため、依存配列に`ref`を入れても変化を検知できません。また`ref.current`を依存に入れるとReactのルールに違反します。
+
+**どう防ぐか**:
+- `ref`オブジェクト自体は依存配列に入れない（常に同一オブジェクト）
+- 値の変更をトリガーにしたい場合は`useState`を使う
+- useEffectでDOM参照を使う場合は、マウント後に実行されることを前提とする
+
+### 3. DOM参照の前にnullを考慮しない（初回null）
+
+refの初期値は`null`です。DOM要素がマウントされるまで`ref.current`は`null`のままです。
+
+```tsx
+// ❌ 間違い - nullチェックなしでアクセス
+function BadFocus() {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // コンポーネントのトップレベルで実行するとエラー
+  inputRef.current.focus(); // TypeError: Cannot read property 'focus' of null
+
+  return <input ref={inputRef} />;
+}
+
+// ❌ 間違い - useEffect内でもnullの可能性がある
+function StillBad() {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // 条件付きレンダリングでinputがない場合はnull
+    inputRef.current.focus(); // 危険
+  }, []);
+
+  return showInput ? <input ref={inputRef} /> : null;
+}
+
+// ✅ 正しい - オプショナルチェーンでnullを考慮
+function GoodFocus() {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus(); // nullなら何もしない
+  }, []);
+
+  return <input ref={inputRef} />;
+}
+
+// ✅ 正しい - if文でnullチェック
+function AlsoGood() {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={handleClick}>フォーカス</button>
+    </>
+  );
+}
+```
+
+**なぜ起きるか**: Reactのレンダリングは「宣言」→「DOM生成」→「refへの代入」の順で行われます。レンダリング中はまだDOMが存在しないため、`ref.current`は`null`です。
+
+**どう防ぐか**:
+- 必ず`?.`（オプショナルチェーン）か`if`文でnullチェック
+- DOM操作は`useEffect`内かイベントハンドラ内で行う（レンダリング中は不可）
+- TypeScriptで`useRef<HTMLInputElement>(null)`と型付けすれば、`null`の可能性が型でわかる
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| `useRef(初期値)` | 再レンダリングを起こさない可変値を保持 |
+| `ref={refオブジェクト}` | DOM要素への参照を取得 |
+| `ref.current` | 実際の値（DOM要素または保持した値） |
+| `forwardRef` | 子コンポーネントにrefを渡す |
+
+---
+
+## 練習問題
+
+1. **易**: 「フォーカス」ボタンをクリックすると、テキスト入力欄にフォーカスが当たるコンポーネントを作成してください。`useRef`を使用し、`inputRef.current?.focus()`でフォーカスを当ててください。
+
+2. **普通**: ストップウォッチを実装してください。「開始」「停止」「リセット」の3つのボタンを持ち、経過時間を`mm:ss`形式で表示します。`setInterval`のIDを`useRef`で保持し、コンポーネントのアンマウント時にクリーンアップしてください。
+
+3. **応用**: 入力値が変更されたときに「前回の値」を表示するコンポーネントを作成してください。`usePrevious`カスタムフックを実装し、`useRef`と`useEffect`を組み合わせて前回の値を保持します。「現在の値: {current}」「前回の値: {previous}」のように表示し、なぜ`useState`ではなく`useRef`を使うべきかをコメントで説明してください。
