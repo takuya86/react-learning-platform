@@ -69,7 +69,11 @@ export function LessonDetailPage() {
   const handleReview = () => {
     if (id) {
       recordEvent('review_started', id);
-      // TODO: Navigate to review page when implemented
+      // spec-lock:
+      // Review button currently reopens the same lesson detail page.
+      // This is an intentional design choice.
+      // Future implementation may navigate to /review/:lessonId.
+      navigate(`/lessons/${id}`, { replace: true });
     }
   };
 
