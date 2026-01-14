@@ -14,6 +14,8 @@ import {
   countFollowUpActions,
   getTopFollowUpAction,
   buildEffectivenessSummary,
+  calculateFollowUpRateByOrigin,
+  calculateEffectivenessBreakdown,
 } from './effectivenessService';
 
 // Helper to create test events
@@ -40,7 +42,8 @@ describe('effectivenessService', () => {
 
   describe('isOriginEvent', () => {
     /**
-     * [spec-lock] Origin events are lesson_viewed and lesson_completed
+     * [spec-lock] Origin events are lesson_viewed, lesson_completed, review_started
+     * P3-1拡張: review_started も origin として扱う
      */
     it('returns true for lesson_viewed', () => {
       expect(isOriginEvent('lesson_viewed')).toBe(true);
@@ -50,9 +53,12 @@ describe('effectivenessService', () => {
       expect(isOriginEvent('lesson_completed')).toBe(true);
     });
 
+    it('returns true for review_started (P3-1)', () => {
+      expect(isOriginEvent('review_started')).toBe(true);
+    });
+
     it('returns false for non-origin events', () => {
       expect(isOriginEvent('quiz_started')).toBe(false);
-      expect(isOriginEvent('review_started')).toBe(false);
       expect(isOriginEvent('note_created')).toBe(false);
     });
   });
@@ -93,7 +99,7 @@ describe('effectivenessService', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
         // DBレベルで弾かれるので、再訪イベントは存在しない
-        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
       ];
       const result = calculateFollowUpRate({ events });
       expect(result.originCount).toBe(1);
@@ -108,7 +114,7 @@ describe('effectivenessService', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T23:00:00Z'),
         // 22時間後（24h以内）
-        createEvent('review_started', '2024-01-16', 'user1', 'lesson1', '2024-01-16T21:00:00Z'),
+        createEvent('quiz_started', '2024-01-16', 'user1', 'lesson1', '2024-01-16T21:00:00Z'),
       ];
       const result = calculateFollowUpRate({ events });
       expect(result.followedUpCount).toBe(1);
@@ -117,7 +123,7 @@ describe('effectivenessService', () => {
     it('falls back to event_date midnight when created_at is missing', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1'), // no created_at
-        createEvent('review_started', '2024-01-15', 'user1', 'lesson1'), // no created_at
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1'), // no created_at
       ];
       // Both fall back to 00:00:00 UTC, so they're at the same time
       // follow-up must be AFTER origin, not at same time
@@ -152,7 +158,7 @@ describe('effectivenessService', () => {
     it('returns 100% when all origins have follow-ups within window', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
-        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
       ];
       const result = calculateFollowUpRate({ events });
       expect(result).toEqual({
@@ -168,7 +174,7 @@ describe('effectivenessService', () => {
     it('does not count follow-up at exact same time as origin', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
-        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
       ];
       const result = calculateFollowUpRate({ events });
       expect(result.followedUpCount).toBe(0);
@@ -180,7 +186,7 @@ describe('effectivenessService', () => {
     it('does not count follow-up outside 24h window', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
-        createEvent('review_started', '2024-01-16', 'user1', 'lesson1', '2024-01-16T12:00:00Z'), // 26h later
+        createEvent('quiz_started', '2024-01-16', 'user1', 'lesson1', '2024-01-16T12:00:00Z'), // 26h later
       ];
       const result = calculateFollowUpRate({ events });
       expect(result.followedUpCount).toBe(0);
@@ -189,7 +195,7 @@ describe('effectivenessService', () => {
     it('counts follow-up just within 24h window', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
-        createEvent('review_started', '2024-01-16', 'user1', 'lesson1', '2024-01-16T09:59:59Z'), // Just under 24h
+        createEvent('quiz_started', '2024-01-16', 'user1', 'lesson1', '2024-01-16T09:59:59Z'), // Just under 24h
       ];
       const result = calculateFollowUpRate({ events });
       expect(result.followedUpCount).toBe(1);
@@ -198,7 +204,7 @@ describe('effectivenessService', () => {
     it('handles multiple origin events with partial follow-ups', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
-        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
         createEvent('lesson_completed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T12:00:00Z'),
         // No follow-up for lesson_completed
       ];
@@ -211,7 +217,7 @@ describe('effectivenessService', () => {
     it('handles multiple users independently', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
-        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user2', 'lesson1', '2024-01-15T10:00:00Z'),
         // user2 has no follow-up
       ];
@@ -224,7 +230,7 @@ describe('effectivenessService', () => {
     it('allows custom window hours', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
-        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T13:00:00Z'), // 3h later
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T13:00:00Z'), // 3h later
       ];
       // 2h window - should not count
       const result2h = calculateFollowUpRate({ events, windowHours: 2 });
@@ -375,7 +381,8 @@ describe('effectivenessService', () => {
 
       const result = buildEffectivenessSummary(events);
 
-      expect(result.followUpRate.originCount).toBe(2);
+      // P3-1: review_started も origin になったので 3 件
+      expect(result.followUpRate.originCount).toBe(3);
       expect(result.completionRate.viewedCount).toBe(1);
       expect(result.completionRate.completedCount).toBe(1);
       expect(result.topFollowUpAction.type).toBeDefined();
@@ -387,6 +394,166 @@ describe('effectivenessService', () => {
       expect(result.followUpRate.rate).toBe(0);
       expect(result.completionRate.rate).toBe(0);
       expect(result.topFollowUpAction.type).toBeNull();
+    });
+  });
+
+  // ============================================================
+  // calculateFollowUpRateByOrigin (P3-1)
+  // ============================================================
+
+  describe('calculateFollowUpRateByOrigin', () => {
+    /**
+     * [spec-lock] P3-1: review_started を origin としてカウントできる
+     */
+    it('counts review_started as origin', () => {
+      const events = [
+        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+      ];
+
+      const result = calculateFollowUpRateByOrigin(events, 'review_started');
+
+      expect(result.originType).toBe('review_started');
+      expect(result.originCount).toBe(1);
+      expect(result.followedUpCount).toBe(1);
+      expect(result.rate).toBe(100);
+    });
+
+    /**
+     * [spec-lock] P3-1: review_started 起点の follow-up は 24h window で判定される
+     */
+    it('applies 24h window for review_started origin', () => {
+      const events = [
+        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        // 26時間後 → window外
+        createEvent('quiz_started', '2024-01-16', 'user1', 'lesson1', '2024-01-16T12:00:00Z'),
+      ];
+
+      const result = calculateFollowUpRateByOrigin(events, 'review_started');
+
+      expect(result.originCount).toBe(1);
+      expect(result.followedUpCount).toBe(0);
+      expect(result.rate).toBe(0);
+    });
+
+    it('counts follow-up within 24h window', () => {
+      const events = [
+        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        // 23時間後 → window内
+        createEvent('note_created', '2024-01-16', 'user1', 'lesson1', '2024-01-16T09:00:00Z'),
+      ];
+
+      const result = calculateFollowUpRateByOrigin(events, 'review_started');
+
+      expect(result.followedUpCount).toBe(1);
+      expect(result.rate).toBe(100);
+    });
+
+    /**
+     * [spec-lock] P3-1: review origin の follow-up は重複しても 1 回のみ
+     */
+    it('counts multiple follow-ups as single follow-up per origin', () => {
+      const events = [
+        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+        createEvent('note_created', '2024-01-15', 'user1', 'lesson1', '2024-01-15T12:00:00Z'),
+        createEvent('next_lesson_opened', '2024-01-15', 'user1', 'lesson2', '2024-01-15T13:00:00Z'),
+      ];
+
+      const result = calculateFollowUpRateByOrigin(events, 'review_started');
+
+      expect(result.originCount).toBe(1);
+      expect(result.followedUpCount).toBe(1); // 複数follow-upでも1回
+      expect(result.rate).toBe(100);
+    });
+
+    it('handles lesson_viewed origin type', () => {
+      const events = [
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+      ];
+
+      const result = calculateFollowUpRateByOrigin(events, 'lesson_viewed');
+
+      expect(result.originType).toBe('lesson_viewed');
+      expect(result.originCount).toBe(1);
+      expect(result.followedUpCount).toBe(1);
+    });
+
+    it('returns zero rate when no events of origin type', () => {
+      const events = [
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+      ];
+
+      const result = calculateFollowUpRateByOrigin(events, 'review_started');
+
+      expect(result.originCount).toBe(0);
+      expect(result.rate).toBe(0);
+    });
+  });
+
+  // ============================================================
+  // calculateEffectivenessBreakdown (P3-1)
+  // ============================================================
+
+  describe('calculateEffectivenessBreakdown', () => {
+    /**
+     * [spec-lock] P3-1: Origin別のfollow-up rateを返す
+     */
+    it('returns breakdown by all origin types', () => {
+      const events = [
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+        createEvent('lesson_completed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T12:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T13:00:00Z'),
+      ];
+
+      const result = calculateEffectivenessBreakdown(events);
+
+      // Overall includes all 3 origin types
+      expect(result.overall.originCount).toBe(3);
+
+      // Breakdown by origin
+      expect(result.byOrigin).toHaveLength(3);
+
+      const lessonViewed = result.byOrigin.find((o) => o.originType === 'lesson_viewed');
+      const lessonCompleted = result.byOrigin.find((o) => o.originType === 'lesson_completed');
+      const reviewStarted = result.byOrigin.find((o) => o.originType === 'review_started');
+
+      expect(lessonViewed?.originCount).toBe(1);
+      expect(lessonCompleted?.originCount).toBe(1);
+      expect(reviewStarted?.originCount).toBe(1);
+    });
+
+    it('calculates follow-up rate for each origin type', () => {
+      const events = [
+        // lesson_viewed with follow-up (review_started)
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'lesson1', '2024-01-15T10:00:00Z'),
+        createEvent('review_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T11:00:00Z'),
+        // user1's review_started with follow-up (quiz_started)
+        createEvent('quiz_started', '2024-01-15', 'user1', 'lesson1', '2024-01-15T12:00:00Z'),
+        // user2's review_started without follow-up (quiz is 26h later)
+        createEvent('review_started', '2024-01-15', 'user2', 'lesson2', '2024-01-15T10:00:00Z'),
+        createEvent('quiz_started', '2024-01-16', 'user2', 'lesson2', '2024-01-16T12:00:00Z'),
+      ];
+
+      const result = calculateEffectivenessBreakdown(events);
+
+      const lessonViewed = result.byOrigin.find((o) => o.originType === 'lesson_viewed');
+      const reviewStarted = result.byOrigin.find((o) => o.originType === 'review_started');
+
+      expect(lessonViewed?.rate).toBe(100); // 1/1, follow-up = review_started
+      expect(reviewStarted?.originCount).toBe(2); // user1 + user2
+      expect(reviewStarted?.followedUpCount).toBe(1); // user1 has quiz_started, user2's quiz is outside window
+      expect(reviewStarted?.rate).toBe(50); // 1/2
+    });
+
+    it('handles empty events', () => {
+      const result = calculateEffectivenessBreakdown([]);
+
+      expect(result.overall.originCount).toBe(0);
+      expect(result.overall.rate).toBe(0);
+      expect(result.byOrigin.every((o) => o.originCount === 0)).toBe(true);
     });
   });
 });

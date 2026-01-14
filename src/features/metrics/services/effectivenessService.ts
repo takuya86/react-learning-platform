@@ -7,15 +7,21 @@
  * ## 仕様（固定）
  *
  * ### Follow-up Rate
- * - 起点: lesson_viewed or lesson_completed
+ * - 起点: lesson_viewed, lesson_completed, review_started
  * - follow-up: next_lesson_opened, review_started, quiz_started, note_created
  * - 24時間以内のfollow-upをカウント
+ * - review_started は origin と follow-up の両方になりうる（P3-1拡張）
  *
  * ### Completion Rate
  * - lesson_viewed → lesson_completed の変換率
  */
 
-import { FOLLOW_UP_WINDOW_HOURS, FOLLOW_UP_EVENT_TYPES, ORIGIN_EVENT_TYPES } from '../constants';
+import {
+  FOLLOW_UP_WINDOW_HOURS,
+  FOLLOW_UP_EVENT_TYPES,
+  ORIGIN_EVENT_TYPES,
+  type OriginEventType,
+} from '../constants';
 import type { LearningEvent, LearningEventType } from './metricsService';
 
 /**
@@ -61,6 +67,26 @@ export interface EffectivenessSummary {
     type: LearningEventType | null;
     count: number;
   };
+}
+
+/**
+ * Origin-specific follow-up rate
+ * @spec-lock P3-1: Origin別のfollow-up rateを計測
+ */
+export interface OriginFollowUpRate {
+  originType: OriginEventType;
+  originCount: number;
+  followedUpCount: number;
+  rate: number;
+}
+
+/**
+ * Effectiveness breakdown by origin type
+ * @spec-lock P3-1: lesson_viewed, lesson_completed, review_started それぞれの効果を分離
+ */
+export interface EffectivenessBreakdown {
+  overall: FollowUpRate;
+  byOrigin: OriginFollowUpRate[];
 }
 
 /**
@@ -247,5 +273,96 @@ export function buildEffectivenessSummary(events: LearningEvent[]): Effectivenes
     followUpRate: calculateFollowUpRate({ events }),
     completionRate: calculateCompletionRate(events),
     topFollowUpAction: getTopFollowUpAction(events),
+  };
+}
+
+/**
+ * Calculate follow-up rate for a specific origin type
+ *
+ * @spec-lock P3-1
+ * - Window is 24 hours from origin event
+ * - Only counts first follow-up per origin
+ * - Origin and follow-up must be from same user
+ * - review_started can be both origin and follow-up
+ */
+export function calculateFollowUpRateByOrigin(
+  events: LearningEvent[],
+  originType: OriginEventType,
+  windowHours: number = FOLLOW_UP_WINDOW_HOURS
+): OriginFollowUpRate {
+  const windowMs = windowHours * 60 * 60 * 1000;
+
+  // Group events by user
+  const eventsByUser = new Map<string, LearningEvent[]>();
+  for (const event of events) {
+    const userId = event.user_id;
+    if (!eventsByUser.has(userId)) {
+      eventsByUser.set(userId, []);
+    }
+    eventsByUser.get(userId)!.push(event);
+  }
+
+  let originCount = 0;
+  let followedUpCount = 0;
+
+  // Process each user's events
+  for (const userEvents of eventsByUser.values()) {
+    // Sort events by timestamp
+    const sortedEvents = [...userEvents].sort(
+      (a, b) => getEventTimestamp(a).getTime() - getEventTimestamp(b).getTime()
+    );
+
+    // Find origin events of the specified type and check for follow-ups
+    for (const originEvent of sortedEvents) {
+      if (originEvent.event_type !== originType) continue;
+
+      originCount++;
+      const originTime = getEventTimestamp(originEvent).getTime();
+      const windowEnd = originTime + windowMs;
+
+      // Check if there's a follow-up within the window
+      // Note: review_started can be follow-up even when it's also the origin type
+      const hasFollowUp = sortedEvents.some((e) => {
+        if (!isFollowUpEvent(e.event_type)) return false;
+        const eventTime = getEventTimestamp(e).getTime();
+        return eventTime > originTime && eventTime <= windowEnd;
+      });
+
+      if (hasFollowUp) {
+        followedUpCount++;
+      }
+    }
+  }
+
+  const rate = originCount > 0 ? Math.round((followedUpCount / originCount) * 100) : 0;
+
+  return {
+    originType,
+    originCount,
+    followedUpCount,
+    rate,
+  };
+}
+
+/**
+ * Calculate effectiveness breakdown by origin type
+ *
+ * @spec-lock P3-1
+ * - Returns overall rate + breakdown by each origin type
+ * - Origin types: lesson_viewed, lesson_completed, review_started
+ */
+export function calculateEffectivenessBreakdown(
+  events: LearningEvent[],
+  windowHours: number = FOLLOW_UP_WINDOW_HOURS
+): EffectivenessBreakdown {
+  const overall = calculateFollowUpRate({ events, windowHours });
+
+  const byOrigin: OriginFollowUpRate[] = ORIGIN_EVENT_TYPES.map((originType) =>
+    calculateFollowUpRateByOrigin(events, originType, windowHours)
+  );
+
+  return {
+    overall,
+    byOrigin,
   };
 }

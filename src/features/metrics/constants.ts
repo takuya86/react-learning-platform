@@ -136,10 +136,18 @@ export const FOLLOW_UP_EVENT_TYPES = [
 export type FollowUpEventType = (typeof FOLLOW_UP_EVENT_TYPES)[number];
 
 /**
- * 起点イベントタイプ（lesson_viewed or lesson_completed）
+ * 起点イベントタイプ
  * @spec-lock これらのイベントからfollow-upを計測する
+ * - lesson_viewed: レッスン閲覧 → 次行動
+ * - lesson_completed: レッスン完了 → 次行動
+ * - review_started: 復習開始 → 次行動（P3-1拡張）
  */
-export const ORIGIN_EVENT_TYPES = ['lesson_viewed', 'lesson_completed'] as const;
+export const ORIGIN_EVENT_TYPES = ['lesson_viewed', 'lesson_completed', 'review_started'] as const;
+
+/**
+ * Origin event type (derived from ORIGIN_EVENT_TYPES)
+ */
+export type OriginEventType = (typeof ORIGIN_EVENT_TYPES)[number];
 
 // ============================================================
 // Evaluation Service Constants (P4-1.1)

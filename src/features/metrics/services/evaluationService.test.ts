@@ -500,7 +500,8 @@ describe('Integration: Full evaluation flow', () => {
       createEvent('user4', 'lesson_viewed', 'react-basics', '2024-02-04T10:00:00Z'),
       createEvent('user4', 'quiz_started', 'react-basics', '2024-02-04T11:00:00Z'),
       createEvent('user5', 'lesson_viewed', 'react-basics', '2024-02-05T10:00:00Z'),
-      createEvent('user5', 'review_started', 'react-basics', '2024-02-05T11:00:00Z'),
+      // P3-1: review_started is now origin, use next_lesson_opened as follow-up
+      createEvent('user5', 'next_lesson_opened', 'react-basics', '2024-02-05T11:00:00Z'),
     ];
 
     // Build snapshots

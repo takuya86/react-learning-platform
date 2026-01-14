@@ -94,13 +94,7 @@ describe('effectivenessDeltaService', () => {
     it('counts follow-up within 24h window', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-16',
-          'user1',
-          'react-basics',
-          '2024-01-16T09:59:00Z'
-        ), // 23h59m later
+        createEvent('quiz_started', '2024-01-16', 'user1', 'react-basics', '2024-01-16T09:59:00Z'), // 23h59m later
       ];
 
       const result = buildLessonEffectivenessSnapshot(events, '2024-01-20T00:00:00Z', 30);
@@ -112,13 +106,7 @@ describe('effectivenessDeltaService', () => {
     it('does not count follow-up outside 24h window', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-16',
-          'user1',
-          'react-basics',
-          '2024-01-16T10:01:00Z'
-        ), // 24h1m later
+        createEvent('quiz_started', '2024-01-16', 'user1', 'react-basics', '2024-01-16T10:01:00Z'), // 24h1m later
       ];
 
       const result = buildLessonEffectivenessSnapshot(events, '2024-01-20T00:00:00Z', 30);
@@ -133,24 +121,16 @@ describe('effectivenessDeltaService', () => {
     it('counts multiple follow-ups as 1 per origin', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
-        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T12:00:00Z'),
-        createEvent('note_created', '2024-01-15', 'user1', 'react-basics', '2024-01-15T13:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
+        createEvent('note_created', '2024-01-15', 'user1', 'react-basics', '2024-01-15T12:00:00Z'),
       ];
 
       const result = buildLessonEffectivenessSnapshot(events, '2024-01-20T00:00:00Z', 30);
 
       expect(result[0].originCount).toBe(1);
       expect(result[0].followUpRate).toBe(100);
-      // followUpCounts should track all 3 types
+      // followUpCounts should track all follow-up types
       expect(result[0].followUpCounts).toEqual({
-        review_started: 1,
         quiz_started: 1,
         note_created: 1,
       });
@@ -159,13 +139,7 @@ describe('effectivenessDeltaService', () => {
     it('handles multiple users independently', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
         // user2 has no follow-up
       ];
@@ -189,13 +163,7 @@ describe('effectivenessDeltaService', () => {
     it('calculates followUpRate as percentage', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user3', 'react-basics', '2024-01-15T10:00:00Z'),
         // Only user1 has follow-up

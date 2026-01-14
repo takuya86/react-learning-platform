@@ -107,36 +107,27 @@ describe('lessonEffectivenessRankingService', () => {
 
     /**
      * [spec-lock] Multiple follow-ups count as 1 per origin
-     * Even if user does review + quiz + note, it counts as 1 follow-up
+     * Even if user does quiz + note, it counts as 1 follow-up
+     * P3-1: review_started is now also an origin, not just a follow-up
      */
     it('counts multiple follow-ups as 1 per origin', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
-        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T12:00:00Z'),
-        createEvent('note_created', '2024-01-15', 'user1', 'react-basics', '2024-01-15T13:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
+        createEvent('note_created', '2024-01-15', 'user1', 'react-basics', '2024-01-15T12:00:00Z'),
       ];
       const result = calculateLessonMetrics(events);
       expect(result.get('react-basics')?.originCount).toBe(1);
       expect(result.get('react-basics')?.followUpCount).toBe(1);
     });
 
+    /**
+     * P3-1: review_started is now an origin, so we use quiz_started as follow-up
+     */
     it('handles multiple users independently', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
         // user2 has no follow-up
       ];
@@ -189,28 +180,17 @@ describe('lessonEffectivenessRankingService', () => {
 
     /**
      * [spec-lock] Best is sorted by followUpRate desc, tie-break by originCount desc
+     * P3-1: review_started is now also an origin, so we use quiz_started as follow-up
      */
     it('sorts best by followUpRate desc, originCount desc', () => {
       const events = [
-        // react-basics: 2 origins, 2 follow-ups = 100%
+        // react-basics: 2 origins (lesson_viewed), 2 follow-ups = 100%
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user2',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user2', 'react-basics', '2024-01-15T11:00:00Z'),
 
-        // useState-hook: 1 origin, 1 follow-up = 100%
+        // useState-hook: 1 origin (lesson_viewed), 1 follow-up = 100%
         createEvent(
           'lesson_viewed',
           '2024-01-15',
@@ -218,15 +198,9 @@ describe('lessonEffectivenessRankingService', () => {
           'useState-hook',
           '2024-01-15T12:00:00Z'
         ),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'useState-hook',
-          '2024-01-15T13:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'useState-hook', '2024-01-15T13:00:00Z'),
 
-        // useEffect-hook: 2 origins, 1 follow-up = 50%
+        // useEffect-hook: 2 origins (lesson_viewed), 1 follow-up = 50%
         createEvent(
           'lesson_viewed',
           '2024-01-15',
@@ -235,7 +209,7 @@ describe('lessonEffectivenessRankingService', () => {
           '2024-01-15T14:00:00Z'
         ),
         createEvent(
-          'review_started',
+          'quiz_started',
           '2024-01-15',
           'user1',
           'useEffect-hook',
@@ -261,28 +235,17 @@ describe('lessonEffectivenessRankingService', () => {
 
     /**
      * [spec-lock] Worst is sorted by followUpRate asc, tie-break by originCount desc
+     * P3-1: review_started is now also an origin, so we use quiz_started as follow-up
      */
     it('sorts worst by followUpRate asc, originCount desc', () => {
       const events = [
-        // react-basics: 2 origins, 2 follow-ups = 100%
+        // react-basics: 2 origins (lesson_viewed), 2 follow-ups = 100%
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user2',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user2', 'react-basics', '2024-01-15T11:00:00Z'),
 
-        // useEffect-hook: 2 origins, 0 follow-ups = 0%
+        // useEffect-hook: 2 origins (lesson_viewed), 0 follow-ups = 0%
         createEvent(
           'lesson_viewed',
           '2024-01-15',
@@ -298,7 +261,7 @@ describe('lessonEffectivenessRankingService', () => {
           '2024-01-15T14:00:00Z'
         ),
 
-        // useState-hook: 1 origin, 0 follow-ups = 0%
+        // useState-hook: 1 origin (lesson_viewed), 0 follow-ups = 0%
         createEvent(
           'lesson_viewed',
           '2024-01-15',
@@ -431,16 +394,13 @@ describe('lessonEffectivenessRankingService', () => {
       expect(result.best[0].difficulty).toBe('beginner');
     });
 
+    /**
+     * P3-1: review_started is now also an origin, so we use quiz_started as follow-up
+     */
     it('calculates followUpRate as percentage', () => {
       const events = [
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
-        createEvent(
-          'review_started',
-          '2024-01-15',
-          'user1',
-          'react-basics',
-          '2024-01-15T11:00:00Z'
-        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
         createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
         // user2 no follow-up
       ];

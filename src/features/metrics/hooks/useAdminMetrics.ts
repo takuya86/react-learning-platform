@@ -24,7 +24,9 @@ import {
 import type { HeatmapDay } from '../services/heatmapService';
 import {
   type EffectivenessSummary,
+  type EffectivenessBreakdown,
   buildEffectivenessSummary,
+  calculateEffectivenessBreakdown,
 } from '../services/effectivenessService';
 import {
   type LessonRanking,
@@ -65,6 +67,8 @@ interface UseAdminMetricsResult {
   heatmapData: HeatmapDay[];
   leaderboards: Leaderboards | null;
   effectiveness: EffectivenessSummary | null;
+  /** P3-1: Origin別のfollow-up rate breakdown */
+  effectivenessBreakdown: EffectivenessBreakdown | null;
   lessonRanking: LessonRanking | null;
   improvementTracker: ImprovementTrackerRow[];
   priorityRanking: RankedItem[];
@@ -230,6 +234,17 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     return buildEffectivenessSummary(periodEvents);
   }, [events, period, today, isLoading]);
 
+  /**
+   * P3-1: Origin別のfollow-up rate breakdown
+   * lesson_viewed, lesson_completed, review_started それぞれの効果を分離して表示
+   */
+  const effectivenessBreakdown = useMemo(() => {
+    if (isLoading) return null;
+    const { startDate, endDate } = getDateRangeForPeriod(period, today);
+    const periodEvents = filterEventsByDateRange(events, startDate, endDate);
+    return calculateEffectivenessBreakdown(periodEvents);
+  }, [events, period, today, isLoading]);
+
   const lessonRanking = useMemo(() => {
     if (isLoading) return null;
     // Filter events to selected period for lesson ranking
@@ -331,6 +346,7 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     heatmapData,
     leaderboards,
     effectiveness,
+    effectivenessBreakdown,
     lessonRanking,
     improvementTracker,
     priorityRanking,
