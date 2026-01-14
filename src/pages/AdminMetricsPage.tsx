@@ -52,6 +52,7 @@ export function AdminMetricsPage() {
     heatmapData,
     leaderboards,
     effectiveness,
+    effectivenessBreakdown,
     lessonRanking,
     improvementTracker,
     priorityRanking,
@@ -220,6 +221,31 @@ export function AdminMetricsPage() {
                 </span>
               </div>
             </div>
+
+            {/* P3-1: Origin別内訳テーブル - review_started起点の効果を測る */}
+            {effectivenessBreakdown && (
+              <div className={styles.originBreakdown} data-testid="effectiveness-breakdown">
+                <h3 className={styles.breakdownTitle}>起点別 Follow-up率</h3>
+                <table className={styles.breakdownTable}>
+                  <thead>
+                    <tr>
+                      <th>起点</th>
+                      <th>件数</th>
+                      <th>Follow-up率</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {effectivenessBreakdown.byOrigin.map((row) => (
+                      <tr key={row.originType} data-testid={`breakdown-${row.originType}`}>
+                        <td>{formatActionLabel(row.originType)}</td>
+                        <td>{row.originCount}</td>
+                        <td>{row.rate}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
 
           {/* Charts */}

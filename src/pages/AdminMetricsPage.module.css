@@ -692,3 +692,44 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* P3-1: Origin Breakdown Table */
+.originBreakdown {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.breakdownTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.75rem 0;
+}
+
+.breakdownTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.breakdownTable th,
+.breakdownTable td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.breakdownTable th {
+  font-weight: 500;
+  color: #6b7280;
+  background-color: #f9fafb;
+}
+
+.breakdownTable td {
+  color: #374151;
+}
+
+.breakdownTable tr:last-child td {
+  border-bottom: none;
+}
