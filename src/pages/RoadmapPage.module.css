@@ -50,6 +50,10 @@
   color: #374151;
 }
 
+.recommendationsCard {
+  margin-bottom: 32px;
+}
+
 .roadmap {
   display: flex;
   flex-direction: column;

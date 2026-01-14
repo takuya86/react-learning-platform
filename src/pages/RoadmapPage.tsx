@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui';
+import { Badge, SyncStatusIndicator } from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
+import { useRecommendations, NextLessonsCard } from '@/features/insights';
+import { useLearningMetrics, LearningMetricsCard } from '@/features/metrics';
 import {
   getAllLessons,
   getLessonsForRoadmap,
@@ -39,7 +42,10 @@ const sectionInfo: Record<Difficulty, { title: string; description: string }> = 
 };
 
 export function RoadmapPage() {
+  const { user } = useAuth();
   const { isLessonCompleted, getCompletedLessonIds } = useProgress();
+  const { recommendations, hasRecommendations } = useRecommendations({ limit: 5 });
+  const { metrics, isLoading: metricsLoading } = useLearningMetrics();
   const lessons = getAllLessons();
   const groupedLessons = getLessonsForRoadmap(lessons);
 
@@ -73,8 +79,15 @@ export function RoadmapPage() {
           <span className={styles.progressText}>
             {stats.completed} / {stats.total} 完了
           </span>
+          {user && <SyncStatusIndicator />}
         </div>
       </header>
+
+      {user && <LearningMetricsCard metrics={metrics} isLoading={metricsLoading} />}
+
+      {hasRecommendations && (
+        <NextLessonsCard recommendations={recommendations} className={styles.recommendationsCard} />
+      )}
 
       <div className={styles.roadmap}>
         {difficulties.map((difficulty) => {

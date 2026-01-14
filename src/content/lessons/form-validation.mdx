@@ -1,0 +1,494 @@
+---
+title: 'フォームバリデーション：Zodとの連携'
+slug: 'form-validation'
+description: 'Zodを使った型安全なフォームバリデーションを学びます。'
+tags: ['react', 'forms', 'validation', 'zod']
+difficulty: 'intermediate'
+estimatedMinutes: 25
+prerequisites: ['react-forms']
+---
+
+# フォームバリデーション：Zodとの連携
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **submit時バリデーションとリアルタイムバリデーションを使い分けられる**
+2. **ユーザー体験を損なわないバリデーションタイミングを説明できる**
+3. **バリデーションロジックとUIを分離した設計ができる**
+
+---
+
+## フォームバリデーションの基本
+
+フォームバリデーションは「いつ」「何を」「どう見せるか」の3つを設計する必要があります。
+
+### いつバリデーションするか
+
+| タイミング | 特徴 | 使いどころ |
+|-----------|------|-----------|
+| submit時 | 入力完了後にまとめて検証 | 基本はこれ |
+| blur時 | フィールドを離れたとき | 重要なフィールド |
+| change時 | 入力のたびに検証 | パスワード強度など |
+
+### 設計判断の基準
+
+**submit時バリデーションを基本にする理由**：
+
+1. ユーザーは「入力途中」に怒られたくない
+2. 複数フィールドの関連チェック（パスワード確認など）が自然にできる
+3. API呼び出しを減らせる（非同期バリデーション時）
+
+**blur時を追加する場合**：
+
+- メールアドレスなど、形式が明確なフィールド
+- 「すでにエラーが表示されているフィールド」の再検証
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: submit時バリデーション、フィールドごとのエラー表示、バリデーション関数の分離を実装しています。
+
+```tsx
+import { useState, FormEvent } from 'react';
+
+// --- 型定義 ---
+type FormData = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
+type FormErrors = Partial<Record<keyof FormData, string>>;
+
+// --- バリデーション関数（UIから分離） ---
+function validateForm(data: FormData): FormErrors {
+  const errors: FormErrors = {};
+
+  // 名前: 必須 + 2文字以上
+  if (!data.name.trim()) {
+    errors.name = '名前は必須です';
+  } else if (data.name.trim().length < 2) {
+    errors.name = '名前は2文字以上で入力してください';
+  }
+
+  // メール: 必須 + 形式チェック
+  if (!data.email.trim()) {
+    errors.email = 'メールアドレスは必須です';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.email = '有効なメールアドレスを入力してください';
+  }
+
+  // パスワード: 必須 + 8文字以上
+  if (!data.password) {
+    errors.password = 'パスワードは必須です';
+  } else if (data.password.length < 8) {
+    errors.password = 'パスワードは8文字以上で入力してください';
+  }
+
+  // パスワード確認: 一致チェック
+  if (data.password !== data.confirmPassword) {
+    errors.confirmPassword = 'パスワードが一致しません';
+  }
+
+  return errors;
+}
+
+// --- 入力フィールドコンポーネント ---
+type InputFieldProps = {
+  label: string;
+  name: string;
+  type?: string;
+  value: string;
+  error?: string;
+  onChange: (value: string) => void;
+};
+
+function InputField({ label, name, type = 'text', value, error, onChange }: InputFieldProps) {
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <label
+        htmlFor={name}
+        style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}
+      >
+        {label}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '8px',
+          fontSize: '16px',
+          border: error ? '2px solid #dc3545' : '1px solid #ccc',
+          borderRadius: '4px',
+        }}
+      />
+      {error && (
+        <p style={{ color: '#dc3545', fontSize: '14px', margin: '4px 0 0' }}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// --- メインフォームコンポーネント ---
+function App() {
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // 個別フィールドの更新
+  const updateField = (field: keyof FormData) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // すでにエラーが表示されているフィールドのみ、リアルタイムで再検証
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  // フォーム送信
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitSuccess(false);
+
+    // バリデーション実行
+    const validationErrors = validateForm(formData);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    // バリデーション成功 → 送信処理
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      // 模擬的なAPI呼び出し
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log('送信データ:', formData);
+      setSubmitSuccess(true);
+      // フォームをリセット
+      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+    } catch (error) {
+      setErrors({ name: '送信に失敗しました。もう一度お試しください。' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '400px' }}>
+      <h2>ユーザー登録</h2>
+
+      {submitSuccess && (
+        <div
+          style={{
+            padding: '12px',
+            background: '#d4edda',
+            color: '#155724',
+            borderRadius: '4px',
+            marginBottom: '16px',
+          }}
+        >
+          登録が完了しました！
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <InputField
+          label="名前"
+          name="name"
+          value={formData.name}
+          error={errors.name}
+          onChange={updateField('name')}
+        />
+
+        <InputField
+          label="メールアドレス"
+          name="email"
+          type="email"
+          value={formData.email}
+          error={errors.email}
+          onChange={updateField('email')}
+        />
+
+        <InputField
+          label="パスワード"
+          name="password"
+          type="password"
+          value={formData.password}
+          error={errors.password}
+          onChange={updateField('password')}
+        />
+
+        <InputField
+          label="パスワード（確認）"
+          name="confirmPassword"
+          type="password"
+          value={formData.confirmPassword}
+          error={errors.confirmPassword}
+          onChange={updateField('confirmPassword')}
+        />
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={{
+            width: '100%',
+            padding: '12px',
+            fontSize: '16px',
+            background: isSubmitting ? '#ccc' : '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {isSubmitting ? '送信中...' : '登録する'}
+        </button>
+      </form>
+
+      <p style={{ fontSize: '12px', color: '#666', marginTop: '16px' }}>
+        ※ submit時にバリデーションが実行されます。
+        エラーが表示された後は、入力を修正するとエラーが消えます。
+      </p>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. すべての入力をuseStateで個別管理して破綻
+
+フィールドが増えるたびにuseStateが増え、管理が困難になります。
+
+```tsx
+// ❌ 間違い - フィールドごとにuseState
+function RegistrationForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  // ... 10個以上のuseState
+
+  // バリデーション時に全部集める必要がある
+  const handleSubmit = () => {
+    validateForm({ name, email, password, ... }); // 漏れやすい
+  };
+}
+
+// ✅ 正しい - オブジェクトで一括管理
+function RegistrationForm() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: '',
+    address: '',
+  });
+
+  // 汎用的な更新関数
+  const updateField = (field: string) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // バリデーション時はformDataをそのまま渡せる
+  const handleSubmit = () => {
+    validateForm(formData);
+  };
+}
+```
+
+**なぜ起きるか**: 「とりあえず動く」を優先して、最初に見つけた方法（個別useState）をそのまま続けてしまいます。
+
+**どう防ぐか**: フォームは最初からオブジェクトで管理する習慣をつける。または react-hook-form などのライブラリを使う。
+
+### 2. onChange即バリデーションでUX崩壊
+
+入力のたびにエラーが表示されると、ユーザーは「まだ入力中なのに怒られている」と感じます。
+
+```tsx
+// ❌ 間違い - 入力のたびにバリデーション
+function EmailInput() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+
+  const handleChange = (value: string) => {
+    setEmail(value);
+    // 「t」と入力した瞬間に「無効なメールアドレスです」が表示される
+    if (!value.includes('@')) {
+      setError('無効なメールアドレスです');
+    } else {
+      setError('');
+    }
+  };
+
+  return (
+    <div>
+      <input value={email} onChange={(e) => handleChange(e.target.value)} />
+      {error && <span>{error}</span>}
+    </div>
+  );
+}
+
+// ✅ 正しい - submit時 or blur時にバリデーション
+function EmailInput() {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [touched, setTouched] = useState(false);
+
+  const validate = (value: string) => {
+    if (!value.includes('@')) {
+      setError('無効なメールアドレスです');
+    } else {
+      setError('');
+    }
+  };
+
+  return (
+    <div>
+      <input
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          // すでにtouched（エラー表示済み）なら再検証
+          if (touched) validate(e.target.value);
+        }}
+        onBlur={() => {
+          setTouched(true);
+          validate(email);
+        }}
+      />
+      {touched && error && <span>{error}</span>}
+    </div>
+  );
+}
+```
+
+**なぜ起きるか**: 「リアルタイムでフィードバックしたい」という善意が、ユーザー体験を損ないます。
+
+**どう防ぐか**: 基本は submit 時にバリデーション。blur 時は「一度エラーになったフィールド」や「形式が明確なフィールド」のみ。onChange での即時バリデーションは「パスワード強度メーター」など、エラーではなくヒントを出す場合に限定する。
+
+### 3. submit時バリデーションと表示ロジックの責務混在
+
+バリデーションロジックがコンポーネント内に散らばると、テストしにくく、再利用もできません。
+
+```tsx
+// ❌ 間違い - バリデーションがUIと混在
+function RegistrationForm() {
+  const handleSubmit = () => {
+    const errors: Record<string, string> = {};
+
+    // バリデーションロジックがhandleSubmit内に直書き
+    if (!formData.name.trim()) {
+      errors.name = '名前は必須です';
+    }
+    if (formData.name.length > 50) {
+      errors.name = '名前は50文字以内です';
+    }
+    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      errors.email = '無効なメールアドレスです';
+    }
+    // ... 20行のバリデーションコード
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
+
+    submitToAPI(formData);
+  };
+}
+
+// ✅ 正しい - バリデーション関数を分離
+// バリデーション関数（純粋関数としてテスト可能）
+function validateRegistrationForm(data: FormData): FormErrors {
+  const errors: FormErrors = {};
+
+  if (!data.name.trim()) {
+    errors.name = '名前は必須です';
+  } else if (data.name.length > 50) {
+    errors.name = '名前は50文字以内です';
+  }
+
+  if (!data.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    errors.email = '無効なメールアドレスです';
+  }
+
+  return errors;
+}
+
+// コンポーネント（UIのみに集中）
+function RegistrationForm() {
+  const handleSubmit = () => {
+    const errors = validateRegistrationForm(formData);
+
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
+
+    submitToAPI(formData);
+  };
+}
+```
+
+**なぜ起きるか**: 「このコンポーネントでしか使わない」と思い、分離の手間を惜しみます。
+
+**どう防ぐか**: バリデーション関数は最初から分離する。これにより：
+- 単体テストが書きやすい
+- 同じルールをサーバーサイドでも使える
+- バリデーションルールの変更が1箇所で済む
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| submit時バリデーション | 基本のタイミング。ユーザーが入力を終えてから検証 |
+| blur時バリデーション | 重要フィールドや、すでにエラーが出たフィールドに |
+| オブジェクト管理 | フォームデータはオブジェクトで一括管理 |
+| 関数分離 | バリデーションロジックはUIから分離してテスト可能に |
+
+---
+
+## 練習問題
+
+1. **易**: 名前とメールアドレスの2フィールドを持つフォームを作成し、submit時に「必須チェック」を実装してください。エラーメッセージを各フィールドの下に表示してください。
+
+2. **普通**: パスワードフィールドを追加し、以下の条件をすべてチェックしてください。
+   - 8文字以上
+   - 大文字を1文字以上含む
+   - 数字を1文字以上含む
+
+   複数のエラーがある場合は、1つだけ表示してください（優先度順）。
+
+3. **応用**: バリデーション関数を別ファイルに分離し、以下の設計を実現してください。
+   - `validators/userRegistration.ts` にバリデーション関数を配置
+   - コンポーネントからはimportして使用
+   - 「この設計で何が良くなったか」を説明できるようにしてください

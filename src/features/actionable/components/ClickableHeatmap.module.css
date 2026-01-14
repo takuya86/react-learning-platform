@@ -1,0 +1,23 @@
+.clickableWrapper {
+  cursor: pointer;
+}
+
+/* Make individual days look clickable */
+.clickableWrapper :global([data-testid='heatmap-day']) {
+  cursor: pointer;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.clickableWrapper :global([data-testid='heatmap-day']):hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+  position: relative;
+}
+
+.clickableWrapper :global([data-testid='heatmap-day']):focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}

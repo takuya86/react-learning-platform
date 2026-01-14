@@ -1,0 +1,319 @@
+---
+title: 'イベント処理：クリックと入力'
+slug: 'event-handling'
+description: 'Reactでのイベントハンドリングの基本を学びます。'
+tags: ['react', 'events', 'handler']
+difficulty: 'beginner'
+estimatedMinutes: 20
+prerequisites: ['props-basics']
+---
+
+# イベント処理：クリックと入力
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **クリック・入力・フォーム送信のイベントを処理できる**
+2. **イベントハンドラに引数を渡せる**
+3. **TypeScriptでイベントの型を正しく指定できる**
+
+---
+
+## イベントハンドリングとは
+
+ユーザーの操作（クリック、入力、フォーカスなど）に反応する仕組みです。
+ReactではHTML属性として`onClick`や`onChange`などを使います。
+
+## クリックイベント
+
+### 基本的なクリックハンドラ
+
+```tsx
+function Button() {
+  const handleClick = () => {
+    alert('ボタンがクリックされました！');
+  };
+
+  return <button onClick={handleClick}>クリック</button>;
+}
+```
+
+### インラインで書く
+
+簡単な処理はインラインで書くこともできます。
+
+```tsx
+function Button() {
+  return (
+    <button onClick={() => console.log('クリック！')}>
+      クリック
+    </button>
+  );
+}
+```
+
+### イベントオブジェクトを使う
+
+```tsx
+function Button() {
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    console.log('クリック位置:', event.clientX, event.clientY);
+  };
+
+  return <button onClick={handleClick}>クリック</button>;
+}
+```
+
+## 入力イベント
+
+### テキスト入力
+
+```tsx
+function TextInput() {
+  const [value, setValue] = useState('');
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+  };
+
+  return (
+    <div>
+      <input type="text" value={value} onChange={handleChange} />
+      <p>入力値: {value}</p>
+    </div>
+  );
+}
+```
+
+### セレクトボックス
+
+```tsx
+function SelectBox() {
+  const [selected, setSelected] = useState('apple');
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelected(event.target.value);
+  };
+
+  return (
+    <select value={selected} onChange={handleChange}>
+      <option value="apple">りんご</option>
+      <option value="orange">みかん</option>
+      <option value="grape">ぶどう</option>
+    </select>
+  );
+}
+```
+
+## フォーム送信
+
+### デフォルト動作を防ぐ
+
+```tsx
+function LoginForm() {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // ページリロードを防ぐ
+    console.log('フォーム送信！');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="email" placeholder="メールアドレス" />
+      <input type="password" placeholder="パスワード" />
+      <button type="submit">ログイン</button>
+    </form>
+  );
+}
+```
+
+## イベントハンドラに引数を渡す
+
+```tsx
+function ItemList() {
+  const items = ['りんご', 'みかん', 'ぶどう'];
+
+  const handleClick = (item: string) => {
+    alert(`${item}を選択しました`);
+  };
+
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item}>
+          <button onClick={() => handleClick(item)}>
+            {item}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+
+## 動作するサンプルコード
+
+以下のコードをコピペして動作を確認してください。
+
+```tsx
+import { useState } from 'react';
+
+function App() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState('');
+  const [submitted, setSubmitted] = useState('');
+
+  // クリックイベント
+  const handleIncrement = () => setCount(count + 1);
+  const handleDecrement = () => setCount(count - 1);
+
+  // 入力イベント
+  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setText(event.target.value);
+  };
+
+  // フォーム送信イベント
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitted(text);
+    setText('');
+  };
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      {/* カウンター */}
+      <section style={{ marginBottom: '24px' }}>
+        <h2>カウンター</h2>
+        <button onClick={handleDecrement}>-</button>
+        <span style={{ margin: '0 16px', fontSize: '24px' }}>{count}</span>
+        <button onClick={handleIncrement}>+</button>
+      </section>
+
+      {/* リアルタイム入力 */}
+      <section style={{ marginBottom: '24px' }}>
+        <h2>リアルタイム入力</h2>
+        <input
+          type="text"
+          value={text}
+          onChange={handleTextChange}
+          placeholder="何か入力してください"
+          style={{ padding: '8px', width: '200px' }}
+        />
+        <p>文字数: {text.length}</p>
+      </section>
+
+      {/* フォーム送信 */}
+      <section>
+        <h2>フォーム送信</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={text}
+            onChange={handleTextChange}
+            placeholder="送信するテキスト"
+            style={{ padding: '8px', marginRight: '8px' }}
+          />
+          <button type="submit">送信</button>
+        </form>
+        {submitted && <p>送信されたテキスト: {submitted}</p>}
+      </section>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. 関数を即時実行してしまう
+
+最も多いミスです。`()`をつけると関数がその場で実行されます。
+
+```tsx
+// ❌ 間違い - 関数が即時実行される（レンダリング時に実行）
+<button onClick={handleClick()}>クリック</button>
+
+// ✅ 正しい - 関数の参照を渡す
+<button onClick={handleClick}>クリック</button>
+
+// ✅ 引数がある場合はアロー関数で包む
+<button onClick={() => handleClick(id)}>クリック</button>
+```
+
+**なぜ起きるか**: 他の言語では関数呼び出しに`()`が必要なので、つい書いてしまいます。
+
+**どう防ぐか**: 「onClickには関数の**参照**を渡す」と覚えましょう。引数が必要な時だけアロー関数で包みます。
+
+### 2. event.preventDefault()を忘れる
+
+フォーム送信時にページがリロードされてしまいます。
+
+```tsx
+// ❌ 間違い - ページがリロードされる
+const handleSubmit = (event: React.FormEvent) => {
+  console.log('送信'); // 一瞬で消える
+};
+
+// ✅ 正しい - デフォルト動作を防ぐ
+const handleSubmit = (event: React.FormEvent) => {
+  event.preventDefault();
+  console.log('送信'); // 正しく表示される
+};
+```
+
+**なぜ起きるか**: HTMLフォームのデフォルト動作はサーバーへのリクエスト送信です。SPAでは不要です。
+
+**どう防ぐか**: `onSubmit`には必ず`event.preventDefault()`を入れる習慣をつけます。
+
+### 3. イベントの型を間違える
+
+要素によって型が異なります。
+
+```tsx
+// ❌ 間違い - inputなのにHTMLButtonElementを指定
+const handleChange = (event: React.ChangeEvent<HTMLButtonElement>) => {
+  // event.target.valueがundefined
+};
+
+// ✅ 正しい - 要素に合った型を使う
+const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  console.log(event.target.value); // 正しく取得できる
+};
+```
+
+**主な型の対応表:**
+
+| 要素 | 型 |
+|------|-----|
+| `<input>` | `React.ChangeEvent<HTMLInputElement>` |
+| `<select>` | `React.ChangeEvent<HTMLSelectElement>` |
+| `<textarea>` | `React.ChangeEvent<HTMLTextAreaElement>` |
+| `<button>` | `React.MouseEvent<HTMLButtonElement>` |
+| `<form>` | `React.FormEvent<HTMLFormElement>` |
+
+---
+
+## まとめ
+
+| イベント | 属性 | 主な用途 |
+|---------|------|---------|
+| クリック | `onClick` | ボタン、リンク |
+| 入力変更 | `onChange` | テキスト入力、選択 |
+| フォーム送信 | `onSubmit` | フォーム全体の処理 |
+| キー入力 | `onKeyDown` | ショートカット |
+| フォーカス | `onFocus` / `onBlur` | 入力欄の制御 |
+
+---
+
+## 練習問題
+
+1. **易**: ボタンをクリックするとアラートで「クリックされました！」と表示するコンポーネントを作成してください。
+
+2. **普通**: テキスト入力欄を作成し、入力された文字数をリアルタイムで表示してください。50文字を超えたら文字数を赤色で表示し、入力欄の下に「残り○文字」と表示します。
+
+3. **応用**: TODOを追加できるフォームを作成してください。入力欄とボタンを持つフォームで、空文字の場合は送信を防止しエラーメッセージを表示、送信後は入力欄をクリア、追加されたTODOはリストで表示します。**ヒント**: `useState`で`todos`配列と`inputValue`を管理し、フォーム送信時に配列に追加します。

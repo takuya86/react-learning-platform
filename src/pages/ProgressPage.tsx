@@ -1,11 +1,21 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@/components/ui';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Badge,
+  Button,
+  SyncStatusIndicator,
+} from '@/components/ui';
+import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
 import { getAllLessons } from '@/lib/lessons';
 import styles from './ProgressPage.module.css';
 
 export function ProgressPage() {
+  const { user } = useAuth();
   const { progress, getCompletedLessonsCount, getTotalLessonsOpened, resetProgress } =
     useProgress();
 
@@ -36,7 +46,10 @@ export function ProgressPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1 className={styles.title}>学習の進捗</h1>
+        <div className={styles.headerTop}>
+          <h1 className={styles.title}>学習の進捗</h1>
+          {user && <SyncStatusIndicator />}
+        </div>
         <p className={styles.subtitle}>あなたの学習状況を確認しましょう</p>
       </header>
 

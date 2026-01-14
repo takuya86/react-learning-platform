@@ -79,11 +79,20 @@ describe('getAllTags', () => {
 });
 
 describe('getNextLessons', () => {
+  // [spec-lock] getNextLessons returns lessons that have the given slug in their prerequisites.
+  // The order depends on glob import order, so we verify the contract, not specific slugs.
   it('should return lessons that have this lesson as prerequisite', () => {
-    // react-basics is a prerequisite for useState-hook
+    // react-basics is a prerequisite for multiple lessons (props-basics, useState-hook, etc.)
     const nextLessons = getNextLessons('react-basics');
-    const nextIds = nextLessons.map((l) => l.id);
-    expect(nextIds).toContain('useState-hook');
+
+    // Should return at most 3 lessons (default limit)
+    expect(nextLessons.length).toBeGreaterThan(0);
+    expect(nextLessons.length).toBeLessThanOrEqual(3);
+
+    // All returned lessons should have 'react-basics' in their prerequisites
+    nextLessons.forEach((lesson) => {
+      expect(lesson.prerequisites).toContain('react-basics');
+    });
   });
 
   it('should return empty array for lesson with no dependents', () => {

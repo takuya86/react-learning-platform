@@ -1,0 +1,449 @@
+---
+title: 'React Router：動的ルートとネスト'
+slug: 'router-advanced'
+description: 'ネストしたルート、保護されたルート、遅延読み込みなどの高度なルーティングを学びます。'
+tags: ['react', 'router', 'routing', 'advanced']
+difficulty: 'intermediate'
+estimatedMinutes: 25
+prerequisites: ['react-router-basics']
+---
+
+# React Router：動的ルートとネスト
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **URL直叩きやブラウザリロードでも正しく動作するルーティングを実装できる**
+2. **レイアウトとルートの責務を分離し、保守しやすい構成を設計できる**
+3. **認証ガードを正しく実装し、不正アクセスを防げる**
+
+---
+
+## ルーティングでやっていいこと / ダメなこと
+
+### やっていいこと
+- ページの切り替え（画面遷移）
+- URLパラメータでリソースを特定（`/users/123`）
+- 検索条件のURL保存（`?q=react&page=2`）
+- 認証状態によるリダイレクト
+
+### やってはダメなこと
+- UIの細かい状態をURLに入れる（モーダルの開閉、タブの選択など）
+- 頻繁に変わる一時的なデータをURLに保存
+- URLに機密情報を含める
+
+### 状態管理 vs URL の線引き
+
+| データ | 置く場所 | 理由 |
+|--------|----------|------|
+| 現在のページ | URL | ブックマーク・共有したい |
+| 検索条件 | URL | リロードで消えてほしくない |
+| フィルタ設定 | URLまたはstate | 共有したいならURL |
+| モーダルの開閉 | state | URLが汚れる |
+| フォーム入力中の値 | state | 一時的なデータ |
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: ネストルート、レイアウト分離、認証ガードを実装しています。URL直叩きでも正しく動作します。
+
+```tsx
+import { useState, createContext, useContext, ReactNode } from 'react';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+  Link,
+  NavLink,
+  Navigate,
+  useParams,
+  useLocation,
+} from 'react-router-dom';
+
+// --- 認証Context（簡易版） ---
+type AuthContextType = {
+  user: { name: string; role: string } | null;
+  login: (name: string, role: string) => void;
+  logout: () => void;
+};
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be within AuthProvider');
+  return context;
+}
+
+function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+
+  const login = (name: string, role: string) => setUser({ name, role });
+  const logout = () => setUser(null);
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// --- 認証ガード ---
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  if (!user) {
+    // ログイン後に戻れるよう、現在地を保存
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// --- 管理者ガード ---
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== 'admin') {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// --- 共通レイアウト ---
+function RootLayout() {
+  const { user, logout } = useAuth();
+
+  return (
+    <div style={{ fontFamily: 'sans-serif' }}>
+      <header style={{ background: '#333', color: 'white', padding: '12px 20px' }}>
+        <nav style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <NavLink to="/" style={({ isActive }) => ({ color: isActive ? '#ffd700' : 'white' })}>
+            ホーム
+          </NavLink>
+          <NavLink to="/dashboard" style={({ isActive }) => ({ color: isActive ? '#ffd700' : 'white' })}>
+            ダッシュボード
+          </NavLink>
+          <NavLink to="/admin" style={({ isActive }) => ({ color: isActive ? '#ffd700' : 'white' })}>
+            管理者
+          </NavLink>
+          <div style={{ marginLeft: 'auto' }}>
+            {user ? (
+              <>
+                <span style={{ marginRight: '12px' }}>{user.name}（{user.role}）</span>
+                <button onClick={logout}>ログアウト</button>
+              </>
+            ) : (
+              <Link to="/login" style={{ color: 'white' }}>ログイン</Link>
+            )}
+          </div>
+        </nav>
+      </header>
+      <main style={{ padding: '20px' }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+// --- ダッシュボードレイアウト（ネスト） ---
+function DashboardLayout() {
+  return (
+    <div style={{ display: 'flex', gap: '20px' }}>
+      <aside style={{ width: '200px', background: '#f5f5f5', padding: '16px' }}>
+        <h3 style={{ marginTop: 0 }}>ダッシュボード</h3>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <NavLink to="/dashboard" end>概要</NavLink>
+          <NavLink to="/dashboard/users">ユーザー</NavLink>
+          <NavLink to="/dashboard/settings">設定</NavLink>
+        </nav>
+      </aside>
+      <div style={{ flex: 1 }}>
+        <Outlet />
+      </div>
+    </div>
+  );
+}
+
+// --- ページコンポーネント ---
+function HomePage() {
+  return <div><h1>ホームページ</h1><p>公開ページです。誰でもアクセスできます。</p></div>;
+}
+
+function LoginPage() {
+  const { login } = useAuth();
+  const location = useLocation();
+  const from = (location.state as { from?: Location })?.from?.pathname || '/';
+
+  const handleLogin = (role: string) => {
+    login(role === 'admin' ? '管理者太郎' : 'ユーザー花子', role);
+    // ログイン後、元のページへ戻る
+    window.history.replaceState(null, '', from);
+    window.location.reload();
+  };
+
+  return (
+    <div>
+      <h1>ログイン</h1>
+      <p>ログインするユーザーを選択してください：</p>
+      <button onClick={() => handleLogin('user')} style={{ marginRight: '8px' }}>
+        一般ユーザーとしてログイン
+      </button>
+      <button onClick={() => handleLogin('admin')}>
+        管理者としてログイン
+      </button>
+    </div>
+  );
+}
+
+function DashboardHome() {
+  return <div><h2>ダッシュボード概要</h2><p>認証が必要なページです。</p></div>;
+}
+
+function DashboardUsers() {
+  return (
+    <div>
+      <h2>ユーザー一覧</h2>
+      <ul>
+        <li><Link to="/dashboard/users/1">ユーザー 1</Link></li>
+        <li><Link to="/dashboard/users/2">ユーザー 2</Link></li>
+        <li><Link to="/dashboard/users/3">ユーザー 3</Link></li>
+      </ul>
+    </div>
+  );
+}
+
+function DashboardUserDetail() {
+  const { userId } = useParams();
+  return <div><h2>ユーザー詳細</h2><p>ユーザーID: {userId}</p></div>;
+}
+
+function DashboardSettings() {
+  return <div><h2>設定</h2><p>設定ページです。</p></div>;
+}
+
+function AdminPage() {
+  return <div><h1>管理者ページ</h1><p>管理者のみアクセス可能です。</p></div>;
+}
+
+function UnauthorizedPage() {
+  return <div><h1>アクセス権限がありません</h1><p>このページにアクセスする権限がありません。</p></div>;
+}
+
+function NotFoundPage() {
+  return <div><h1>404 Not Found</h1><p>ページが見つかりませんでした。</p></div>;
+}
+
+// --- ルート定義 ---
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'login', element: <LoginPage /> },
+      { path: 'unauthorized', element: <UnauthorizedPage /> },
+      {
+        path: 'dashboard',
+        element: (
+          <RequireAuth>
+            <DashboardLayout />
+          </RequireAuth>
+        ),
+        children: [
+          { index: true, element: <DashboardHome /> },
+          { path: 'users', element: <DashboardUsers /> },
+          { path: 'users/:userId', element: <DashboardUserDetail /> },
+          { path: 'settings', element: <DashboardSettings /> },
+        ],
+      },
+      {
+        path: 'admin',
+        element: (
+          <RequireAdmin>
+            <AdminPage />
+          </RequireAdmin>
+        ),
+      },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+]);
+
+// --- App ---
+function App() {
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. URL直叩きで404になる
+
+SPAでは、サーバー側でも全リクエストを`index.html`に振り向ける設定が必要です。
+
+```tsx
+// ❌ 壊れる - サーバー設定なしでURL直叩き
+// ブラウザで /dashboard/users に直接アクセス
+// → サーバーが /dashboard/users というファイルを探す → 404
+
+// ✅ 正しい - サーバー設定を追加
+// nginx.conf
+// location / {
+//   try_files $uri /index.html;
+// }
+
+// Vite開発サーバーはデフォルトで対応済み
+// 本番環境（Vercel、Netlifyなど）は設定不要の場合が多い
+```
+
+**なぜ起きるか**: 開発環境では動くが、本番デプロイ時にサーバー設定を忘れる。
+
+**どう防ぐか**: デプロイ前に「URL直叩き」「ブラウザリロード」を必ずテストする。Vercel/Netlifyなどは自動対応だが、自前サーバーは設定必須。
+
+### 2. useParams / useSearchParams の乱用
+
+URLに何でも入れると、URLが汚くなり、共有しにくくなります。
+
+```tsx
+// ❌ 間違い - UIの細かい状態をURLに
+// /users?tab=profile&modal=settings&collapsed=true&scrollY=500
+
+function UserPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab');
+  const isModalOpen = searchParams.get('modal') === 'true';
+  // ...10個以上のパラメータ
+}
+
+// ✅ 正しい - URLには「共有したい情報」だけ
+// /users/123?tab=profile
+
+function UserPage() {
+  const { userId } = useParams();          // リソース特定
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get('tab');     // フィルタ/表示設定
+
+  // モーダルやスクロール位置は state で管理
+  const [isModalOpen, setIsModalOpen] = useState(false);
+}
+```
+
+**なぜ起きるか**: 「URLに入れればリロードで消えない」という考えで、何でも入れてしまう。
+
+**どう防ぐか**: 「このURLを人に送れるか？」を自問する。送って意味がある情報だけをURLに入れる。
+
+### 3. レイアウトとルートの責務混在
+
+ヘッダーやサイドバーを各ページに直接書くと、DRY原則違反でメンテナンスが大変になります。
+
+```tsx
+// ❌ 間違い - 各ページにレイアウトを書く
+function DashboardHome() {
+  return (
+    <div>
+      <Header />
+      <Sidebar />
+      <div>
+        <h1>ダッシュボード</h1>
+        {/* コンテンツ */}
+      </div>
+    </div>
+  );
+}
+
+function DashboardUsers() {
+  return (
+    <div>
+      <Header />   {/* 重複！ */}
+      <Sidebar />  {/* 重複！ */}
+      <div>
+        <h1>ユーザー</h1>
+        {/* コンテンツ */}
+      </div>
+    </div>
+  );
+}
+
+// ✅ 正しい - レイアウトルートを使う
+const router = createBrowserRouter([
+  {
+    path: '/dashboard',
+    element: <DashboardLayout />,  // Header + Sidebar + Outlet
+    children: [
+      { index: true, element: <DashboardHome /> },    // コンテンツのみ
+      { path: 'users', element: <DashboardUsers /> }, // コンテンツのみ
+    ],
+  },
+]);
+
+function DashboardLayout() {
+  return (
+    <div>
+      <Header />
+      <Sidebar />
+      <main>
+        <Outlet />  {/* 子ルートがここに表示 */}
+      </main>
+    </div>
+  );
+}
+```
+
+**なぜ起きるか**: ルーティングの「ネスト」と「Outlet」の仕組みを理解していない。
+
+**どう防ぐか**: 共通UIは**レイアウトルート**に、ページ固有のコンテンツは**子ルート**に分離する。
+
+---
+
+## 現場チェックリスト
+
+本番デプロイ前に確認すべき項目：
+
+- [ ] **URL直叩き**: `/dashboard/users/123` を直接入力して動作するか
+- [ ] **ブラウザリロード**: 任意のページでF5を押して動作するか
+- [ ] **戻る/進む**: ブラウザの戻る・進むボタンで正しく遷移するか
+- [ ] **認証リダイレクト**: 未ログイン状態で保護ページにアクセスしてログイン後、元のページに戻るか
+- [ ] **404ページ**: 存在しないURLにアクセスして404が表示されるか
+- [ ] **共有可能**: URLをコピーして別タブで開いて同じ画面が表示されるか
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| ネストルート | 親ルートのレイアウトを共有 |
+| Outlet | 子ルートが表示される場所 |
+| 認証ガード | `Navigate`でリダイレクト |
+| レイアウト分離 | 共通UIはレイアウトルートに |
+
+---
+
+## 練習問題
+
+1. **易**: `useParams`を使って、`/products/:productId` のURLからproductIdを取得し、表示するページを作成してください。
+
+2. **普通**: ヘッダー・サイドバー・コンテンツエリアを持つレイアウトを作成し、`/app`、`/app/profile`、`/app/settings` の3ページで共有するルート構成を実装してください。
+
+3. **応用**: 以下の要件を満たす認証ガードを設計してください。
+   - 未ログイン → `/login` へリダイレクト
+   - ログイン済みだが権限不足 → `/upgrade` へリダイレクト（課金ページ）
+   - ログイン後は元のページに戻る
+   - 「なぜこの設計にしたか」を説明できるようにしてください

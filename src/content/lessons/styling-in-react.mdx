@@ -1,0 +1,250 @@
+---
+title: 'スタイリング：CSS Modules & CSS-in-JS'
+slug: 'styling-in-react'
+description: 'Reactでのスタイリング手法を学びます。'
+tags: ['react', 'css', 'styling', 'css-modules']
+difficulty: 'beginner'
+estimatedMinutes: 20
+prerequisites: ['react-basics']
+---
+
+# スタイリング：CSS Modules & CSS-in-JS
+
+## Reactでのスタイリング手法
+
+Reactには複数のスタイリング方法があります。それぞれの特徴を理解して使い分けましょう。
+
+## 1. インラインスタイル
+
+```tsx
+function Button() {
+  const style: React.CSSProperties = {
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    padding: '8px 16px',
+    borderRadius: '4px',
+    border: 'none',
+  };
+
+  return <button style={style}>クリック</button>;
+}
+```
+
+### 動的なスタイル
+
+```tsx
+function Box({ isActive }: { isActive: boolean }) {
+  return (
+    <div
+      style={{
+        backgroundColor: isActive ? '#22c55e' : '#ef4444',
+        padding: '16px',
+      }}
+    >
+      {isActive ? 'アクティブ' : '非アクティブ'}
+    </div>
+  );
+}
+```
+
+### 注意点
+
+- キャメルケースで記述（`background-color` → `backgroundColor`）
+- 疑似クラス（`:hover`）が使えない
+- メディアクエリが使えない
+
+## 2. CSS Modules
+
+スコープ付きCSSで、クラス名の衝突を防ぎます。
+
+### ファイル構成
+
+```
+Button/
+├── Button.tsx
+└── Button.module.css
+```
+
+### CSSファイル
+
+```css
+/* Button.module.css */
+.button {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #2563eb;
+}
+
+.primary {
+  background-color: #3b82f6;
+}
+
+.danger {
+  background-color: #ef4444;
+}
+```
+
+### コンポーネント
+
+```tsx
+import styles from './Button.module.css';
+
+type ButtonProps = {
+  variant?: 'primary' | 'danger';
+  children: React.ReactNode;
+};
+
+function Button({ variant = 'primary', children }: ButtonProps) {
+  return (
+    <button className={`${styles.button} ${styles[variant]}`}>
+      {children}
+    </button>
+  );
+}
+```
+
+### 複数クラスの結合
+
+```tsx
+// clsx や classnames ライブラリを使うと便利
+import clsx from 'clsx';
+
+function Button({ variant, disabled }: ButtonProps) {
+  return (
+    <button
+      className={clsx(
+        styles.button,
+        styles[variant],
+        disabled && styles.disabled
+      )}
+    >
+      ...
+    </button>
+  );
+}
+```
+
+## 3. CSS-in-JS（styled-components）
+
+JavaScriptでCSSを記述します。
+
+```tsx
+import styled from 'styled-components';
+
+const StyledButton = styled.button<{ variant: 'primary' | 'danger' }>`
+  background-color: ${(props) =>
+    props.variant === 'primary' ? '#3b82f6' : '#ef4444'};
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+function App() {
+  return (
+    <StyledButton variant="primary">
+      クリック
+    </StyledButton>
+  );
+}
+```
+
+## 4. Tailwind CSS
+
+ユーティリティファーストのCSSフレームワークです。
+
+```tsx
+function Button({ variant = 'primary' }: { variant?: 'primary' | 'danger' }) {
+  const baseClasses = 'px-4 py-2 rounded font-medium';
+  const variantClasses = {
+    primary: 'bg-blue-500 hover:bg-blue-600 text-white',
+    danger: 'bg-red-500 hover:bg-red-600 text-white',
+  };
+
+  return (
+    <button className={`${baseClasses} ${variantClasses[variant]}`}>
+      クリック
+    </button>
+  );
+}
+```
+
+## 比較表
+
+| 手法 | スコープ | 疑似クラス | 動的 | 学習コスト |
+|------|---------|-----------|------|-----------|
+| インライン | ✅ | ❌ | ✅ | 低 |
+| CSS Modules | ✅ | ✅ | △ | 低 |
+| styled-components | ✅ | ✅ | ✅ | 中 |
+| Tailwind | ✅ | ✅ | ✅ | 中 |
+
+## 推奨パターン
+
+### このプロジェクトでの推奨
+
+1. **CSS Modules**をベースに使用
+2. 動的なスタイルは**インラインスタイル**で補完
+3. ユーティリティクラスが必要な場合は**Tailwind**を検討
+
+```tsx
+// 推奨パターン
+import styles from './Card.module.css';
+
+function Card({ isHighlighted }: { isHighlighted: boolean }) {
+  return (
+    <div
+      className={styles.card}
+      style={{ borderColor: isHighlighted ? '#3b82f6' : undefined }}
+    >
+      コンテンツ
+    </div>
+  );
+}
+```
+
+## よくある間違い
+
+### 1. グローバルCSSの乱用
+
+```tsx
+// ❌ グローバルCSSでクラス名が衝突する可能性
+import './styles.css';
+<div className="button">
+
+// ✅ CSS Modulesでスコープを限定
+import styles from './Button.module.css';
+<div className={styles.button}>
+```
+
+### 2. インラインスタイルの多用
+
+```tsx
+// ❌ 長いインラインスタイルは読みにくい
+<div style={{ padding: '16px', margin: '8px', backgroundColor: '#fff', ... }}>
+
+// ✅ CSS Modulesやスタイルオブジェクトに分離
+```
+
+## まとめ
+
+- **CSS Modules**: スコープ付きで安全、おすすめ
+- **インラインスタイル**: 動的なスタイルに便利
+- **CSS-in-JS**: JS内で完結、動的スタイルが得意
+- **Tailwind**: ユーティリティクラスで高速開発
+
+## 練習問題
+
+1. CSS Modulesを使ってカードコンポーネントを作成してみましょう
+2. 動的なテーマ（ライト/ダーク）を切り替えられるボタンを作成してみましょう

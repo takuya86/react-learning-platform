@@ -1,0 +1,694 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+.backLink {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+/* Period Selector */
+.periodSelector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.periodButton {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.periodButton:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.periodButton.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+/* Summary Cards */
+.summarySection {
+  margin-bottom: 2rem;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+
+.summaryLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.summaryValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Streak Distribution */
+.distributionSection {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.distributionGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.distributionItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.distributionLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.distributionValue {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Charts */
+.chartsSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chartCard {
+  padding: 0;
+}
+
+.chartCardContent {
+  padding: 1rem;
+}
+
+/* Leaderboards */
+.leaderboardsSection {
+  margin-bottom: 2rem;
+}
+
+.leaderboardsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.leaderboardCard {
+  padding: 0;
+}
+
+.leaderboardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  padding: 1rem 1rem 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.leaderboardTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboardTable th,
+.leaderboardTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.leaderboardTable th {
+  color: #6b7280;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.leaderboardTable td {
+  color: #111827;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.leaderboardTable tr:last-child td {
+  border-bottom: none;
+}
+
+.leaderboardTable tr:hover td {
+  background: #f9fafb;
+}
+
+.rankCell {
+  width: 40px;
+}
+
+.rank {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.rank.top {
+  background: #3b82f6;
+  color: white;
+}
+
+.userIdCell {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #6b7280;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.numericCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lowSampleBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.375rem;
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 0.625rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+}
+
+.hintCell {
+  font-size: 0.75rem;
+  color: #6b7280;
+  max-width: 180px;
+}
+
+.issueCell {
+  white-space: nowrap;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.emptyText {
+  font-size: 1rem;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+/* Error State */
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #dc2626;
+  background: #fef2f2;
+  border-radius: 6px;
+}
+
+/* Improvement Tracker */
+.trackerSection {
+  margin-bottom: 2rem;
+}
+
+.trackerCard {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.trackerTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.trackerTable th,
+.trackerTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.trackerTable th {
+  color: #6b7280;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.trackerTable td {
+  color: #111827;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.trackerTable tr:last-child td {
+  border-bottom: none;
+}
+
+.trackerTable tr:hover td {
+  background: #f9fafb;
+}
+
+.lessonCell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.hintTypeCell {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.statusCell {
+  min-width: 100px;
+}
+
+.deltaPositive {
+  color: #059669;
+  font-weight: 600;
+}
+
+.deltaNegative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.deltaNeutral {
+  color: #6b7280;
+}
+
+.issueLink {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.issueLink:hover {
+  text-decoration: underline;
+}
+
+/* Improvement ROI */
+.roiSection {
+  margin-bottom: 2rem;
+}
+
+.roiCard {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.roiTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.roiTable th,
+.roiTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.roiTable th {
+  color: #6b7280;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.roiTable td {
+  color: #111827;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.roiTable tr:last-child td {
+  border-bottom: none;
+}
+
+.roiTable tr:hover td {
+  background: #f9fafb;
+}
+
+.periodCell {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.periodInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.periodLabel {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  text-transform: uppercase;
+}
+
+.statusImproved {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.statusRegressed {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.statusNoChange {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.statusInsufficient {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.errorBanner {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+/* Next Best Improvement */
+.nextBestSection {
+  margin-bottom: 2rem;
+}
+
+.priorityCard {
+  padding: 0;
+}
+
+.priorityCardContent {
+  padding: 1.5rem;
+}
+
+.priorityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.lessonInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lessonTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.lessonSlug {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.priorityScoreDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.priorityScoreLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.priorityScoreValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.breakdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.breakdownItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.375rem;
+}
+
+.breakdownLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.breakdownValue {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.issueAction {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Priority Queue */
+.priorityQueueSection {
+  margin-bottom: 2rem;
+}
+
+.priorityQueueCard {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.priorityQueueTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.priorityQueueTable th,
+.priorityQueueTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.priorityQueueTable th {
+  color: #6b7280;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.priorityQueueTable td {
+  color: #111827;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.priorityQueueTable tr:last-child td {
+  border-bottom: none;
+}
+
+.priorityQueueTable tr:hover td {
+  background: #f9fafb;
+}
+
+.lowSampleRow {
+  opacity: 0.6;
+}
+
+/* Lifecycle Decisions */
+.lifecycleSection {
+  margin-bottom: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .summaryGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .distributionGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .chartsSection {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboardsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .summaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .distributionGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .periodSelector {
+    width: 100%;
+  }
+
+  .periodButton {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .summaryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .distributionGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -13,7 +13,10 @@ import {
   RoadmapPage,
   NotFoundPage,
   LoginPage,
+  AuthCallbackPage,
   AdminPage,
+  AdminBacklogPage,
+  AdminMetricsPage,
 } from '@/pages';
 
 function LessonDetailRoute() {
@@ -35,6 +38,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/auth/callback',
+    element: <AuthCallbackPage />,
   },
   {
     path: '/',
@@ -85,6 +92,22 @@ export const router = createBrowserRouter([
         element: (
           <RequireRole role="admin">
             <AdminPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'admin/backlog',
+        element: (
+          <RequireRole role="admin">
+            <AdminBacklogPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: 'admin/metrics',
+        element: (
+          <RequireRole role="admin">
+            <AdminMetricsPage />
           </RequireRole>
         ),
       },

@@ -1,0 +1,581 @@
+---
+title: 'TypeScriptとReact：型安全な開発'
+slug: 'typescript-with-react'
+description: 'TypeScriptを使ったReact開発で、型安全なコンポーネントを作成する方法を学びます。'
+tags: ['react', 'typescript', 'types', 'advanced']
+difficulty: 'advanced'
+estimatedMinutes: 35
+prerequisites: ['custom-hooks']
+---
+
+# TypeScriptとReact：型安全な開発
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **Props / State / Hook の型境界を適切に設計できる**
+2. **「この型は誰を守るためか」を判断できる**
+3. **過剰な型付けの害を説明できる**
+
+---
+
+## 型付けでやっていいこと / やらなくていいこと
+
+### やっていいこと
+- 外部からの入力（API、ユーザー入力）に型ガードを使う
+- Propsに明示的な型を定義する
+- Discriminated Unionで状態を表現する
+- 既存の型を拡張してコンポーネント用の型を作る
+
+### やらなくていいこと（過剰な型付け）
+- すべてにGenericを入れる（必要な場合だけ）
+- 内部実装の型を厳密にしすぎる
+- 型のためにコードの可読性を犠牲にする
+- anyを使うことを過度に恐れる（局所的なanyは許容）
+
+### 判断基準
+
+| 状況 | 型を厳密にする？ | 理由 |
+|------|-----------------|------|
+| API境界（レスポンス、リクエスト） | ◎ する | 外部データは信頼できない |
+| Propsの型 | ◎ する | コンポーネントの契約 |
+| Hook戻り値 | ○ する | 使う側の補完が効く |
+| 内部state | △ 場合による | 推論で十分なことが多い |
+| ローカル変数 | × しない | 推論に任せる |
+| イベントハンドラ | × しない | インラインなら推論で十分 |
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: Props/State/Hookの型境界、Discriminated Union、型ガード、過剰なGenericを避ける例を示しています。
+
+```tsx
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+
+// ===========================================
+// ① 基本: Props の型設計
+// ===========================================
+
+// 型エイリアスで定義（推奨）
+type ButtonProps = {
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary' | 'danger'; // Literal Union
+  disabled?: boolean;
+};
+
+function Button({ label, onClick, variant = 'primary', disabled = false }: ButtonProps) {
+  const baseStyle = {
+    padding: '8px 16px',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.5 : 1,
+  };
+
+  const variantStyles = {
+    primary: { background: '#007bff', color: 'white' },
+    secondary: { background: '#6c757d', color: 'white' },
+    danger: { background: '#dc3545', color: 'white' },
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{ ...baseStyle, ...variantStyles[variant] }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ===========================================
+// ② children の型（3パターン）
+// ===========================================
+
+// ReactNode: 最も汎用的（文字列、JSX、null、配列すべてOK）
+type CardProps = {
+  title: string;
+  children: ReactNode;
+};
+
+function Card({ title, children }: CardProps) {
+  return (
+    <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '16px' }}>
+      <h3 style={{ margin: '0 0 12px' }}>{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+// Render Props: 関数として children を受け取る
+type DataProviderProps<T> = {
+  data: T;
+  children: (data: T) => ReactNode;
+};
+
+function DataProvider<T>({ data, children }: DataProviderProps<T>) {
+  return <>{children(data)}</>;
+}
+
+// ===========================================
+// ③ Discriminated Union で状態を表現
+// ===========================================
+
+// UI用の状態型（API境界ではない、内部用）
+type AsyncState<T> =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error'; error: Error }
+  | { status: 'success'; data: T };
+
+// Domain型（ビジネスロジック用）
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user' | 'guest';
+};
+
+// ⚠️ UI用とDomain用を混同しない
+// ❌ type UserState = User & { loading: boolean; error: Error | null; }
+// ✅ AsyncState<User> で分離
+
+function UserProfile({ userId }: { userId: string }) {
+  const [state, setState] = useState<AsyncState<User>>({ status: 'idle' });
+
+  useEffect(() => {
+    setState({ status: 'loading' });
+
+    fetch(`/api/users/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setState({ status: 'success', data }))
+      .catch((err) => setState({ status: 'error', error: err }));
+  }, [userId]);
+
+  // switch で型が自動的に絞り込まれる
+  switch (state.status) {
+    case 'idle':
+    case 'loading':
+      return <p>読み込み中...</p>;
+    case 'error':
+      return <p style={{ color: 'red' }}>エラー: {state.error.message}</p>;
+    case 'success':
+      return (
+        <Card title={state.data.name}>
+          <p>Email: {state.data.email}</p>
+          <p>Role: {state.data.role}</p>
+        </Card>
+      );
+  }
+}
+
+// ===========================================
+// ④ カスタムHookの型設計
+// ===========================================
+
+// 戻り値の型を明示（使う側の補完のため）
+type UseToggleReturn = {
+  isOn: boolean;
+  toggle: () => void;
+  setOn: () => void;
+  setOff: () => void;
+};
+
+function useToggle(initial = false): UseToggleReturn {
+  const [isOn, setIsOn] = useState(initial);
+
+  return {
+    isOn,
+    toggle: () => setIsOn((prev) => !prev),
+    setOn: () => setIsOn(true),
+    setOff: () => setIsOn(false),
+  };
+}
+
+// Generic Hook（必要な場合のみ）
+function useLocalStorage<T>(key: string, initialValue: T) {
+  const [value, setValue] = useState<T>(() => {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : initialValue;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue] as const; // タプル型として返す
+}
+
+// ===========================================
+// ⑤ Context の型設計
+// ===========================================
+
+type ThemeContextType = {
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+};
+
+// undefinedを許容し、カスタムフックで安全に取得
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+function useTheme(): ThemeContextType {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within ThemeProvider');
+  }
+  return context;
+}
+
+function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  const value: ThemeContextType = {
+    theme,
+    toggleTheme: () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light')),
+  };
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+// ===========================================
+// ⑥ 型ガード（API境界で使う）
+// ===========================================
+
+// API からの unknown データを安全に型付け
+function isUser(data: unknown): data is User {
+  if (typeof data !== 'object' || data === null) return false;
+
+  const obj = data as Record<string, unknown>;
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.name === 'string' &&
+    typeof obj.email === 'string' &&
+    ['admin', 'user', 'guest'].includes(obj.role as string)
+  );
+}
+
+// 使用例
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`/api/users/${id}`);
+  const data: unknown = await response.json();
+
+  if (!isUser(data)) {
+    throw new Error('Invalid user data from API');
+  }
+
+  return data; // 型安全
+}
+
+// ===========================================
+// App
+// ===========================================
+
+function App() {
+  const { isOn, toggle } = useToggle(false);
+  const [name] = useLocalStorage('userName', 'Guest');
+
+  return (
+    <ThemeProvider>
+      <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '600px' }}>
+        <h1>TypeScript + React デモ</h1>
+
+        <section style={{ marginBottom: '24px' }}>
+          <h2>Props の型</h2>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button label="Primary" onClick={() => alert('Primary')} />
+            <Button label="Secondary" onClick={() => alert('Secondary')} variant="secondary" />
+            <Button label="Disabled" onClick={() => {}} disabled />
+          </div>
+        </section>
+
+        <section style={{ marginBottom: '24px' }}>
+          <h2>Discriminated Union</h2>
+          <UserProfile userId="1" />
+        </section>
+
+        <section style={{ marginBottom: '24px' }}>
+          <h2>カスタムHook</h2>
+          <p>Toggle: {isOn ? 'ON' : 'OFF'}</p>
+          <Button label="Toggle" onClick={toggle} />
+          <p>LocalStorage name: {name}</p>
+        </section>
+
+        <section>
+          <h2>Render Props</h2>
+          <DataProvider data={{ message: 'Hello, TypeScript!' }}>
+            {(data) => <p>{data.message}</p>}
+          </DataProvider>
+        </section>
+      </div>
+    </ThemeProvider>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. anyで逃げる
+
+「型が合わない」時にanyを使うと、その先すべての型安全性が失われます。
+
+```tsx
+// ❌ 間違い - any で逃げる
+const handleData = (data: any) => {
+  console.log(data.user.name); // 何でも通る → 実行時エラー
+};
+
+// ❌ 間違い - as で強制
+const user = data as User; // data が User じゃなくてもエラーにならない
+
+// ✅ 正しい - unknown + 型ガード
+const handleData = (data: unknown) => {
+  if (isUser(data)) {
+    console.log(data.name); // 型安全
+  }
+};
+
+// ✅ 許容される局所的な any（ライブラリの型定義が不完全な場合）
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ref = useRef<any>(null); // 一時的な回避策（コメント必須）
+```
+
+**なぜ起きるか**: 型エラーを「消す」ことが目的になり、「守る」ことを忘れる。
+
+**どう防ぐか**: anyを使う前に「なぜ型が合わないか」を考える。外部データはunknown + 型ガード。
+
+### 2. 過剰なGeneric
+
+Genericは「再利用可能なコンポーネント」に使うもの。1箇所でしか使わないのにGenericを入れると読みにくくなります。
+
+```tsx
+// ❌ 間違い - 過剰なGeneric（1箇所でしか使わない）
+type UserCardProps<T extends User> = {
+  user: T;
+  onSelect: (user: T) => void;
+};
+
+function UserCard<T extends User>({ user, onSelect }: UserCardProps<T>) {
+  return <div onClick={() => onSelect(user)}>{user.name}</div>;
+}
+
+// ✅ 正しい - シンプルに
+type UserCardProps = {
+  user: User;
+  onSelect: (user: User) => void;
+};
+
+function UserCard({ user, onSelect }: UserCardProps) {
+  return <div onClick={() => onSelect(user)}>{user.name}</div>;
+}
+
+// ✅ Genericが適切な例（汎用リスト）
+type ListProps<T> = {
+  items: T[];
+  renderItem: (item: T) => ReactNode;
+  keyExtractor: (item: T) => string;
+};
+
+function List<T>({ items, renderItem, keyExtractor }: ListProps<T>) {
+  return <ul>{items.map((item) => <li key={keyExtractor(item)}>{renderItem(item)}</li>)}</ul>;
+}
+```
+
+**なぜ起きるか**: 「Genericを使う = 良いコード」という誤解。
+
+**どう防ぐか**: 「この型パラメータは本当に複数の型で使われるか？」と自問する。
+
+### 3. UI用の型とDomain型の混同
+
+API のレスポンス型と、コンポーネントの状態型を混ぜると、責務が曖昧になります。
+
+```tsx
+// ❌ 間違い - Domain型にUI状態を混ぜる
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  // ↓ UI状態が混入
+  isLoading: boolean;
+  error: Error | null;
+  isSelected: boolean;
+};
+
+// ✅ 正しい - 分離する
+// Domain型（ビジネスロジック）
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+// UI状態型（コンポーネント用）
+type UserListState = {
+  users: User[];
+  selectedId: string | null;
+  asyncState: AsyncState<void>;
+};
+```
+
+**なぜ起きるか**: 「1つの型ですべて表現する」という発想。
+
+**どう防ぐか**: Domain型（APIスキーマ）とUI状態型（コンポーネントローカル）を明確に分ける。
+
+### 4. 型のために可読性を犠牲にする
+
+TypeScriptの目的は「バグを減らす」こと。型のために読みにくいコードを書くのは本末転倒です。
+
+```tsx
+// ❌ 間違い - 型のためにコードが複雑に
+type ExtractProps<T> = T extends React.ComponentType<infer P> ? P : never;
+type MergeProps<A, B> = Omit<A, keyof B> & B;
+type EnhancedProps<T extends React.ComponentType<any>> = MergeProps<
+  ExtractProps<T>,
+  { extra: boolean }
+>;
+
+// ✅ 正しい - シンプルに書く
+type ButtonProps = {
+  label: string;
+  onClick: () => void;
+  extra?: boolean;
+};
+```
+
+**なぜ起きるか**: 「高度な型 = 良いコード」という誤解。または型パズルを楽しんでしまう。
+
+**どう防ぐか**: 「このコードをチームメンバーが読めるか？」と自問する。
+
+---
+
+## Design Decisions
+
+### なぜProps型を「必ず定義する」のか
+
+**理由**: Propsはコンポーネントの「契約」。型があることで、使う側が安心してコンポーネントを使える。
+
+**他の選択肢**:
+- 型を省略してinferに任せる → 補完が効かず、使う側が困る
+- JSDocで型を書く → TypeScriptの恩恵を受けられない
+
+**破綻するケース**:
+- 頻繁にProps構造が変わる初期開発段階 → 型定義の変更コストが高い（一時的にanyを許容する判断もあり）
+
+### なぜ「unknown + 型ガード」を推奨するのか
+
+**理由**: API境界では何が返ってくるかわからない。「受け取ったデータが期待通りか」を検証することで、実行時エラーを防ぐ。
+
+**他の選択肢**:
+- Zodなどのバリデーションライブラリ → 型ガードを自動生成できる
+- asで強制 → 型安全性が失われる
+
+**破綻するケース**:
+- 型ガードのメンテナンスコストが高い場合 → Zodなどのライブラリに移行
+- 内部APIで型が保証されている場合 → 型ガードは不要
+
+### なぜGenericは「必要な場合だけ」なのか
+
+**理由**: Genericはコードの複雑性を上げる。再利用されない型パラメータは、読み手に「なぜGenericなのか」という疑問を与える。
+
+**他の選択肢**:
+- すべてをGenericにする → 汎用性は上がるが、読みにくくなる
+- 型を完全に省略する → 型安全性が失われる
+
+**破綻するケース**:
+- ライブラリを作る場合 → 利用者が型を指定する必要があるため、Genericが適切
+- 複数の型で同じロジックを使う場合 → Genericの価値がある
+
+---
+
+## 現場チェックリスト
+
+本番デプロイ前に確認すべき項目：
+
+- [ ] **Props型定義**: すべてのコンポーネントにProps型があるか
+- [ ] **any排除**: 不要なanyがないか（eslintで検出）
+- [ ] **API境界**: 外部データにunknown + 型ガード、またはZodを使っているか
+- [ ] **Discriminated Union**: 状態管理にstatus付きのUnion型を使っているか
+- [ ] **Domain分離**: UI状態型とDomain型が混同されていないか
+- [ ] **過剰Generic**: 1箇所でしか使わないGenericがないか
+
+---
+
+## まとめ
+
+| 概念 | 使いどころ |
+|------|-----------|
+| Props型 | コンポーネントの契約（必須） |
+| Discriminated Union | 状態管理（status付き） |
+| 型ガード | API境界のバリデーション |
+| Generic | 再利用可能なコンポーネント/Hook |
+| unknown | 外部データの安全な受け取り |
+
+---
+
+## 練習問題
+
+1. **易**: 以下のPropsを持つコンポーネントの型を定義してください。
+   - `title`: 必須の文字列
+   - `count`: 必須の数値
+   - `variant`: 'info' | 'warning' | 'error' のいずれか（省略可、デフォルト 'info'）
+   - `onClick`: クリック時のコールバック（省略可）
+
+2. **普通**: API から返ってくる以下のデータを、型ガードで安全に処理するコードを書いてください。
+   ```ts
+   // 期待するデータ構造
+   type Product = {
+     id: string;
+     name: string;
+     price: number;
+     category: 'food' | 'electronics' | 'clothing';
+   };
+   ```
+
+3. **応用（レビュー型）**: 以下のコードをレビューし、型設計の問題点と改善案を説明してください。
+
+```tsx
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  isLoading: boolean;
+  error: string | null;
+  isAdmin: boolean;
+  lastLogin: Date;
+};
+
+type UserListProps<T extends User> = {
+  users: T[];
+  onSelect: (user: T) => void;
+  isLoading: any;
+  error: any;
+};
+
+function UserList<T extends User>({ users, onSelect, isLoading, error }: UserListProps<T>) {
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id} onClick={() => onSelect(user)}>
+          {user.name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**確認ポイント**:
+- 型設計として適切か？
+- anyは許容できるか？
+- Genericは必要か？
+- Domain型とUI状態型の分離はできているか？

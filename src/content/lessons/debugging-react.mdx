@@ -1,0 +1,209 @@
+---
+title: 'デバッグ：React DevToolsの使い方'
+slug: 'debugging-react'
+description: 'React DevToolsを使ったデバッグ方法を学びます。'
+tags: ['react', 'debug', 'devtools']
+difficulty: 'beginner'
+estimatedMinutes: 15
+prerequisites: ['react-basics']
+---
+
+# デバッグ：React DevToolsの使い方
+
+## React DevToolsとは
+
+React DevToolsは、Reactアプリケーションのデバッグに特化したブラウザ拡張機能です。
+コンポーネントツリーの確認、propsやstateの検査、パフォーマンス分析ができます。
+
+## インストール
+
+### Chrome
+
+[Chrome Web Store](https://chrome.google.com/webstore/detail/react-developer-tools)からインストール
+
+### Firefox
+
+[Firefox Add-ons](https://addons.mozilla.org/firefox/addon/react-devtools/)からインストール
+
+## Componentsタブ
+
+### コンポーネントツリーの確認
+
+DevToolsの「Components」タブでは、アプリのコンポーネント階層を確認できます。
+
+```
+App
+├── Header
+├── MainContent
+│   ├── UserList
+│   │   ├── UserCard
+│   │   └── UserCard
+│   └── Sidebar
+└── Footer
+```
+
+### Props / Stateの確認
+
+コンポーネントを選択すると、右パネルに詳細が表示されます：
+
+- **props**: 親から渡されたプロパティ
+- **hooks**: useStateなどの現在の値
+- **rendered by**: このコンポーネントをレンダリングした親
+
+### 値の編集
+
+DevTools上でpropsやstateの値を直接編集できます。
+動作確認やエッジケースのテストに便利です。
+
+## Profilerタブ
+
+### パフォーマンスの計測
+
+1. 「Profiler」タブを開く
+2. 青い丸ボタン（Record）をクリック
+3. アプリを操作
+4. 停止してレポートを確認
+
+### 確認できる情報
+
+- **Commit**: 各レンダリングの情報
+- **Flamegraph**: コンポーネントごとのレンダリング時間
+- **Ranked**: レンダリング時間順のランキング
+
+## console.logでのデバッグ
+
+### 基本的なログ
+
+```tsx
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  console.log('Render! count:', count);
+
+  const handleClick = () => {
+    console.log('Before:', count);
+    setCount(count + 1);
+    console.log('After:', count); // まだ古い値が表示される
+  };
+
+  return <button onClick={handleClick}>{count}</button>;
+}
+```
+
+### useEffectのデバッグ
+
+```tsx
+useEffect(() => {
+  console.log('Effect run! Dependencies:', { userId, page });
+
+  return () => {
+    console.log('Cleanup!');
+  };
+}, [userId, page]);
+```
+
+## よくあるデバッグパターン
+
+### 1. 無限ループの特定
+
+```tsx
+// ❌ 無限ループ - 依存配列にオブジェクトを直接渡している
+useEffect(() => {
+  fetchData(options);
+}, [options]); // optionsが毎回新しいオブジェクト
+
+// デバッグ: レンダリング回数をログ
+const renderCount = useRef(0);
+renderCount.current++;
+console.log('Render count:', renderCount.current);
+```
+
+### 2. propsが渡されていない
+
+```tsx
+function Child({ name }: { name: string }) {
+  console.log('Child props:', { name }); // undefinedなら親を確認
+
+  return <div>{name}</div>;
+}
+```
+
+### 3. 状態が更新されない
+
+```tsx
+const handleClick = () => {
+  console.log('Before update:', items);
+
+  // ❌ 直接変更は検知されない
+  items.push(newItem);
+  setItems(items);
+
+  // ✅ 新しい配列を作成
+  setItems([...items, newItem]);
+};
+```
+
+## デバッグのTips
+
+### 1. React.StrictModeの理解
+
+開発モードでは、コンポーネントが2回レンダリングされることがあります。
+
+```tsx
+// main.tsx
+<React.StrictMode>
+  <App />
+</React.StrictMode>
+```
+
+これは意図的な動作で、副作用の問題を検出するためです。
+
+### 2. ブレークポイントの活用
+
+Chrome DevToolsのSourcesタブでブレークポイントを設定し、
+ステップ実行で値の変化を追跡できます。
+
+### 3. React Error Boundary
+
+エラーが発生した場所を特定するために、Error Boundaryを活用します。
+
+```tsx
+class ErrorBoundary extends React.Component {
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught:', error);
+    console.error('Component stack:', errorInfo.componentStack);
+  }
+}
+```
+
+## よくある間違い
+
+### 1. 本番環境でconsole.logを残す
+
+```tsx
+// ❌ 本番に残すべきでない
+console.log('Debug:', data);
+
+// ✅ 開発時のみログ出力
+if (import.meta.env.DEV) {
+  console.log('Debug:', data);
+}
+```
+
+### 2. DevToolsがReactを検出しない
+
+- ページをリロードする
+- 開発ビルドか確認する（本番ビルドでは機能制限あり）
+- 拡張機能を再インストールする
+
+## まとめ
+
+- **React DevTools**: コンポーネントツリーとstate確認に必須
+- **Profiler**: パフォーマンス問題の特定に使用
+- **console.log**: シンプルだが効果的
+- **StrictMode**: 開発時の2回レンダリングは正常
+
+## 練習問題
+
+1. React DevToolsをインストールし、このアプリのコンポーネントツリーを確認してみましょう
+2. Profilerを使って、どのコンポーネントがレンダリングに時間がかかっているか調べてみましょう

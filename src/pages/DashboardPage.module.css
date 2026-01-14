@@ -123,7 +123,9 @@
 }
 
 .quickCard {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   text-align: center;
 }
 
@@ -147,4 +149,36 @@
 .quickCount {
   font-size: 14px;
   color: #6b7280;
+}
+
+/* Alerts row */
+.alertsRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.alertsRow > * {
+  flex: 1;
+}
+
+/* Action card */
+.actionCard {
+  margin-bottom: 24px;
+}
+
+.heatmapCard {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.trendCard {
+  margin-bottom: 16px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .alertsRow {
+    flex-direction: column;
+  }
 }

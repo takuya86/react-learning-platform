@@ -1,0 +1,403 @@
+---
+title: 'カスタムフック：ロジックの再利用'
+slug: 'custom-hooks'
+description: 'カスタムフックを作成してロジックを再利用する方法を学びます。'
+tags: ['react', 'hooks', 'custom-hooks', 'reusable']
+difficulty: 'intermediate'
+estimatedMinutes: 30
+prerequisites: ['useEffect-hook']
+---
+
+# カスタムフック：ロジックの再利用
+
+## 学習目標
+
+このレッスンを完了すると、以下ができるようになります：
+
+1. **カスタムフックを作成し、複数のコンポーネントでロジックを再利用できる**
+2. **「Hookに切り出すべきか」の判断基準を説明できる**
+3. **副作用を含むカスタムフックで適切にcleanupを実装できる**
+
+---
+
+## カスタムフックとは
+
+カスタムフックは、Reactの組み込みフック（useState、useEffectなど）を組み合わせて作る再利用可能な関数です。
+`use`で始まる名前をつけることで、Reactがフックとして認識します。
+
+```tsx
+// カスタムフックの基本形
+function useCounter(initialValue = 0) {
+  const [count, setCount] = useState(initialValue);
+
+  const increment = () => setCount(c => c + 1);
+  const decrement = () => setCount(c => c - 1);
+  const reset = () => setCount(initialValue);
+
+  return { count, increment, decrement, reset };
+}
+```
+
+## いつカスタムフックに切り出すか
+
+### 切り出すべき場合
+
+- **2つ以上のコンポーネント**で同じロジックを使う
+- **状態 + 副作用**がセットで動く（例：データ取得、イベント購読）
+- **テスト可能にしたい**複雑なロジック
+
+### 切り出すべきでない場合
+
+- 1つのコンポーネントでしか使わない
+- UIの見た目に関するロジック（コンポーネントに残す）
+- 単純な計算（普通の関数で十分）
+
+---
+
+## 設計判断の基準
+
+カスタムフックを設計する際の3つの判断基準：
+
+### 1. 単一責任の原則
+1つのフックは1つのことだけを担当する。「データ取得」と「フォーム管理」は別フックにする。
+
+### 2. UIロジックは入れない
+フックは「何をするか」を担当し、「どう見せるか」はコンポーネントに任せる。
+JSXを返すフック、CSSクラスを決めるフックは避ける。
+
+### 3. 戻り値は安定させる
+毎回新しいオブジェクトや関数を返すと、使う側で不要な再レンダリングが起きる。
+useCallbackやuseMemoを活用して参照を安定させる。
+
+---
+
+## 動作するサンプルコード
+
+**ポイント**: `useDebounce`フックと`useLocalStorage`フックを実装し、検索フォームで活用します。入力値はdebounceされ、検索履歴はlocalStorageに保存されます。
+
+```tsx
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+// --- カスタムフック: useDebounce ---
+// 値の変更を遅延させる（API呼び出しの最適化に使う）
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    // delayミリ秒後に値を更新
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    // クリーンアップ: 次の値が来たらタイマーをキャンセル
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// --- カスタムフック: useLocalStorage ---
+// localStorageと同期する状態を管理
+function useLocalStorage<T>(
+  key: string,
+  initialValue: T
+): [T, (value: T | ((prev: T) => T)) => void] {
+  // 初期値の読み込み（遅延初期化）
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+
+  // useCallbackで関数の参照を安定させる
+  const setValue = useCallback(
+    (value: T | ((prev: T) => T)) => {
+      setStoredValue((prev) => {
+        const valueToStore = value instanceof Function ? value(prev) : value;
+        try {
+          localStorage.setItem(key, JSON.stringify(valueToStore));
+        } catch (error) {
+          console.error('localStorage save error:', error);
+        }
+        return valueToStore;
+      });
+    },
+    [key]
+  );
+
+  return [storedValue, setValue];
+}
+
+// --- 使用例コンポーネント ---
+function App() {
+  const [query, setQuery] = useState('');
+  const [searchHistory, setSearchHistory] = useLocalStorage<string[]>(
+    'search-history',
+    []
+  );
+
+  // 300ms遅延でdebounce
+  const debouncedQuery = useDebounce(query, 300);
+  const [results, setResults] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // debounceされた値が変わったら検索を実行
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+
+    // 模擬的な検索（実際はAPIを呼ぶ）
+    const timer = setTimeout(() => {
+      const mockResults = [
+        `${debouncedQuery} に関する結果1`,
+        `${debouncedQuery} に関する結果2`,
+        `${debouncedQuery} に関する結果3`,
+      ];
+      setResults(mockResults);
+      setIsSearching(false);
+
+      // 検索履歴に追加（重複を除いて最新5件）
+      setSearchHistory((prev) => {
+        const filtered = prev.filter((h) => h !== debouncedQuery);
+        return [debouncedQuery, ...filtered].slice(0, 5);
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [debouncedQuery, setSearchHistory]);
+
+  const clearHistory = () => setSearchHistory([]);
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '500px' }}>
+      <h2>カスタムフック デモ</h2>
+
+      {/* 検索入力 */}
+      <div style={{ marginBottom: '16px' }}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="検索キーワードを入力..."
+          style={{ padding: '8px', width: '100%', fontSize: '16px' }}
+        />
+        <p style={{ fontSize: '12px', color: '#666', margin: '4px 0' }}>
+          入力後300ms待ってから検索されます（useDebounce）
+        </p>
+      </div>
+
+      {/* 検索状態 */}
+      {isSearching && <p>検索中...</p>}
+
+      {/* 検索結果 */}
+      {results.length > 0 && (
+        <div style={{ marginBottom: '16px' }}>
+          <h3>検索結果</h3>
+          <ul>
+            {results.map((result, i) => (
+              <li key={i}>{result}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 検索履歴（useLocalStorage） */}
+      <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0 }}>検索履歴</h3>
+          {searchHistory.length > 0 && (
+            <button onClick={clearHistory} style={{ fontSize: '12px' }}>
+              履歴をクリア
+            </button>
+          )}
+        </div>
+        {searchHistory.length === 0 ? (
+          <p style={{ color: '#666', fontSize: '14px' }}>履歴はありません</p>
+        ) : (
+          <ul style={{ margin: '8px 0 0', paddingLeft: '20px' }}>
+            {searchHistory.map((h, i) => (
+              <li
+                key={i}
+                style={{ cursor: 'pointer', color: '#007bff' }}
+                onClick={() => setQuery(h)}
+              >
+                {h}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p style={{ fontSize: '11px', color: '#999', marginTop: '8px' }}>
+          ページをリロードしても履歴は保持されます
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+## よくある間違い（Pitfalls）
+
+### 1. Hookが巨大化して再利用不能になる
+
+複数の責務を1つのフックに詰め込むと、特定の用途でしか使えなくなります。
+
+```tsx
+// ❌ 間違い - 責務が多すぎる
+function useUserDashboard(userId: string) {
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [theme, setTheme] = useState('light');
+  // ... 100行以上のロジック
+
+  return { user, posts, notifications, theme, /* 大量のメソッド */ };
+}
+
+// ✅ 正しい - 責務を分離
+function useUser(userId: string) { /* ユーザー取得のみ */ }
+function usePosts(userId: string) { /* 投稿取得のみ */ }
+function useNotifications() { /* 通知のみ */ }
+function useTheme() { /* テーマのみ */ }
+```
+
+**なぜ起きるか**: 「関連するものは1つにまとめたい」という発想で、どんどん機能を追加してしまいます。
+
+**どう防ぐか**: 1つのフックは1つの責務に絞る。「このフックは何をするか」を一言で説明できなければ分割のサイン。
+
+### 2. 副作用のcleanup忘れ
+
+イベントリスナーやタイマーを登録したまま放置すると、メモリリークや予期しない動作が起きます。
+
+```tsx
+// ❌ 間違い - cleanupがない
+function useWindowSize() {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const handler = () => {
+      setSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handler);
+    // ← cleanupがない！コンポーネントがアンマウントされても
+    //   リスナーが残り続ける
+  }, []);
+
+  return size;
+}
+
+// ✅ 正しい - cleanupを追加
+function useWindowSize() {
+  const [size, setSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handler = () => {
+      setSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handler);
+
+    // クリーンアップ関数でリスナーを削除
+    return () => {
+      window.removeEventListener('resize', handler);
+    };
+  }, []);
+
+  return size;
+}
+```
+
+**なぜ起きるか**: 「動いているから大丈夫」と思い、アンマウント時の挙動を考慮しないまま実装してしまいます。
+
+**どう防ぐか**: 副作用を書いたら必ず「解除が必要か？」を自問する。setInterval、addEventListener、WebSocket接続などは必ずcleanupが必要。
+
+### 3. 毎回新しいオブジェクト/関数を返して再レンダリング地獄
+
+返り値が毎回新しい参照になると、使う側のコンポーネントが不要に再レンダリングされます。
+
+```tsx
+// ❌ 間違い - 毎回新しいオブジェクトと関数を生成
+function useCounter() {
+  const [count, setCount] = useState(0);
+
+  // この関数は毎回新しい参照になる
+  const increment = () => setCount(c => c + 1);
+
+  // このオブジェクトも毎回新しい参照
+  return { count, increment };
+}
+
+// 使う側でReact.memoが効かない
+const Child = memo(({ increment }: { increment: () => void }) => {
+  console.log('Child rendered'); // 親の再レンダリングごとに呼ばれる
+  return <button onClick={increment}>+</button>;
+});
+
+// ✅ 正しい - useCallbackで参照を安定させる
+function useCounter() {
+  const [count, setCount] = useState(0);
+
+  // useCallbackで同じ参照を維持
+  const increment = useCallback(() => setCount(c => c + 1), []);
+  const decrement = useCallback(() => setCount(c => c - 1), []);
+
+  return { count, increment, decrement };
+}
+```
+
+**なぜ起きるか**: 関数やオブジェクトが「値」ではなく「参照」で比較されることを意識していないためです。
+
+**どう防ぐか**: 返り値に含める関数はuseCallbackでラップする。複雑な計算結果はuseMemoでキャッシュする。
+
+---
+
+## まとめ
+
+| 概念 | 説明 |
+|------|------|
+| カスタムフック | `use`で始まる再利用可能なロジック関数 |
+| 切り出し基準 | 2箇所以上で使う、テストしたい、状態+副作用がセット |
+| cleanup | addEventListener、setIntervalなどは必ず解除 |
+| 参照安定化 | useCallback/useMemoで毎回新しい値を返さない |
+
+---
+
+## 練習問題
+
+1. **易**: `useCounter`フック（increment、decrement、reset機能）を作成してください。カウント値と3つの操作関数を返すシンプルなフックです。
+
+2. **普通**: `useOnlineStatus`フック（ネットワーク接続状態を監視）を作成してください。`navigator.onLine`と`online`/`offline`イベントを使い、**必ずcleanupを実装**してください。
+
+3. **応用**: 以下のコードを見て、「カスタムフックに切り出すべきか」を判断してください。理由も説明してください。
+
+```tsx
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/users/${userId}`)
+      .then(r => r.json())
+      .then(data => {
+        setUser(data);
+        setLoading(false);
+      });
+  }, [userId]);
+
+  // このユーザー取得ロジックは他の画面でも使いたい...
+}
+```
