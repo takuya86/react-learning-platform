@@ -8,6 +8,7 @@
 | [アーキテクチャ](./design/architecture.md)                       | システム全体設計           |
 | [開発ガイド](./guides/development.md)                            | 開発フロー・コマンド       |
 | [設計判断チェックリスト](./guides/design-judgment-checklists.md) | レビュー・面談で使える観点 |
+| [Supabase OAuth設定](./guides/supabase-oauth-setup.md)           | Google/GitHub OAuth設定    |
 
 ## ドキュメント構成
 
@@ -28,7 +29,8 @@ docs/
 │   └── notes.md
 └── guides/                # 開発ガイド
     ├── development.md
-    └── design-judgment-checklists.md  # 設計判断チェックリスト
+    ├── design-judgment-checklists.md  # 設計判断チェックリスト
+    └── supabase-oauth-setup.md        # OAuth設定手順
 ```
 
 ## 目的別リンク

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import type { Session, User, AuthError } from '@supabase/supabase-js';
+import type { Session, User, AuthError, Provider } from '@supabase/supabase-js';
 import { supabase, isMockMode } from '@/lib/supabase';
 
 interface AuthContextType {
@@ -9,6 +9,7 @@ interface AuthContextType {
   role: 'user' | 'admin';
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithOAuth: (provider: Provider) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -148,6 +149,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     []
   );
 
+  const signInWithOAuth = useCallback(
+    async (provider: Provider): Promise<{ error: AuthError | null }> => {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      return { error };
+    },
+    []
+  );
+
   const signOut = useCallback(async (): Promise<void> => {
     await supabase.auth.signOut();
   }, []);
@@ -163,6 +177,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         role,
         signUp,
         signIn,
+        signInWithOAuth,
         signOut,
       }}
     >
