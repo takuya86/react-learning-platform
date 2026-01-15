@@ -120,10 +120,12 @@ export {
   type LessonRankingOptions,
   type FollowUpCounts,
   type LessonMetricsData,
+  type LessonRankingByOrigin,
   DEFAULT_MIN_SAMPLE,
   DEFAULT_RANKING_LIMIT,
   calculateLessonMetrics,
   buildLessonRanking,
+  buildLessonRankingByOrigin,
 } from './services/lessonEffectivenessRankingService';
 
 export {

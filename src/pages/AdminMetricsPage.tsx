@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui';
 import {
@@ -11,6 +12,7 @@ import {
   type RoiStatus,
   generateLessonHint,
 } from '@/features/metrics';
+import type { OriginEventType } from '@/features/metrics/constants';
 import { CreateIssueButton } from '@/features/admin';
 import styles from './AdminMetricsPage.module.css';
 
@@ -39,6 +41,15 @@ const ACTION_LABELS: Record<string, string> = {
   note_created: 'ノート',
 };
 
+/**
+ * P3-2.4: Origin type labels for tab display
+ */
+const ORIGIN_LABELS: Record<OriginEventType, string> = {
+  lesson_viewed: 'レッスン閲覧',
+  lesson_completed: 'レッスン完了',
+  review_started: '復習',
+};
+
 function formatActionLabel(actionType: string): string {
   return ACTION_LABELS[actionType] || actionType;
 }
@@ -54,12 +65,16 @@ export function AdminMetricsPage() {
     effectiveness,
     effectivenessBreakdown,
     lessonRanking,
+    lessonRankingByOrigin,
     improvementTracker,
     priorityRanking,
     nextBestImprovement,
     isLoading,
     error,
   } = useAdminMetrics();
+
+  // P3-2.4: Origin tab selection state
+  const [selectedOrigin, setSelectedOrigin] = useState<OriginEventType>('lesson_viewed');
 
   const { roiList, isLoading: roiLoading, error: roiError } = useImprovementRoi();
 
@@ -446,6 +461,122 @@ export function AdminMetricsPage() {
                     {(!lessonRanking || lessonRanking.worst.length === 0) && (
                       <tr>
                         <td colSpan={6} style={{ textAlign: 'center', color: '#6b7280' }}>
+                          データがありません
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </Card>
+            </div>
+          </section>
+
+          {/* P3-2.4: Origin-based Lesson Ranking */}
+          <section
+            className={styles.leaderboardsSection}
+            data-testid="admin-metrics-origin-ranking"
+          >
+            <h2 className={styles.sectionTitle}>Origin別 Lesson Ranking</h2>
+
+            {/* Origin Tab Selector */}
+            <div className={styles.originTabs} data-testid="origin-ranking-tabs">
+              {(['lesson_viewed', 'lesson_completed', 'review_started'] as OriginEventType[]).map(
+                (origin) => (
+                  <button
+                    key={origin}
+                    type="button"
+                    className={`${styles.originTab} ${selectedOrigin === origin ? styles.active : ''}`}
+                    onClick={() => setSelectedOrigin(origin)}
+                    data-testid={`origin-tab-${origin}`}
+                  >
+                    {ORIGIN_LABELS[origin]}
+                  </button>
+                )
+              )}
+            </div>
+
+            {/* Origin Ranking Tables */}
+            <div className={styles.leaderboardsGrid}>
+              {/* Best by Origin */}
+              <Card className={styles.leaderboardCard}>
+                <h3 className={styles.leaderboardTitle}>
+                  Best Top5（{ORIGIN_LABELS[selectedOrigin]}起点）
+                </h3>
+                <table className={styles.leaderboardTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.rankCell}>#</th>
+                      <th>レッスン</th>
+                      <th className={styles.numericCell}>母数</th>
+                      <th className={styles.numericCell}>Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lessonRankingByOrigin?.[selectedOrigin]?.best.map((row, index) => (
+                      <tr key={row.slug} data-testid={`origin-best-${row.slug}`}>
+                        <td className={styles.rankCell}>
+                          <span className={`${styles.rank} ${index < 3 ? styles.top : ''}`}>
+                            {index + 1}
+                          </span>
+                        </td>
+                        <td className={styles.userIdCell} title={row.slug}>
+                          {row.title}
+                          {row.isLowSample && (
+                            <span className={styles.lowSampleBadge}>low sample</span>
+                          )}
+                        </td>
+                        <td className={styles.numericCell}>{row.originCount}</td>
+                        <td className={styles.numericCell}>{row.followUpRate}%</td>
+                      </tr>
+                    ))}
+                    {(!lessonRankingByOrigin ||
+                      !lessonRankingByOrigin[selectedOrigin]?.best.length) && (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: 'center', color: '#6b7280' }}>
+                          データがありません
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </Card>
+
+              {/* Worst by Origin */}
+              <Card className={styles.leaderboardCard}>
+                <h3 className={styles.leaderboardTitle}>
+                  Worst Top5（{ORIGIN_LABELS[selectedOrigin]}起点）
+                </h3>
+                <table className={styles.leaderboardTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.rankCell}>#</th>
+                      <th>レッスン</th>
+                      <th className={styles.numericCell}>母数</th>
+                      <th className={styles.numericCell}>Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lessonRankingByOrigin?.[selectedOrigin]?.worst.map((row, index) => (
+                      <tr key={row.slug} data-testid={`origin-worst-${row.slug}`}>
+                        <td className={styles.rankCell}>
+                          <span className={`${styles.rank} ${index < 3 ? styles.top : ''}`}>
+                            {index + 1}
+                          </span>
+                        </td>
+                        <td className={styles.userIdCell} title={row.slug}>
+                          {row.title}
+                          {row.isLowSample && (
+                            <span className={styles.lowSampleBadge}>low sample</span>
+                          )}
+                        </td>
+                        <td className={styles.numericCell}>{row.originCount}</td>
+                        <td className={styles.numericCell}>{row.followUpRate}%</td>
+                      </tr>
+                    ))}
+                    {(!lessonRankingByOrigin ||
+                      !lessonRankingByOrigin[selectedOrigin]?.worst.length) && (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: 'center', color: '#6b7280' }}>
                           データがありません
                         </td>
                       </tr>

@@ -733,3 +733,32 @@
 .breakdownTable tr:last-child td {
   border-bottom: none;
 }
+
+/* P3-2.4: Origin Tabs */
+.originTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.originTab {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.originTab:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.originTab.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}

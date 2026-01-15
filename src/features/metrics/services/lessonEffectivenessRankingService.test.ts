@@ -9,6 +9,7 @@ import type { LearningEvent } from './metricsService';
 import {
   calculateLessonMetrics,
   buildLessonRanking,
+  buildLessonRankingByOrigin,
   type LessonInfo,
   DEFAULT_MIN_SAMPLE,
 } from './lessonEffectivenessRankingService';
@@ -234,10 +235,10 @@ describe('lessonEffectivenessRankingService', () => {
     });
 
     /**
-     * [spec-lock] Worst is sorted by followUpRate asc, tie-break by originCount desc
+     * [spec-lock] P3-2.4: Worst is sorted by followUpRate asc, tie-break by originCount asc, then slug asc
      * P3-1: review_started is now also an origin, so we use quiz_started as follow-up
      */
-    it('sorts worst by followUpRate asc, originCount desc', () => {
+    it('sorts worst by followUpRate asc, originCount asc', () => {
       const events = [
         // react-basics: 2 origins (lesson_viewed), 2 follow-ups = 100%
         createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
@@ -273,9 +274,9 @@ describe('lessonEffectivenessRankingService', () => {
 
       const result = buildLessonRanking(events, testLessons);
 
-      // Worst: 0% with higher originCount first
-      expect(result.worst[0].slug).toBe('useEffect-hook'); // 0%, 2 origins
-      expect(result.worst[1].slug).toBe('useState-hook'); // 0%, 1 origin
+      // Worst: 0% with lower originCount first (P3-2.4: originCount asc for worst)
+      expect(result.worst[0].slug).toBe('useState-hook'); // 0%, 1 origin
+      expect(result.worst[1].slug).toBe('useEffect-hook'); // 0%, 2 origins
       expect(result.worst[2].slug).toBe('react-basics'); // 100%
     });
 
@@ -407,6 +408,304 @@ describe('lessonEffectivenessRankingService', () => {
 
       const result = buildLessonRanking(events, testLessons);
       expect(result.best[0].followUpRate).toBe(50); // 1/2 = 50%
+    });
+  });
+
+  // ============================================================
+  // P3-2.4: originFilter and buildLessonRankingByOrigin
+  // ============================================================
+
+  describe('originFilter', () => {
+    /**
+     * [spec-lock] P3-2.4: originFilter を指定すると、そのoriginのみでoriginCountが計算される
+     */
+    it('[spec-lock] originFilter を指定すると、そのoriginのみでoriginCountが計算される', () => {
+      const events = [
+        // lesson_viewed: 2 events
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T11:00:00Z'),
+        // lesson_completed: 1 event
+        createEvent(
+          'lesson_completed',
+          '2024-01-15',
+          'user1',
+          'react-basics',
+          '2024-01-15T12:00:00Z'
+        ),
+        // review_started: 1 event
+        createEvent(
+          'review_started',
+          '2024-01-15',
+          'user3',
+          'react-basics',
+          '2024-01-15T13:00:00Z'
+        ),
+      ];
+
+      // Without filter: all origins counted (4 total)
+      const resultAll = calculateLessonMetrics(events);
+      expect(resultAll.get('react-basics')?.originCount).toBe(4);
+
+      // With lesson_viewed filter: only lesson_viewed counted (2)
+      const resultViewed = calculateLessonMetrics(events, { originFilter: 'lesson_viewed' });
+      expect(resultViewed.get('react-basics')?.originCount).toBe(2);
+
+      // With lesson_completed filter: only lesson_completed counted (1)
+      const resultCompleted = calculateLessonMetrics(events, { originFilter: 'lesson_completed' });
+      expect(resultCompleted.get('react-basics')?.originCount).toBe(1);
+
+      // With review_started filter: only review_started counted (1)
+      const resultReview = calculateLessonMetrics(events, { originFilter: 'review_started' });
+      expect(resultReview.get('react-basics')?.originCount).toBe(1);
+    });
+
+    /**
+     * [spec-lock] P3-2.4: review_started を含む ORIGIN_EVENT_TYPES でも同様に集計できる
+     */
+    it('[spec-lock] review_started を含む ORIGIN_EVENT_TYPES でも同様に集計できる', () => {
+      const events = [
+        // review_started as origin with follow-up
+        createEvent(
+          'review_started',
+          '2024-01-15',
+          'user1',
+          'react-basics',
+          '2024-01-15T10:00:00Z'
+        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
+        // review_started without follow-up
+        createEvent(
+          'review_started',
+          '2024-01-15',
+          'user2',
+          'react-basics',
+          '2024-01-15T12:00:00Z'
+        ),
+      ];
+
+      const result = calculateLessonMetrics(events, { originFilter: 'review_started' });
+      expect(result.get('react-basics')?.originCount).toBe(2);
+      expect(result.get('react-basics')?.followUpCount).toBe(1);
+    });
+  });
+
+  describe('buildLessonRanking sort determinism', () => {
+    /**
+     * [spec-lock] P3-2.4: Best: rate desc → originCount desc → slug asc
+     */
+    it('[spec-lock] Best: rate desc → originCount desc → slug asc', () => {
+      const events = [
+        // All three lessons have same rate (100%) and same originCount (1)
+        // Should be sorted by slug asc
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
+
+        createEvent(
+          'lesson_viewed',
+          '2024-01-15',
+          'user1',
+          'useEffect-hook',
+          '2024-01-15T12:00:00Z'
+        ),
+        createEvent(
+          'quiz_started',
+          '2024-01-15',
+          'user1',
+          'useEffect-hook',
+          '2024-01-15T13:00:00Z'
+        ),
+
+        createEvent(
+          'lesson_viewed',
+          '2024-01-15',
+          'user1',
+          'useState-hook',
+          '2024-01-15T14:00:00Z'
+        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'useState-hook', '2024-01-15T15:00:00Z'),
+      ];
+
+      const result = buildLessonRanking(events, testLessons);
+
+      // All 100%, 1 origin - sorted by slug asc
+      expect(result.best[0].slug).toBe('react-basics'); // r < u
+      expect(result.best[1].slug).toBe('useEffect-hook'); // useE < useS
+      expect(result.best[2].slug).toBe('useState-hook');
+    });
+
+    /**
+     * [spec-lock] P3-2.4: Worst: rate asc → originCount asc → slug asc
+     */
+    it('[spec-lock] Worst: rate asc → originCount asc → slug asc', () => {
+      const events = [
+        // All three lessons have same rate (0%) and same originCount (1)
+        // Should be sorted by slug asc
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent(
+          'lesson_viewed',
+          '2024-01-15',
+          'user1',
+          'useEffect-hook',
+          '2024-01-15T12:00:00Z'
+        ),
+        createEvent(
+          'lesson_viewed',
+          '2024-01-15',
+          'user1',
+          'useState-hook',
+          '2024-01-15T14:00:00Z'
+        ),
+      ];
+
+      const result = buildLessonRanking(events, testLessons);
+
+      // All 0%, 1 origin - sorted by slug asc
+      expect(result.worst[0].slug).toBe('react-basics');
+      expect(result.worst[1].slug).toBe('useEffect-hook');
+      expect(result.worst[2].slug).toBe('useState-hook');
+    });
+
+    /**
+     * [spec-lock] P3-2.4: originCount < 5 のとき lowSample=true
+     * (Already tested above but explicit spec-lock marker)
+     */
+    it('[spec-lock] originCount < 5 のとき lowSample=true', () => {
+      const events = [
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent('lesson_viewed', '2024-01-15', 'user3', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent('lesson_viewed', '2024-01-15', 'user4', 'react-basics', '2024-01-15T10:00:00Z'),
+        // 4 origins - below default minSample of 5
+      ];
+
+      const result = buildLessonRanking(events, testLessons);
+      expect(result.best[0].originCount).toBe(4);
+      expect(result.best[0].isLowSample).toBe(true);
+
+      // With 5 origins - at threshold
+      const events5 = [
+        ...events,
+        createEvent('lesson_viewed', '2024-01-15', 'user5', 'react-basics', '2024-01-15T10:00:00Z'),
+      ];
+      const result5 = buildLessonRanking(events5, testLessons);
+      expect(result5.best[0].originCount).toBe(5);
+      expect(result5.best[0].isLowSample).toBe(false);
+    });
+  });
+
+  describe('buildLessonRankingByOrigin', () => {
+    /**
+     * [spec-lock] P3-2.4: Returns ranking for each origin type
+     */
+    it('returns ranking for each origin type', () => {
+      const events = [
+        // lesson_viewed events
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
+
+        // lesson_completed events
+        createEvent(
+          'lesson_completed',
+          '2024-01-15',
+          'user1',
+          'useState-hook',
+          '2024-01-15T12:00:00Z'
+        ),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'useState-hook', '2024-01-15T13:00:00Z'),
+
+        // review_started events
+        createEvent(
+          'review_started',
+          '2024-01-15',
+          'user1',
+          'useEffect-hook',
+          '2024-01-15T14:00:00Z'
+        ),
+        createEvent(
+          'quiz_started',
+          '2024-01-15',
+          'user1',
+          'useEffect-hook',
+          '2024-01-15T15:00:00Z'
+        ),
+      ];
+
+      const result = buildLessonRankingByOrigin(events, testLessons);
+
+      // Check all three origin types are present
+      expect(result.lesson_viewed).toBeDefined();
+      expect(result.lesson_completed).toBeDefined();
+      expect(result.review_started).toBeDefined();
+
+      // lesson_viewed: only react-basics counted
+      expect(result.lesson_viewed.best.length).toBe(1);
+      expect(result.lesson_viewed.best[0].slug).toBe('react-basics');
+      expect(result.lesson_viewed.best[0].originCount).toBe(1);
+
+      // lesson_completed: only useState-hook counted
+      expect(result.lesson_completed.best.length).toBe(1);
+      expect(result.lesson_completed.best[0].slug).toBe('useState-hook');
+      expect(result.lesson_completed.best[0].originCount).toBe(1);
+
+      // review_started: only useEffect-hook counted
+      expect(result.review_started.best.length).toBe(1);
+      expect(result.review_started.best[0].slug).toBe('useEffect-hook');
+      expect(result.review_started.best[0].originCount).toBe(1);
+    });
+
+    it('each origin ranking is computed independently', () => {
+      const events = [
+        // react-basics: viewed twice
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent('quiz_started', '2024-01-15', 'user1', 'react-basics', '2024-01-15T11:00:00Z'),
+        createEvent('lesson_viewed', '2024-01-15', 'user2', 'react-basics', '2024-01-15T10:00:00Z'),
+        // user2 no follow-up
+
+        // react-basics: completed once
+        createEvent(
+          'lesson_completed',
+          '2024-01-15',
+          'user1',
+          'react-basics',
+          '2024-01-15T12:00:00Z'
+        ),
+        createEvent('note_created', '2024-01-15', 'user1', 'react-basics', '2024-01-15T13:00:00Z'),
+      ];
+
+      const result = buildLessonRankingByOrigin(events, testLessons);
+
+      // lesson_viewed: 2 origins, 1 follow-up = 50%
+      expect(result.lesson_viewed.best[0].originCount).toBe(2);
+      expect(result.lesson_viewed.best[0].followUpRate).toBe(50);
+
+      // lesson_completed: 1 origin, 1 follow-up = 100%
+      expect(result.lesson_completed.best[0].originCount).toBe(1);
+      expect(result.lesson_completed.best[0].followUpRate).toBe(100);
+    });
+
+    it('passes options through to each ranking', () => {
+      const events = [
+        createEvent('lesson_viewed', '2024-01-15', 'user1', 'react-basics', '2024-01-15T10:00:00Z'),
+        createEvent(
+          'lesson_viewed',
+          '2024-01-15',
+          'user1',
+          'useState-hook',
+          '2024-01-15T10:00:00Z'
+        ),
+        createEvent(
+          'lesson_viewed',
+          '2024-01-15',
+          'user1',
+          'useEffect-hook',
+          '2024-01-15T10:00:00Z'
+        ),
+      ];
+
+      const result = buildLessonRankingByOrigin(events, testLessons, { limit: 2 });
+
+      expect(result.lesson_viewed.best.length).toBe(2);
+      expect(result.lesson_viewed.worst.length).toBe(2);
     });
   });
 
