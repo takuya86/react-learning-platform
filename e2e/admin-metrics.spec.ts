@@ -244,6 +244,117 @@ test.describe('Admin Metrics Page - Issue Automation', () => {
 });
 
 /**
+ * [spec-lock] P3-2.4 Origin-based Lesson Ranking
+ * Tests for Origin別 Lesson Ranking section with tab navigation
+ */
+test.describe('Admin Metrics Page - Origin Ranking', () => {
+  test('should display Origin別 Lesson Ranking section', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    // Origin ranking section should be visible
+    const originRanking = page.getByTestId('admin-metrics-origin-ranking');
+    await expect(originRanking).toBeVisible();
+
+    // Section title should be visible
+    await expect(originRanking.getByText('Origin別 Lesson Ranking')).toBeVisible();
+  });
+
+  test('should display origin tabs for lesson_viewed, lesson_completed, review_started', async ({
+    page,
+  }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    const tabs = page.getByTestId('origin-ranking-tabs');
+    await expect(tabs).toBeVisible();
+
+    // Check for all three origin tabs
+    await expect(page.getByTestId('origin-tab-lesson_viewed')).toBeVisible();
+    await expect(page.getByTestId('origin-tab-lesson_completed')).toBeVisible();
+    await expect(page.getByTestId('origin-tab-review_started')).toBeVisible();
+  });
+
+  test('should default to lesson_viewed tab active', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    // lesson_viewed tab should be active by default
+    const viewedTab = page.getByTestId('origin-tab-lesson_viewed');
+    await expect(viewedTab).toHaveClass(/active/);
+  });
+
+  test('should switch origin tabs when clicked', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    // Click lesson_completed tab
+    const completedTab = page.getByTestId('origin-tab-lesson_completed');
+    await completedTab.click();
+    await expect(completedTab).toHaveClass(/active/);
+
+    // Original tab should not be active
+    const viewedTab = page.getByTestId('origin-tab-lesson_viewed');
+    await expect(viewedTab).not.toHaveClass(/active/);
+
+    // Click review_started tab
+    const reviewTab = page.getByTestId('origin-tab-review_started');
+    await reviewTab.click();
+    await expect(reviewTab).toHaveClass(/active/);
+    await expect(completedTab).not.toHaveClass(/active/);
+  });
+
+  test('should display Best and Worst tables for selected origin', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    const originRanking = page.getByTestId('admin-metrics-origin-ranking');
+    await expect(originRanking).toBeVisible();
+
+    // Check for Best and Worst table titles
+    await expect(originRanking.getByText(/Best Top5/)).toBeVisible();
+    await expect(originRanking.getByText(/Worst Top5/)).toBeVisible();
+  });
+
+  test('should display correct table headers in origin ranking tables', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    const originRanking = page.getByTestId('admin-metrics-origin-ranking');
+    await expect(originRanking).toBeVisible();
+
+    // Check for table headers (present in both tables)
+    await expect(originRanking.getByRole('columnheader', { name: '#' }).first()).toBeVisible();
+    await expect(
+      originRanking.getByRole('columnheader', { name: 'レッスン' }).first()
+    ).toBeVisible();
+    await expect(originRanking.getByRole('columnheader', { name: '母数' }).first()).toBeVisible();
+    await expect(originRanking.getByRole('columnheader', { name: 'Rate' }).first()).toBeVisible();
+  });
+
+  test('should update table content when switching origin tabs', async ({ page }) => {
+    await page.goto('/admin/metrics');
+    await page.waitForLoadState('networkidle');
+
+    const originRanking = page.getByTestId('admin-metrics-origin-ranking');
+    await expect(originRanking).toBeVisible();
+
+    // Check initial table headers show lesson_viewed origin
+    await expect(originRanking.getByText(/レッスン閲覧起点/)).toBeVisible();
+
+    // Switch to lesson_completed
+    const completedTab = page.getByTestId('origin-tab-lesson_completed');
+    await completedTab.click();
+    await expect(originRanking.getByText(/レッスン完了起点/)).toBeVisible();
+
+    // Switch to review_started
+    const reviewTab = page.getByTestId('origin-tab-review_started');
+    await reviewTab.click();
+    await expect(originRanking.getByText(/復習起点/)).toBeVisible();
+  });
+});
+
+/**
  * [spec-lock] P3-3.3 Improvement Tracker
  * Tests for Improvement Tracker section displaying open improvement issues
  */

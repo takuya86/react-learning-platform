@@ -225,8 +225,8 @@ describe('AdminMetricsPage', () => {
       expect(summaryValues.length).toBeGreaterThan(0);
 
       // Leaderboards and lesson ranking should show "データがありません"
-      // 2 leaderboards + 2 lesson ranking tables (Best/Worst) = 4
-      expect(screen.getAllByText('データがありません')).toHaveLength(4);
+      // 2 leaderboards + 2 lesson ranking tables (Best/Worst) + 2 origin ranking tables (P3-2.4) = 6
+      expect(screen.getAllByText('データがありません')).toHaveLength(6);
     });
   });
 

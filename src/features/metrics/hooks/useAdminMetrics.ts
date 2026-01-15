@@ -30,7 +30,9 @@ import {
 } from '../services/effectivenessService';
 import {
   type LessonRanking,
+  type LessonRankingByOrigin,
   buildLessonRanking,
+  buildLessonRankingByOrigin,
 } from '../services/lessonEffectivenessRankingService';
 import {
   listAllOpenImprovementIssues,
@@ -70,6 +72,8 @@ interface UseAdminMetricsResult {
   /** P3-1: Origin別のfollow-up rate breakdown */
   effectivenessBreakdown: EffectivenessBreakdown | null;
   lessonRanking: LessonRanking | null;
+  /** P3-2.4: Origin別のレッスンランキング */
+  lessonRankingByOrigin: LessonRankingByOrigin | null;
   improvementTracker: ImprovementTrackerRow[];
   priorityRanking: RankedItem[];
   nextBestImprovement: RankedItem | null;
@@ -259,6 +263,24 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     return buildLessonRanking(periodEvents, lessons);
   }, [events, period, today, isLoading]);
 
+  /**
+   * P3-2.4: Origin別のレッスンランキング
+   * lesson_viewed, lesson_completed, review_started それぞれでBest/Worstを計算
+   */
+  const lessonRankingByOrigin = useMemo(() => {
+    if (isLoading) return null;
+    // Filter events to selected period
+    const { startDate, endDate } = getDateRangeForPeriod(period, today);
+    const periodEvents = filterEventsByDateRange(events, startDate, endDate);
+    // Get lesson info for display
+    const lessons = getAllLessons().map((lesson) => ({
+      slug: lesson.id,
+      title: lesson.title,
+      difficulty: lesson.difficulty,
+    }));
+    return buildLessonRankingByOrigin(periodEvents, lessons, { limit: 5 });
+  }, [events, period, today, isLoading]);
+
   const improvementTracker = useMemo(() => {
     if (isLoading) return [];
 
@@ -348,6 +370,7 @@ export function useAdminMetrics(): UseAdminMetricsResult {
     effectiveness,
     effectivenessBreakdown,
     lessonRanking,
+    lessonRankingByOrigin,
     improvementTracker,
     priorityRanking,
     nextBestImprovement,

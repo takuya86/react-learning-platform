@@ -12,9 +12,9 @@
  * - origin ごとに「同一ユーザーが24h以内に follow-up を1回でも起こしたか」を判定
  * - followUpRate = followUpCount / originCount
  *
- * ### ソート規則
- * - Best: followUpRate desc（同率なら originCount desc）
- * - Worst: followUpRate asc（同率なら originCount desc）
+ * ### ソート規則 (P3-2.4 updated)
+ * - Best: followUpRate desc → originCount desc → slug asc
+ * - Worst: followUpRate asc → originCount asc → slug asc
  */
 
 import {
@@ -22,6 +22,7 @@ import {
   FOLLOW_UP_EVENT_TYPES,
   ORIGIN_EVENT_TYPES,
   type FollowUpEventType,
+  type OriginEventType,
 } from '../constants';
 import type { LearningEvent, LearningEventType } from './metricsService';
 
@@ -68,6 +69,11 @@ export interface LessonRankingOptions {
   windowHours?: number;
   minSample?: number;
   limit?: number;
+  /**
+   * Filter to only count specific origin type
+   * @spec-lock P3-2.4: originFilter を指定すると、そのoriginのみでoriginCountが計算される
+   */
+  originFilter?: OriginEventType;
 }
 
 /**
@@ -92,8 +98,12 @@ function getEventTimestamp(event: LearningEvent): Date {
 
 /**
  * Check if an event type is an origin event
+ * @param originFilter - If specified, only return true for that specific origin type
  */
-function isOriginEvent(eventType: LearningEventType): boolean {
+function isOriginEvent(eventType: LearningEventType, originFilter?: OriginEventType): boolean {
+  if (originFilter) {
+    return eventType === originFilter;
+  }
   return (ORIGIN_EVENT_TYPES as readonly string[]).includes(eventType);
 }
 
@@ -126,7 +136,7 @@ export function calculateLessonMetrics(
   events: LearningEvent[],
   options: LessonRankingOptions = {}
 ): Map<string, LessonMetricsData> {
-  const { windowHours = FOLLOW_UP_WINDOW_HOURS } = options;
+  const { windowHours = FOLLOW_UP_WINDOW_HOURS, originFilter } = options;
   const windowMs = windowHours * 60 * 60 * 1000;
 
   // Group events by user
@@ -150,7 +160,7 @@ export function calculateLessonMetrics(
 
     // For each origin event, check if there's a follow-up within the window
     for (const originEvent of sortedEvents) {
-      if (!isOriginEvent(originEvent.event_type)) continue;
+      if (!isOriginEvent(originEvent.event_type, originFilter)) continue;
 
       const lessonSlug = originEvent.reference_id || '';
       if (!lessonSlug) continue;
@@ -244,24 +254,62 @@ export function buildLessonRanking(
     });
   }
 
-  // Sort for best: followUpRate desc, originCount desc
+  /**
+   * @spec-lock P3-2.4 Sort order for determinism
+   * - Best: rate desc → originCount desc → slug asc
+   * - Worst: rate asc → originCount asc → slug asc
+   */
   const sortedBest = [...rows].sort((a, b) => {
     if (b.followUpRate !== a.followUpRate) {
       return b.followUpRate - a.followUpRate;
     }
-    return b.originCount - a.originCount;
+    if (b.originCount !== a.originCount) {
+      return b.originCount - a.originCount;
+    }
+    return a.slug.localeCompare(b.slug);
   });
 
-  // Sort for worst: followUpRate asc, originCount desc
   const sortedWorst = [...rows].sort((a, b) => {
     if (a.followUpRate !== b.followUpRate) {
       return a.followUpRate - b.followUpRate;
     }
-    return b.originCount - a.originCount;
+    if (a.originCount !== b.originCount) {
+      return a.originCount - b.originCount;
+    }
+    return a.slug.localeCompare(b.slug);
   });
 
   return {
     best: sortedBest.slice(0, limit),
     worst: sortedWorst.slice(0, limit),
   };
+}
+
+/**
+ * Ranking by origin type
+ */
+export type LessonRankingByOrigin = Record<OriginEventType, LessonRanking>;
+
+/**
+ * Build lesson effectiveness ranking for each origin type
+ *
+ * @spec-lock P3-2.4
+ * - Returns ranking for each origin: lesson_viewed, lesson_completed, review_started
+ * - Each origin's ranking is computed independently using originFilter
+ */
+export function buildLessonRankingByOrigin(
+  events: LearningEvent[],
+  lessons: LessonInfo[],
+  options: Omit<LessonRankingOptions, 'originFilter'> = {}
+): LessonRankingByOrigin {
+  const result = {} as LessonRankingByOrigin;
+
+  for (const originType of ORIGIN_EVENT_TYPES) {
+    result[originType] = buildLessonRanking(events, lessons, {
+      ...options,
+      originFilter: originType,
+    });
+  }
+
+  return result;
 }
