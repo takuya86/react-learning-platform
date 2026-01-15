@@ -135,12 +135,15 @@
  * Candidates Card
  * ======================================== */
 .candidatesCard {
+  /* Card component CSS variables */
+  --card-bg: var(--admin-surface);
+  --card-border: var(--admin-border);
+  --card-radius: var(--admin-radius-xl);
+  --card-title-color: var(--admin-text-primary);
+  --card-description-color: var(--admin-text-secondary);
+
   margin-bottom: var(--admin-spacing-xl);
-  background: var(--admin-surface) !important;
-  border: 1px solid var(--admin-border) !important;
-  border-radius: var(--admin-radius-xl) !important;
-  box-shadow: var(--admin-shadow-md) !important;
-  padding: var(--admin-spacing-xl) !important;
+  box-shadow: var(--admin-shadow-md);
 }
 
 .candidatesHeader {
@@ -225,12 +228,15 @@
  * Filters Card
  * ======================================== */
 .filtersCard {
+  /* Card component CSS variables */
+  --card-bg: var(--admin-surface);
+  --card-border: var(--admin-border);
+  --card-radius: var(--admin-radius-xl);
+  --card-title-color: var(--admin-text-primary);
+  --card-description-color: var(--admin-text-secondary);
+
   margin-bottom: var(--admin-spacing-xl);
-  background: var(--admin-surface) !important;
-  border: 1px solid var(--admin-border) !important;
-  border-radius: var(--admin-radius-xl) !important;
-  box-shadow: var(--admin-shadow-md) !important;
-  padding: var(--admin-spacing-xl) !important;
+  box-shadow: var(--admin-shadow-md);
 }
 
 .filterGroups {
@@ -521,11 +527,14 @@
  * Notice Card
  * ======================================== */
 .noticeCard {
+  /* Card component CSS variables */
+  --card-bg: rgba(234, 179, 8, 0.1);
+  --card-border: rgba(234, 179, 8, 0.3);
+  --card-radius: var(--admin-radius-xl);
+  --card-title-color: var(--admin-accent-yellow);
+  --card-description-color: rgba(234, 179, 8, 0.9);
+
   margin-top: var(--admin-spacing-xl);
-  background: rgba(234, 179, 8, 0.1) !important;
-  border: 1px solid rgba(234, 179, 8, 0.3) !important;
-  border-radius: var(--admin-radius-xl) !important;
-  padding: var(--admin-spacing-xl) !important;
 }
 
 .notice {
