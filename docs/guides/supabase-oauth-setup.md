@@ -55,7 +55,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 2. 「New OAuth App」をクリック
 3. 以下を入力:
    - Application name: `React Learning Platform`
-   - Homepage URL: `http://localhost:5173`（開発環境）
+   - Homepage URL: `https://react-learning-platform-rho.vercel.app`
    - Authorization callback URL:
      ```
      https://nigktsxrqlaoamfquvtj.supabase.co/auth/v1/callback
@@ -79,15 +79,23 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 Supabaseダッシュボード → Authentication → URL Configuration で以下を設定:
 
-- **Site URL**: `http://localhost:5173`（開発環境）
+- **Site URL**: `https://react-learning-platform-rho.vercel.app`
 - **Redirect URLs**:
   - `http://localhost:5173/auth/callback`（開発環境）
-  - `https://your-production-domain.com/auth/callback`（本番環境）
+  - `https://react-learning-platform-rho.vercel.app/auth/callback`（本番環境）
 
 ## 動作確認
 
+### 本番環境
+
+1. https://react-learning-platform-rho.vercel.app/login にアクセス
+2. 「Googleでログイン」または「GitHubでログイン」をクリック
+3. OAuth認証フローが正常に動作することを確認
+
+### 開発環境
+
 1. `npm run dev`で開発サーバー起動
-2. `/login`ページにアクセス
+2. http://localhost:5173/login にアクセス
 3. 「Googleでログイン」または「GitHubでログイン」をクリック
 4. OAuth認証フローが正常に動作することを確認
 
