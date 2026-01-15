@@ -1,183 +1,327 @@
+/* ========================================
+ * Dashboard Page - Learning Home
+ * Aesthetic: Welcoming, Achievement-focused, Dynamic
+ * ======================================== */
+
 .container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 24px;
+  padding: var(--space-10, 40px) var(--space-6, 24px);
 }
 
+/* Hero Header */
 .header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: var(--space-12, 48px);
+  position: relative;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .title {
-  font-size: 36px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 12px 0;
+  font-size: 42px;
+  font-weight: 800;
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 var(--space-4, 16px) 0;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .subtitle {
   font-size: 18px;
-  color: #6b7280;
+  color: var(--color-neutral-500, #64748b);
   margin: 0;
+  font-weight: 500;
 }
 
+/* Stats Row */
 .statsRow {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8, 32px);
 }
 
+/* Progress Card - Hero gradient */
 .progressCard {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500, #6366f1) 0%,
+    var(--color-accent-500, #d946ef) 100%
+  );
   color: white;
+  border-radius: var(--radius-xl, 24px);
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(99, 102, 241, 0.35));
+}
+
+.progressCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  pointer-events: none;
 }
 
 .progressCard :global(.card-content) {
-  padding: 24px;
+  padding: var(--space-8, 32px);
 }
 
 .progressInfo {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-6, 24px);
 }
 
 .progressLabel {
   font-size: 14px;
+  font-weight: 600;
   opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .progressValue {
-  font-size: 48px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 56px;
   font-weight: 700;
   line-height: 1;
-  margin-top: 4px;
+  margin-top: var(--space-2, 8px);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .progressDetails {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
-  font-size: 14px;
+  gap: var(--space-2, 8px);
+  font-size: 15px;
+  font-weight: 500;
   opacity: 0.9;
 }
 
 .progressTrack {
-  height: 8px;
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-full, 9999px);
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background-color: white;
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  background: white;
+  border-radius: var(--radius-full, 9999px);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
+/* Sections */
 .section {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-10, 40px);
 }
 
 .sectionTitle {
-  font-size: 20px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 16px 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-neutral-800, #1e293b);
+  margin: 0 0 var(--space-5, 20px) 0;
+  letter-spacing: -0.01em;
 }
 
+/* Lesson Meta */
 .lessonMeta {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-4, 16px);
+  margin-bottom: var(--space-5, 20px);
   font-size: 14px;
-  color: #6b7280;
+  color: var(--color-neutral-500, #64748b);
 }
 
+/* Start Button - Gradient CTA */
 .startButton {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: 14px 28px;
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
   color: white;
   text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+  border-radius: var(--radius-lg, 16px);
+  font-weight: 700;
+  font-size: 15px;
+  transition: all var(--transition-normal, 250ms ease);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .startButton:hover {
-  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+  color: white;
 }
 
+/* Quick Links Grid */
 .quickLinks {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5, 20px);
+}
+
+@media (max-width: 640px) {
+  .quickLinks {
+    grid-template-columns: 1fr;
+  }
 }
 
 .quickLink {
   text-decoration: none;
+  display: block;
 }
 
 .quickCard {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  background: var(--gradient-surface, linear-gradient(135deg, #ffffff 0%, #f8fafc 100%));
+  border: 1px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: var(--radius-xl, 24px);
+  transition: all var(--transition-normal, 250ms ease);
   text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.quickCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  transform: scaleX(0);
+  transition: transform var(--transition-normal, 250ms ease);
 }
 
 .quickCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(99, 102, 241, 0.2));
+  border-color: var(--color-primary-200, #c7d2fe);
+}
+
+.quickCard:hover::before {
+  transform: scaleX(1);
+}
+
+.quickCard :global(.card-content) {
+  padding: var(--space-8, 32px) var(--space-6, 24px);
 }
 
 .quickIcon {
-  font-size: 32px;
-  margin-bottom: 8px;
+  font-size: 40px;
+  margin-bottom: var(--space-4, 16px);
+  display: inline-block;
+  transition: transform var(--transition-normal, 250ms ease);
+}
+
+.quickCard:hover .quickIcon {
+  transform: scale(1.1);
 }
 
 .quickLabel {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 4px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-neutral-800, #1e293b);
+  margin-bottom: var(--space-2, 8px);
 }
 
 .quickCount {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--color-neutral-500, #64748b);
+  font-weight: 500;
 }
 
-/* Alerts row */
+/* Alerts Row */
 .alertsRow {
   display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--space-5, 20px);
+  margin-bottom: var(--space-5, 20px);
 }
 
 .alertsRow > * {
   flex: 1;
 }
 
-/* Action card */
+/* Action Card */
 .actionCard {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6, 24px);
 }
 
-.heatmapCard {
-  margin-top: 16px;
-  margin-bottom: 16px;
-}
-
+/* Heatmap & Trend Cards */
+.heatmapCard,
 .trendCard {
-  margin-bottom: 16px;
+  margin-top: var(--space-5, 20px);
+  margin-bottom: var(--space-5, 20px);
+  border-radius: var(--radius-xl, 24px);
+  border: 1px solid var(--color-neutral-200, #e2e8f0);
+  overflow: hidden;
+}
+
+/* Page load animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.statsRow {
+  animation: fadeInUp 0.5s ease-out 0.1s backwards;
+}
+
+.section {
+  animation: fadeInUp 0.5s ease-out 0.2s backwards;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
+  .container {
+    padding: var(--space-6, 24px) var(--space-4, 16px);
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+
+  .progressValue {
+    font-size: 42px;
+  }
+
   .alertsRow {
     flex-direction: column;
   }

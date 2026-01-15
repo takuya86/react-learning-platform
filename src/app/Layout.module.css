@@ -1,119 +1,162 @@
+/* ========================================
+ * Layout - App Shell
+ * Modern header with gradient accents
+ * ======================================== */
+
 .layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+/* Header */
 .header {
-  background-color: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+  border-bottom: 1px solid var(--color-neutral-200, #e2e8f0);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(8px);
 }
 
 .nav {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
-  height: 64px;
+  padding: 0 var(--space-6, 24px);
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* Logo with gradient */
 .logo {
-  font-size: 20px;
-  font-weight: 700;
-  color: #3b82f6;
+  font-size: 22px;
+  font-weight: 800;
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-decoration: none;
+  letter-spacing: -0.02em;
+  transition: opacity var(--transition-fast, 150ms ease);
 }
 
+.logo:hover {
+  opacity: 0.8;
+}
+
+/* Navigation Links */
 .links {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2, 8px);
 }
 
 .link {
-  padding: 8px 16px;
-  color: #6b7280;
+  padding: 10px 18px;
+  color: var(--color-neutral-500, #64748b);
   text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-lg, 16px);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition-normal, 250ms ease);
+  position: relative;
 }
 
 .link:hover {
-  color: #111827;
-  background-color: #f3f4f6;
+  color: var(--color-neutral-800, #1e293b);
+  background-color: var(--color-neutral-100, #f1f5f9);
 }
 
 .active {
-  color: #3b82f6;
-  background-color: #eff6ff;
+  color: var(--color-primary-600, #4f46e5);
+  background: linear-gradient(135deg, var(--color-primary-50, #eef2ff) 0%, #faf5ff 100%);
 }
 
+.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  border-radius: var(--radius-full, 9999px);
+}
+
+/* Main Content */
 .main {
   flex: 1;
-  background-color: #f9fafb;
+  background: linear-gradient(180deg, var(--color-neutral-50, #f8fafc) 0%, #ffffff 100%);
 }
 
+/* Footer */
 .footer {
-  background-color: white;
-  border-top: 1px solid #e5e7eb;
-  padding: 24px;
+  background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+  border-top: 1px solid var(--color-neutral-200, #e2e8f0);
+  padding: var(--space-8, 32px) var(--space-6, 24px);
   text-align: center;
 }
 
 .footer p {
   margin: 0;
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--color-neutral-400, #94a3b8);
+  font-weight: 500;
 }
 
+/* Auth Section */
 .auth {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-4, 16px);
 }
 
 .email {
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 13px;
+  color: var(--color-neutral-500, #64748b);
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .logoutButton {
-  padding: 6px 12px;
-  background-color: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  color: #374151;
-  font-size: 14px;
+  padding: 8px 16px;
+  background: var(--color-neutral-100, #f1f5f9);
+  border: 1px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: var(--radius-lg, 16px);
+  color: var(--color-neutral-600, #475569);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal, 250ms ease);
 }
 
 .logoutButton:hover {
-  background-color: #e5e7eb;
+  background: var(--color-neutral-200, #e2e8f0);
+  border-color: var(--color-neutral-300, #cbd5e1);
+  transform: translateY(-1px);
 }
 
 .loginLink {
-  padding: 6px 12px;
-  background-color: #3b82f6;
+  padding: 10px 20px;
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
   color: white;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: var(--radius-lg, 16px);
   font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-weight: 600;
+  transition: all var(--transition-normal, 250ms ease);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .loginLink:hover {
-  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+  color: white;
 }
 
 /* ========================================
@@ -131,12 +174,16 @@
 }
 
 .adminTheme .header {
-  background-color: var(--admin-bg-secondary);
+  background: var(--admin-bg-secondary);
   border-bottom: 1px solid var(--admin-border);
+  backdrop-filter: none;
 }
 
 .adminTheme .logo {
-  color: var(--admin-accent-cyan);
+  background: linear-gradient(135deg, var(--admin-accent-cyan) 0%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .adminTheme .link {
@@ -150,15 +197,19 @@
 
 .adminTheme .active {
   color: var(--admin-accent-cyan);
-  background-color: rgba(6, 182, 212, 0.1);
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.adminTheme .active::after {
+  background: linear-gradient(135deg, var(--admin-accent-cyan) 0%, #22d3ee 100%);
 }
 
 .adminTheme .main {
-  background-color: var(--admin-bg-primary);
+  background: var(--admin-bg-primary);
 }
 
 .adminTheme .footer {
-  background-color: var(--admin-bg-secondary);
+  background: var(--admin-bg-secondary);
   border-top: 1px solid var(--admin-border);
 }
 
@@ -171,13 +222,38 @@
 }
 
 .adminTheme .logoutButton {
-  background-color: var(--admin-surface);
+  background: var(--admin-surface);
   border-color: var(--admin-border);
   color: var(--admin-text-secondary);
 }
 
 .adminTheme .logoutButton:hover {
-  background-color: rgba(6, 182, 212, 0.1);
+  background: rgba(6, 182, 212, 0.1);
   border-color: var(--admin-accent-cyan);
   color: var(--admin-accent-cyan);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 var(--space-4, 16px);
+    height: 64px;
+  }
+
+  .links {
+    gap: var(--space-1, 4px);
+  }
+
+  .link {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .email {
+    display: none;
+  }
 }

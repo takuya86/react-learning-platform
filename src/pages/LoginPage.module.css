@@ -1,133 +1,224 @@
+/* ========================================
+ * Login Page - Authentication
+ * Aesthetic: Welcoming, Secure, Modern
+ * ======================================== */
+
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 120px);
-  padding: 20px;
+  min-height: calc(100vh - 140px);
+  padding: var(--space-6, 24px);
+  position: relative;
 }
 
+/* Background decoration */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(217, 70, 239, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(34, 197, 94, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Main Card */
 .card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 32px;
+  background: var(--gradient-surface, linear-gradient(135deg, #ffffff 0%, #f8fafc 100%));
+  border: 1px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: var(--radius-xl, 24px);
+  padding: var(--space-10, 40px);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(99, 102, 241, 0.15));
+  animation: fadeInUp 0.5s ease-out;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Title */
 .title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 800;
   text-align: center;
-  margin-bottom: 24px;
-  color: #1f2937;
+  margin-bottom: var(--space-6, 24px);
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
 }
 
+/* Form */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4, 16px);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2, 8px);
 }
 
 .label {
   font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+  font-weight: 600;
+  color: var(--color-neutral-700, #334155);
 }
 
+/* Input styling override */
+.field input {
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border: 2px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: var(--radius-lg, 16px);
+  font-size: 15px;
+  transition: all var(--transition-fast, 150ms ease);
+}
+
+.field input:focus {
+  border-color: var(--color-primary-400, #818cf8);
+  box-shadow: 0 0 0 4px var(--color-primary-100, #e0e7ff);
+  outline: none;
+}
+
+/* Error Message */
 .error {
-  padding: 12px;
-  background-color: #fef2f2;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
   border: 1px solid #fecaca;
-  border-radius: 6px;
+  border-radius: var(--radius-lg, 16px);
   color: #dc2626;
   font-size: 14px;
+  font-weight: 500;
 }
 
+/* Submit Button */
 .button {
   width: 100%;
-  margin-top: 8px;
+  margin-top: var(--space-2, 8px);
+  padding: var(--space-3, 12px) var(--space-5, 20px);
+  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg, 16px);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-normal, 250ms ease);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Switch Mode Link */
 .switch {
-  margin-top: 16px;
+  margin-top: var(--space-5, 20px);
   text-align: center;
 }
 
 .switchButton {
   background: none;
   border: none;
-  color: #2563eb;
+  color: var(--color-primary-500, #6366f1);
   cursor: pointer;
   font-size: 14px;
-  text-decoration: underline;
+  font-weight: 600;
+  padding: var(--space-2, 8px);
+  transition: color var(--transition-fast, 150ms ease);
 }
 
 .switchButton:hover {
-  color: #1d4ed8;
+  color: var(--color-primary-600, #4f46e5);
+  text-decoration: underline;
 }
 
+/* Loading State */
 .loading {
   text-align: center;
-  color: #6b7280;
+  color: var(--color-neutral-500, #64748b);
+  font-weight: 500;
+  padding: var(--space-10, 40px);
 }
 
+/* Mock Warning (Dev Mode) */
 .mockWarning {
-  padding: 12px;
-  background-color: #fffbeb;
+  padding: var(--space-4, 16px);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   border: 1px solid #fbbf24;
-  border-radius: 6px;
+  border-radius: var(--radius-lg, 16px);
   color: #92400e;
   font-size: 13px;
-  margin-bottom: 16px;
-  line-height: 1.5;
+  margin-bottom: var(--space-4, 16px);
+  line-height: 1.6;
 }
 
 .mockWarning code {
-  background-color: #fef3c7;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
+  background-color: rgba(251, 191, 36, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 6px);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 12px;
 }
 
+/* Role Selector (Dev Mode) */
 .roleSelector {
-  padding: 12px;
-  background-color: #f0f9ff;
+  padding: var(--space-4, 16px);
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border: 1px solid #bae6fd;
-  border-radius: 6px;
-  margin-bottom: 16px;
+  border-radius: var(--radius-lg, 16px);
+  margin-bottom: var(--space-4, 16px);
 }
 
 .roleSelectorLabel {
   display: block;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #0c4a6e;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2, 8px);
 }
 
 .roleButtons {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2, 8px);
 }
 
 .roleButton {
   flex: 1;
-  padding: 8px 16px;
+  padding: var(--space-2, 8px) var(--space-4, 16px);
   background-color: white;
   border: 2px solid #e0f2fe;
-  border-radius: 6px;
+  border-radius: var(--radius-md, 12px);
   color: #0369a1;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast, 150ms ease);
 }
 
 .roleButton:hover {
@@ -136,26 +227,27 @@
 }
 
 .roleButtonActive {
-  background-color: #0284c7;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
   border-color: #0284c7;
   color: white;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
 }
 
 .roleButtonActive:hover {
-  background-color: #0369a1;
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
   border-color: #0369a1;
 }
 
 /* OAuth Section */
 .oauthSection {
-  margin-top: 24px;
+  margin-top: var(--space-6, 24px);
 }
 
 .divider {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--space-4, 16px);
+  margin-bottom: var(--space-4, 16px);
 }
 
 .divider::before,
@@ -163,32 +255,33 @@
   content: '';
   flex: 1;
   height: 1px;
-  background-color: #e5e7eb;
+  background: linear-gradient(90deg, transparent, var(--color-neutral-300, #cbd5e1), transparent);
 }
 
 .divider span {
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 13px;
+  color: var(--color-neutral-400, #94a3b8);
+  font-weight: 500;
 }
 
 .oauthButtons {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3, 12px);
 }
 
 .oauthButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-3, 12px);
   width: 100%;
-  padding: 12px 16px;
-  border-radius: 6px;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-radius: var(--radius-lg, 16px);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal, 250ms ease);
 }
 
 .oauthButton:disabled {
@@ -201,24 +294,47 @@
   height: 20px;
 }
 
+/* Google Button */
 .googleButton {
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid var(--color-neutral-200, #e2e8f0);
+  color: var(--color-neutral-700, #334155);
 }
 
 .googleButton:hover:not(:disabled) {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
+  border-color: var(--color-neutral-300, #cbd5e1);
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.05));
+  transform: translateY(-2px);
 }
 
+/* GitHub Button */
 .githubButton {
-  background-color: #24292f;
-  border: 1px solid #24292f;
+  background: linear-gradient(135deg, #24292f 0%, #32383f 100%);
+  border: 2px solid #24292f;
   color: white;
 }
 
 .githubButton:hover:not(:disabled) {
-  background-color: #32383f;
+  background: linear-gradient(135deg, #32383f 0%, #424a53 100%);
   border-color: #32383f;
+  box-shadow: 0 4px 12px rgba(36, 41, 47, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .container {
+    padding: var(--space-4, 16px);
+    align-items: flex-start;
+    padding-top: var(--space-8, 32px);
+  }
+
+  .card {
+    padding: var(--space-6, 24px);
+    border-radius: var(--radius-lg, 16px);
+  }
+
+  .title {
+    font-size: 24px;
+  }
 }
