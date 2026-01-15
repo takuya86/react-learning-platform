@@ -47,44 +47,21 @@
   transform: scale(1.2);
 }
 
-/* Color levels - GitHub Contributions style */
+/* Color levels - Vibrant gradient style */
 .level0 {
-  background-color: #ebedf0;
+  background-color: #e2e8f0;
 }
 
 .level1 {
-  background-color: #9be9a8;
+  background-color: #a5f3c4;
 }
 
 .level2 {
-  background-color: #40c463;
+  background-color: #4ade80;
 }
 
 .level3 {
-  background-color: #30a14e;
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .level0 {
-    background-color: #161b22;
-  }
-
-  .level1 {
-    background-color: #0e4429;
-  }
-
-  .level2 {
-    background-color: #006d32;
-  }
-
-  .level3 {
-    background-color: #26a641;
-  }
-
-  .title {
-    color: var(--text-primary, #e5e7eb);
-  }
+  background-color: #22c55e;
 }
 
 /* Legend */
