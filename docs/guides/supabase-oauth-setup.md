@@ -35,7 +35,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 2. 名前: `Supabase Auth`（任意）
 3. 承認済みリダイレクトURI:
    ```
-   https://<your-project-ref>.supabase.co/auth/v1/callback
+   https://nigktsxrqlaoamfquvtj.supabase.co/auth/v1/callback
    ```
 4. 「作成」をクリック
 
@@ -58,7 +58,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
    - Homepage URL: `http://localhost:5173`（開発環境）
    - Authorization callback URL:
      ```
-     https://<your-project-ref>.supabase.co/auth/v1/callback
+     https://nigktsxrqlaoamfquvtj.supabase.co/auth/v1/callback
      ```
 4. 「Register application」をクリック
 
