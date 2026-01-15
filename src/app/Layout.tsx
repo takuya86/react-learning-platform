@@ -1,16 +1,18 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth';
 import styles from './Layout.module.css';
 
 export function Layout() {
   const { user, role, signOut } = useAuth();
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
     await signOut();
   };
 
   return (
-    <div className={styles.layout}>
+    <div className={`${styles.layout} ${isAdminPage ? styles.adminTheme : ''}`}>
       <header className={styles.header}>
         <nav className={styles.nav}>
           <NavLink to="/" className={styles.logo}>
