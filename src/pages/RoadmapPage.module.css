@@ -368,21 +368,11 @@
   gap: var(--space-1, 4px);
 }
 
-.lessonDuration::before {
-  content: '⏱️';
-  font-size: 11px;
-}
-
 .lessonPrereqs {
   display: flex;
   align-items: center;
   gap: var(--space-1, 4px);
   color: var(--color-success-500, #22c55e);
-}
-
-.lessonPrereqs::before {
-  content: '✓';
-  font-size: 11px;
 }
 
 .lockedPrereqs {
@@ -394,11 +384,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.lockedPrereqs::before {
-  content: '🔒';
-  font-size: 11px;
 }
 
 /* Animations */

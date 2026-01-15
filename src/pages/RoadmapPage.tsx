@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Clock, Check, Lock } from 'lucide-react';
 import { Badge, SyncStatusIndicator } from '@/components/ui';
 import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
@@ -145,15 +146,17 @@ export function RoadmapPage() {
                         <p className={styles.lessonDescription}>{lesson.description}</p>
                         <div className={styles.lessonMeta}>
                           <span className={styles.lessonDuration}>
-                            約 {lesson.estimatedMinutes} 分
+                            <Clock size={12} />約 {lesson.estimatedMinutes} 分
                           </span>
                           {!unlocked && !completed && incompletePrereqs.length > 0 && (
                             <span className={styles.lockedPrereqs}>
+                              <Lock size={12} />
                               未完了: {incompletePrereqs.map((p) => p.title).join(', ')}
                             </span>
                           )}
                           {unlocked && lesson.prerequisites.length > 0 && (
                             <span className={styles.lessonPrereqs}>
+                              <Check size={12} />
                               前提: {lesson.prerequisites.length}件クリア
                             </span>
                           )}

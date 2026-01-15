@@ -79,11 +79,6 @@
   gap: var(--space-1, 4px);
 }
 
-.duration::before {
-  content: '⏱️';
-  font-size: 12px;
-}
-
 /* CTA Link */
 .link {
   display: inline-flex;

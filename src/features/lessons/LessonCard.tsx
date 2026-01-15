@@ -1,5 +1,13 @@
 import { Link } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui';
+import { Clock } from 'lucide-react';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
 import type { Lesson, Difficulty } from '@/domain/types';
@@ -47,7 +55,9 @@ export function LessonCard({ lesson }: LessonCardProps) {
             </Badge>
           ))}
         </div>
-        <p className={styles.duration}>約 {lesson.estimatedMinutes} 分</p>
+        <p className={styles.duration}>
+          <Clock size={14} />約 {lesson.estimatedMinutes} 分
+        </p>
       </CardContent>
       <CardFooter>
         <Link to={`/lessons/${lesson.id}`} className={styles.link} data-testid="lesson-card">
