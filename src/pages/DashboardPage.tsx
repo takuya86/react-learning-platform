@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { BookOpen, FileText, BarChart3 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Badge } from '@/components/ui';
 import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
@@ -191,7 +192,9 @@ export function DashboardPage() {
           <Link to="/lessons" className={styles.quickLink}>
             <Card className={styles.quickCard}>
               <CardContent>
-                <div className={styles.quickIcon}>📚</div>
+                <div className={styles.quickIcon}>
+                  <BookOpen size={32} />
+                </div>
                 <div className={styles.quickLabel}>レッスン一覧</div>
                 <div className={styles.quickCount}>{lessons.length} レッスン</div>
               </CardContent>
@@ -200,7 +203,9 @@ export function DashboardPage() {
           <Link to="/quiz" className={styles.quickLink}>
             <Card className={styles.quickCard}>
               <CardContent>
-                <div className={styles.quickIcon}>📝</div>
+                <div className={styles.quickIcon}>
+                  <FileText size={32} />
+                </div>
                 <div className={styles.quickLabel}>クイズ</div>
                 <div className={styles.quickCount}>{quizzes.length} クイズ</div>
               </CardContent>
@@ -209,7 +214,9 @@ export function DashboardPage() {
           <Link to="/progress" className={styles.quickLink}>
             <Card className={styles.quickCard}>
               <CardContent>
-                <div className={styles.quickIcon}>📊</div>
+                <div className={styles.quickIcon}>
+                  <BarChart3 size={32} />
+                </div>
                 <div className={styles.quickLabel}>進捗確認</div>
                 <div className={styles.quickCount}>{progressPercentage}% 完了</div>
               </CardContent>

@@ -37,7 +37,7 @@ describe('streakAlertService', () => {
         expect(result.type).toBe('success');
         expect(result.message).toBe('今日学習済み');
         expect(result.subMessage).toBe('5日連続 継続中');
-        expect(result.icon).toBe('✅');
+        expect(result.iconName).toBe('check');
       });
     });
 
@@ -49,7 +49,7 @@ describe('streakAlertService', () => {
         expect(result.type).toBe('warning');
         expect(result.message).toBe('今日学習するとstreak継続');
         expect(result.subMessage).toBe('現在3日連続');
-        expect(result.icon).toBe('⚠️');
+        expect(result.iconName).toBe('alert-triangle');
       });
     });
 
@@ -61,7 +61,7 @@ describe('streakAlertService', () => {
         expect(result.type).toBe('success');
         expect(result.message).toBe('学習再開しました！');
         expect(result.subMessage).toBe('新しいstreakのスタートです');
-        expect(result.icon).toBe('🔥');
+        expect(result.iconName).toBe('flame');
       });
     });
   });

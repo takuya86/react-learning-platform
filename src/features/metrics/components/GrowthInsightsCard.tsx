@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { Target } from 'lucide-react';
 import { Card } from '@/components/ui';
 import type { GrowthInsights } from '../services/growthInsightsService';
 import styles from './GrowthInsightsCard.module.css';
@@ -126,7 +127,7 @@ export function GrowthInsightsCard({
         {/* Top focus (optional) */}
         {insights.topFocus && (
           <div className={styles.topFocus}>
-            <span>🎯</span>
+            <Target size={16} />
             <span className={styles.topFocusLabel}>
               最も学習したトピック: {insights.topFocus.label} ({insights.topFocus.count}回)
             </span>

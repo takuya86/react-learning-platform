@@ -22,8 +22,8 @@
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 20% 20%, rgba(8, 145, 178, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(14, 116, 144, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.02) 0%, transparent 70%);
   pointer-events: none;
   z-index: -1;
@@ -47,7 +47,7 @@
 .title {
   font-size: 36px;
   font-weight: 800;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #06b6d4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -94,7 +94,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(8, 145, 178, 0.08) 0%, transparent 60%);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -152,7 +152,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 24px;
   font-weight: 700;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -169,11 +169,11 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 40%, #a855f7 70%, #ec4899 100%);
+  background: linear-gradient(90deg, #0891b2 0%, #0e7490 40%, #06b6d4 70%, #22d3ee 100%);
   border-radius: 10px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4);
 }
 
 /* Animated shimmer effect */
@@ -224,14 +224,14 @@
 }
 
 .emptyMessage a {
-  color: #6366f1;
+  color: #0891b2;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .emptyMessage a:hover {
-  color: #4f46e5;
+  color: #0e7490;
   text-decoration: underline;
 }
 
@@ -257,7 +257,7 @@
 }
 
 .recentItem:hover {
-  background: linear-gradient(90deg, rgba(99, 102, 241, 0.02) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(8, 145, 178, 0.02) 0%, transparent 100%);
   margin: 0 -16px;
   padding-left: 16px;
   padding-right: 16px;
@@ -278,7 +278,7 @@
 }
 
 .recentTitle:hover {
-  color: #6366f1;
+  color: #0891b2;
 }
 
 .recentDate {
@@ -317,9 +317,9 @@
 .statsGrid :global(.card):hover {
   transform: translateY(-4px);
   box-shadow:
-    0 20px 40px -10px rgba(99, 102, 241, 0.15),
+    0 20px 40px -10px rgba(8, 145, 178, 0.15),
     0 4px 6px -1px rgba(0, 0, 0, 0.03);
-  border-color: rgba(99, 102, 241, 0.2);
+  border-color: rgba(8, 145, 178, 0.2);
 }
 
 /* First stat card (completed) - special styling */
@@ -337,12 +337,12 @@
 
 /* Second stat card (percentage) */
 .statsGrid > :nth-child(2) :global(.card) {
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-  border-color: rgba(139, 92, 246, 0.2);
+  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
+  border-color: rgba(8, 145, 178, 0.2);
 }
 
 .statsGrid > :nth-child(2) .statValue {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

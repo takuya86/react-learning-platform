@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   getEventTypeDisplayTitle,
-  getEventTypeIcon,
+  getEventTypeIconName,
   getEventLinkPath,
   convertToDisplayEvent,
   buildDailyEventsResult,
@@ -42,17 +42,17 @@ describe('dailyEventsService', () => {
     });
   });
 
-  describe('getEventTypeIcon', () => {
-    it('returns correct icon for lesson_completed', () => {
-      expect(getEventTypeIcon('lesson_completed')).toBe('📚');
+  describe('getEventTypeIconName', () => {
+    it('returns correct icon name for lesson_completed', () => {
+      expect(getEventTypeIconName('lesson_completed')).toBe('book-open');
     });
 
-    it('returns correct icon for quiz_completed', () => {
-      expect(getEventTypeIcon('quiz_completed')).toBe('📝');
+    it('returns correct icon name for quiz_completed', () => {
+      expect(getEventTypeIconName('quiz_completed')).toBe('file-text');
     });
 
-    it('returns correct icon for note_updated', () => {
-      expect(getEventTypeIcon('note_updated')).toBe('📒');
+    it('returns correct icon name for note_updated', () => {
+      expect(getEventTypeIconName('note_updated')).toBe('notebook');
     });
   });
 
@@ -82,7 +82,7 @@ describe('dailyEventsService', () => {
       expect(display.eventType).toBe('lesson_completed');
       expect(display.referenceId).toBe('react-basics');
       expect(display.displayTitle).toBe('レッスン完了');
-      expect(display.displayIcon).toBe('📚');
+      expect(display.displayIconName).toBe('book-open');
       expect(display.linkPath).toBe('/lessons/react-basics');
     });
 

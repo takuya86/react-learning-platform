@@ -71,14 +71,17 @@ export const INTERVENTION_CTA_TEXT = {
 } as const;
 
 /**
- * 介入タイプごとのアイコン
+ * 介入タイプごとのアイコン名
+ * Lucide React アイコン名を指定
  */
 export const INTERVENTION_ICONS = {
-  STREAK_RESCUE: '🌱',
-  WEEKLY_CATCHUP: '📅',
-  POSITIVE: '✨',
-  POSITIVE_LONG_STREAK: '🎯',
+  STREAK_RESCUE: 'sprout',
+  WEEKLY_CATCHUP: 'calendar',
+  POSITIVE: 'sparkles',
+  POSITIVE_LONG_STREAK: 'target',
 } as const;
+
+export type InterventionIconName = (typeof INTERVENTION_ICONS)[keyof typeof INTERVENTION_ICONS];
 
 /**
  * POSITIVE 介入で長期ストリーク判定する閾値

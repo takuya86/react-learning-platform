@@ -6,9 +6,21 @@
 
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { BookOpen, FileText, NotebookText, Pin, MailX } from 'lucide-react';
 import { useDailyEvents } from '../hooks/useDailyEvents';
-import { formatDateForDisplay, getDayOfWeekJapanese } from '../services/dailyEventsService';
+import {
+  formatDateForDisplay,
+  getDayOfWeekJapanese,
+  type EventIconName,
+} from '../services/dailyEventsService';
 import styles from './HeatmapDrilldownModal.module.css';
+
+const eventIconMap: Record<EventIconName, React.ReactNode> = {
+  'book-open': <BookOpen size={16} />,
+  'file-text': <FileText size={16} />,
+  notebook: <NotebookText size={16} />,
+  pin: <Pin size={16} />,
+};
 
 interface HeatmapDrilldownModalProps {
   date: string;
@@ -67,7 +79,9 @@ export function HeatmapDrilldownModal({ date, onClose }: HeatmapDrilldownModalPr
 
           {!isLoading && !error && result?.isEmpty && (
             <div className={styles.emptyState} data-testid="drilldown-empty">
-              <span className={styles.emptyIcon}>📭</span>
+              <span className={styles.emptyIcon}>
+                <MailX size={24} />
+              </span>
               <p className={styles.emptyText}>この日は未学習です</p>
               <p className={styles.emptySubtext}>学習を始めて記録を残しましょう</p>
             </div>
@@ -83,7 +97,7 @@ export function HeatmapDrilldownModal({ date, onClose }: HeatmapDrilldownModalPr
               <ul className={styles.eventList} data-testid="drilldown-event-list">
                 {result.events.map((event) => (
                   <li key={event.id} className={styles.eventItem}>
-                    <span className={styles.eventIcon}>{event.displayIcon}</span>
+                    <span className={styles.eventIcon}>{eventIconMap[event.displayIconName]}</span>
                     <div className={styles.eventContent}>
                       <span className={styles.eventTitle}>{event.displayTitle}</span>
                       {event.referenceId && (

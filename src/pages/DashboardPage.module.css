@@ -24,7 +24,7 @@
   transform: translateX(-50%);
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(8, 145, 178, 0.08) 0%, transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
@@ -32,7 +32,7 @@
 .title {
   font-size: 42px;
   font-weight: 800;
-  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -57,14 +57,14 @@
 .progressCard {
   background: linear-gradient(
     135deg,
-    var(--color-primary-500, #6366f1) 0%,
-    var(--color-accent-500, #d946ef) 100%
+    var(--color-primary-500, #0891b2) 0%,
+    var(--color-primary-600, #0e7490) 100%
   );
   color: white;
   border-radius: var(--radius-xl, 24px);
   overflow: hidden;
   position: relative;
-  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(99, 102, 241, 0.35));
+  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(8, 145, 178, 0.35));
 }
 
 .progressCard::before {
@@ -160,19 +160,19 @@
   align-items: center;
   gap: var(--space-2, 8px);
   padding: 14px 28px;
-  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
   color: white;
   text-decoration: none;
   border-radius: var(--radius-lg, 16px);
   font-weight: 700;
   font-size: 15px;
   transition: all var(--transition-normal, 250ms ease);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
 }
 
 .startButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 8px 25px rgba(8, 145, 178, 0.4);
   color: white;
 }
 
@@ -211,14 +211,14 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: var(--gradient-primary, linear-gradient(135deg, #6366f1 0%, #d946ef 100%));
+  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
   transform: scaleX(0);
   transition: transform var(--transition-normal, 250ms ease);
 }
 
 .quickCard:hover {
   transform: translateY(-6px);
-  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(99, 102, 241, 0.2));
+  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(8, 145, 178, 0.2));
   border-color: var(--color-primary-200, #c7d2fe);
 }
 

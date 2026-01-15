@@ -25,9 +25,9 @@
   color: white;
 }
 
-/* Positive - Soft purple */
+/* Positive - Soft teal */
 .positive {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   color: white;
 }
 

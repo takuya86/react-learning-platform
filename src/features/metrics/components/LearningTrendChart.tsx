@@ -11,6 +11,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
+import { BarChart2 } from 'lucide-react';
 import { type TrendMode, formatDateLabel } from '../services/trendService';
 import styles from './LearningTrendChart.module.css';
 
@@ -107,7 +108,9 @@ export function LearningTrendChart({
 
       {!hasData ? (
         <div className={styles.emptyState} data-testid="trend-empty">
-          <span className={styles.emptyIcon}>📊</span>
+          <span className={styles.emptyIcon}>
+            <BarChart2 size={24} />
+          </span>
           <span className={styles.emptyText}>まだ学習データがありません</span>
         </div>
       ) : (

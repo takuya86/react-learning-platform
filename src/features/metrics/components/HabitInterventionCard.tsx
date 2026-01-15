@@ -17,7 +17,9 @@
 
 import { useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Sprout, Calendar, Sparkles, Target } from 'lucide-react';
 import { Card } from '@/components/ui';
+import type { InterventionIconName } from '../constants';
 import { useLearningMetrics } from '../hooks/useLearningMetrics';
 import { buildHabitScore, getHabitState } from '../services/habitScoreService';
 import {
@@ -28,6 +30,13 @@ import {
 import { useRecommendations } from '@/features/insights';
 import { selectBestLesson } from '@/features/actionable/services/actionRecommendationService';
 import styles from './HabitInterventionCard.module.css';
+
+const iconMap: Record<InterventionIconName, React.ReactNode> = {
+  sprout: <Sprout size={20} />,
+  calendar: <Calendar size={20} />,
+  sparkles: <Sparkles size={20} />,
+  target: <Target size={20} />,
+};
 
 interface HabitInterventionCardProps {
   recentActiveDays: number; // 過去7日で学習した日数
@@ -97,7 +106,7 @@ export function HabitInterventionCard({
       data-intervention-type={intervention.type}
     >
       <div className={styles.content}>
-        <span className={styles.icon}>{intervention.icon}</span>
+        <span className={styles.icon}>{iconMap[intervention.iconName]}</span>
         <div className={styles.textContent}>
           <p className={styles.message}>{intervention.message}</p>
           <p className={styles.subMessage}>{intervention.subMessage}</p>

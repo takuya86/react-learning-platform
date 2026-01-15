@@ -10,12 +10,14 @@
 
 import type { LearningEvent, LearningEventType } from '@/features/metrics/services/metricsService';
 
+export type EventIconName = 'book-open' | 'file-text' | 'notebook' | 'pin';
+
 export interface DailyEventDisplay {
   id: string;
   eventType: LearningEventType;
   referenceId: string;
   displayTitle: string;
-  displayIcon: string;
+  displayIconName: EventIconName;
   linkPath: string | null;
   createdAt: string | null;
 }
@@ -44,18 +46,18 @@ export function getEventTypeDisplayTitle(eventType: LearningEventType): string {
 }
 
 /**
- * Get icon for event type
+ * Get icon name for event type
  */
-export function getEventTypeIcon(eventType: LearningEventType): string {
+export function getEventTypeIconName(eventType: LearningEventType): EventIconName {
   switch (eventType) {
     case 'lesson_completed':
-      return '📚';
+      return 'book-open';
     case 'quiz_completed':
-      return '📝';
+      return 'file-text';
     case 'note_updated':
-      return '📒';
+      return 'notebook';
     default:
-      return '📌';
+      return 'pin';
   }
 }
 
@@ -86,7 +88,7 @@ export function convertToDisplayEvent(event: LearningEvent, index: number): Dail
     eventType: event.event_type,
     referenceId: event.reference_id || '',
     displayTitle: getEventTypeDisplayTitle(event.event_type),
-    displayIcon: getEventTypeIcon(event.event_type),
+    displayIconName: getEventTypeIconName(event.event_type),
     linkPath: getEventLinkPath(event.event_type, event.reference_id || ''),
     createdAt: event.created_at || null,
   };

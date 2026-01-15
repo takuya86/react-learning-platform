@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BarChart2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui';
 import {
   useAdminMetrics,
@@ -953,7 +954,9 @@ function AdminTrendChart({ data }: AdminTrendChartProps) {
   if (!hasData) {
     return (
       <div className={styles.emptyState}>
-        <span className={styles.emptyIcon}>📊</span>
+        <span className={styles.emptyIcon}>
+          <BarChart2 size={24} />
+        </span>
         <span className={styles.emptyText}>まだ学習データがありません</span>
       </div>
     );

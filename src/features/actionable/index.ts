@@ -2,8 +2,9 @@
 export {
   type DailyEventDisplay,
   type DailyEventsResult,
+  type EventIconName,
   getEventTypeDisplayTitle,
-  getEventTypeIcon,
+  getEventTypeIconName,
   getEventLinkPath,
   convertToDisplayEvent,
   buildDailyEventsResult,

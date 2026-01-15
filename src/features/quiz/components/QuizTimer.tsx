@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { Timer } from 'lucide-react';
 import styles from './QuizTimer.module.css';
 
 interface QuizTimerProps {
@@ -13,11 +14,7 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function QuizTimer({
-  timeRemainingSec,
-  onTick,
-  isRunning,
-}: QuizTimerProps) {
+export function QuizTimer({ timeRemainingSec, onTick, isRunning }: QuizTimerProps) {
   const intervalRef = useRef<number | null>(null);
   // Use ref to always access the latest onTick without re-creating interval
   const onTickRef = useRef(onTick);
@@ -73,7 +70,9 @@ export function QuizTimer({
     <div
       className={`${styles.timer} ${isLowTime ? styles.lowTime : ''} ${isCritical ? styles.critical : ''}`}
     >
-      <span className={styles.icon}>⏱</span>
+      <span className={styles.icon}>
+        <Timer size={18} />
+      </span>
       <span className={styles.time}>{formatTime(timeRemainingSec)}</span>
     </div>
   );

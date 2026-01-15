@@ -12,13 +12,14 @@
 import type { StreakReasonCode } from '@/features/metrics/services/metricsExplainService';
 
 export type StreakAlertType = 'warning' | 'success' | 'none';
+export type StreakAlertIcon = 'check' | 'alert-triangle' | 'flame' | '';
 
 export interface StreakAlertInfo {
   type: StreakAlertType;
   show: boolean;
   message: string;
   subMessage: string | null;
-  icon: string;
+  iconName: StreakAlertIcon;
 }
 
 /**
@@ -40,7 +41,7 @@ export function buildStreakAlert(
       show: false,
       message: '',
       subMessage: null,
-      icon: '',
+      iconName: '',
     };
   }
 
@@ -51,7 +52,7 @@ export function buildStreakAlert(
       show: true,
       message: '今日学習済み',
       subMessage: `${currentStreak}日連続 継続中`,
-      icon: '✅',
+      iconName: 'check',
     };
   }
 
@@ -62,7 +63,7 @@ export function buildStreakAlert(
       show: true,
       message: '今日学習するとstreak継続',
       subMessage: `現在${currentStreak}日連続`,
-      icon: '⚠️',
+      iconName: 'alert-triangle',
     };
   }
 
@@ -73,7 +74,7 @@ export function buildStreakAlert(
       show: true,
       message: '学習再開しました！',
       subMessage: '新しいstreakのスタートです',
-      icon: '🔥',
+      iconName: 'flame',
     };
   }
 
@@ -82,6 +83,6 @@ export function buildStreakAlert(
     show: false,
     message: '',
     subMessage: null,
-    icon: '',
+    iconName: '',
   };
 }

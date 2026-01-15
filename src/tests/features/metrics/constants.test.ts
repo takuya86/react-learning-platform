@@ -73,11 +73,11 @@ describe('metrics constants', () => {
   });
 
   describe('INTERVENTION_ICONS', () => {
-    it('has icons for all intervention types', () => {
-      expect(INTERVENTION_ICONS.STREAK_RESCUE).toBe('🌱');
-      expect(INTERVENTION_ICONS.WEEKLY_CATCHUP).toBe('📅');
-      expect(INTERVENTION_ICONS.POSITIVE).toBe('✨');
-      expect(INTERVENTION_ICONS.POSITIVE_LONG_STREAK).toBe('🎯');
+    it('has icon names for all intervention types', () => {
+      expect(INTERVENTION_ICONS.STREAK_RESCUE).toBe('sprout');
+      expect(INTERVENTION_ICONS.WEEKLY_CATCHUP).toBe('calendar');
+      expect(INTERVENTION_ICONS.POSITIVE).toBe('sparkles');
+      expect(INTERVENTION_ICONS.POSITIVE_LONG_STREAK).toBe('target');
     });
   });
 

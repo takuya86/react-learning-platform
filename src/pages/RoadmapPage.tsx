@@ -128,7 +128,13 @@ export function RoadmapPage() {
                       <div
                         className={`${styles.lessonNumber} ${!unlocked && !completed ? styles.lockedNumber : ''}`}
                       >
-                        {completed ? '✓' : unlocked ? index + 1 : '🔒'}
+                        {completed ? (
+                          <Check size={18} />
+                        ) : unlocked ? (
+                          index + 1
+                        ) : (
+                          <Lock size={14} />
+                        )}
                       </div>
                       <div className={styles.lessonContent}>
                         <div className={styles.lessonTitleRow}>

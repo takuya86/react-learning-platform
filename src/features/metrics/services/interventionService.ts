@@ -19,6 +19,7 @@ import {
   INTERVENTION_ICONS,
   POSITIVE_LONG_STREAK_THRESHOLD,
   LOGGABLE_INTERVENTION_TYPES,
+  type InterventionIconName,
 } from '../constants';
 
 // ============================================================
@@ -32,7 +33,7 @@ export interface StreakRescueIntervention {
   message: string;
   subMessage: string;
   ctaText: string;
-  icon: string;
+  iconName: InterventionIconName;
 }
 
 export interface WeeklyCatchupIntervention {
@@ -40,14 +41,14 @@ export interface WeeklyCatchupIntervention {
   message: string;
   subMessage: string;
   ctaText: string;
-  icon: string;
+  iconName: InterventionIconName;
 }
 
 export interface PositiveIntervention {
   type: 'POSITIVE';
   message: string;
   subMessage: string;
-  icon: string;
+  iconName: InterventionIconName;
 }
 
 export type Intervention =
@@ -94,7 +95,7 @@ function buildStreakRescue(streakExplain: StreakExplain): StreakRescueInterventi
     message: `${streak}日続いてる学習、今日も続けませんか？`,
     subMessage: '短い時間でも大丈夫です',
     ctaText: INTERVENTION_CTA_TEXT.STREAK_RESCUE,
-    icon: INTERVENTION_ICONS.STREAK_RESCUE,
+    iconName: INTERVENTION_ICONS.STREAK_RESCUE,
   };
 }
 
@@ -111,7 +112,7 @@ function buildWeeklyCatchup(weeklyExplain: WeeklyGoalExplain): WeeklyCatchupInte
     message: `今週の目標、${remainingText}で達成できます`,
     subMessage: '今日やれば十分間に合います',
     ctaText: INTERVENTION_CTA_TEXT.WEEKLY_CATCHUP,
-    icon: INTERVENTION_ICONS.WEEKLY_CATCHUP,
+    iconName: INTERVENTION_ICONS.WEEKLY_CATCHUP,
   };
 }
 
@@ -127,7 +128,7 @@ function buildPositive(streakExplain: StreakExplain): PositiveIntervention {
       type: 'POSITIVE',
       message: `${streak}日連続！素晴らしいペースです`,
       subMessage: 'この調子で続けましょう',
-      icon: INTERVENTION_ICONS.POSITIVE_LONG_STREAK,
+      iconName: INTERVENTION_ICONS.POSITIVE_LONG_STREAK,
     };
   }
 
@@ -135,7 +136,7 @@ function buildPositive(streakExplain: StreakExplain): PositiveIntervention {
     type: 'POSITIVE',
     message: '順調に学習できています',
     subMessage: '今日も頑張りましょう',
-    icon: INTERVENTION_ICONS.POSITIVE,
+    iconName: INTERVENTION_ICONS.POSITIVE,
   };
 }
 

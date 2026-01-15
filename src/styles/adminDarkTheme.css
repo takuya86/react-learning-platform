@@ -29,8 +29,8 @@
   --admin-accent-cyan: #06b6d4;
   --admin-accent-cyan-hover: #22d3ee;
   --admin-accent-teal: #14b8a6;
-  --admin-accent-purple: #8b5cf6;
-  --admin-accent-purple-hover: #a78bfa;
+  --admin-accent-purple: #06b6d4;
+  --admin-accent-purple-hover: #22d3ee;
   --admin-accent-blue: #3b82f6;
   --admin-accent-green: #22c55e;
   --admin-accent-yellow: #eab308;
@@ -42,7 +42,7 @@
    * Gradients
    * ======================================== */
   --admin-gradient-primary: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
-  --admin-gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  --admin-gradient-purple: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
   --admin-gradient-warm: linear-gradient(135deg, #f97316 0%, #eab308 100%);
   --admin-gradient-danger: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
   --admin-gradient-success: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
@@ -62,7 +62,7 @@
   --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   --admin-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
   --admin-shadow-glow-cyan: 0 0 20px rgba(6, 182, 212, 0.15);
-  --admin-shadow-glow-purple: 0 0 20px rgba(139, 92, 246, 0.15);
+  --admin-shadow-glow-purple: 0 0 20px rgba(6, 182, 212, 0.15);
 
   /* ========================================
    * Typography

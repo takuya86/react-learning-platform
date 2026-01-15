@@ -5,6 +5,7 @@
  */
 
 import { useMemo } from 'react';
+import { PartyPopper } from 'lucide-react';
 import type { WeeklyGoalExplain } from '@/features/metrics/services/metricsExplainService';
 import { buildWeeklyCountdown } from '../services/weeklyCountdownService';
 import styles from './WeeklyCountdown.module.css';
@@ -66,7 +67,11 @@ export function WeeklyCountdown({ weeklyExplain, className = '' }: WeeklyCountdo
         </div>
       )}
 
-      {countdown.type === 'achieved' && <span className={styles.achievedIcon}>🎉</span>}
+      {countdown.type === 'achieved' && (
+        <span className={styles.achievedIcon}>
+          <PartyPopper size={20} />
+        </span>
+      )}
     </div>
   );
 }

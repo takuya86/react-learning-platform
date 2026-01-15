@@ -5,9 +5,17 @@
  */
 
 import { useMemo } from 'react';
+import { Check, AlertTriangle, Flame } from 'lucide-react';
 import type { StreakExplain } from '@/features/metrics/services/metricsExplainService';
-import { buildStreakAlert } from '../services/streakAlertService';
+import { buildStreakAlert, type StreakAlertIcon } from '../services/streakAlertService';
 import styles from './StreakAlert.module.css';
+
+const iconMap: Record<StreakAlertIcon, React.ReactNode> = {
+  check: <Check size={18} />,
+  'alert-triangle': <AlertTriangle size={18} />,
+  flame: <Flame size={18} />,
+  '': null,
+};
 
 interface StreakAlertProps {
   streakExplain: StreakExplain;
@@ -34,7 +42,7 @@ export function StreakAlert({ streakExplain, className = '' }: StreakAlertProps)
       role="status"
       aria-live="polite"
     >
-      <span className={styles.icon}>{alert.icon}</span>
+      <span className={styles.icon}>{iconMap[alert.iconName]}</span>
       <div className={styles.content}>
         <span className={styles.message}>{alert.message}</span>
         {alert.subMessage && <span className={styles.subMessage}>{alert.subMessage}</span>}

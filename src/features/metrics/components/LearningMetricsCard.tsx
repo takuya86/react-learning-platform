@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { Flame, PartyPopper, Calendar, Info } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui';
 import type { LearningMetrics } from '../services/metricsService';
 import type { StreakExplain, WeeklyGoalExplain } from '../services/metricsExplainService';
@@ -59,7 +60,9 @@ export function LearningMetricsCard({
         <div className={styles.metricsRow}>
           {/* Streak */}
           <div className={styles.metricItem} data-testid="streak-display">
-            <div className={styles.metricIcon}>🔥</div>
+            <div className={styles.metricIcon}>
+              <Flame size={24} />
+            </div>
             <div className={styles.metricContent}>
               <div className={styles.metricHeader}>
                 <span className={styles.metricValue} data-testid="streak-value">
@@ -75,7 +78,7 @@ export function LearningMetricsCard({
                       aria-label="連続記録の説明を表示"
                       data-testid="streak-explain-button"
                     >
-                      ℹ
+                      <Info size={14} />
                     </button>
                     {streakPopoverOpen && (
                       <div className={styles.popover} data-testid="streak-explain-popover">
@@ -97,7 +100,9 @@ export function LearningMetricsCard({
 
           {/* Weekly Goal */}
           <div className={styles.metricItem} data-testid="weekly-goal-display">
-            <div className={styles.metricIcon}>{isGoalMet ? '🎉' : '📅'}</div>
+            <div className={styles.metricIcon}>
+              {isGoalMet ? <PartyPopper size={24} /> : <Calendar size={24} />}
+            </div>
             <div className={styles.metricContent}>
               <div className={styles.metricHeader}>
                 <div className={styles.weeklyProgress}>
@@ -116,7 +121,7 @@ export function LearningMetricsCard({
                       aria-label="週間目標の説明を表示"
                       data-testid="weekly-explain-button"
                     >
-                      ℹ
+                      <Info size={14} />
                     </button>
                     {weeklyPopoverOpen && (
                       <div className={styles.popover} data-testid="weekly-explain-popover">

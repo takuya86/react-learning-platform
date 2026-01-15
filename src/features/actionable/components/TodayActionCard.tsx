@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Lightbulb } from 'lucide-react';
 import { Card, CardContent, Badge } from '@/components/ui';
 import type { LoadedLesson } from '@/lib/lessons';
 import type {
@@ -86,7 +87,9 @@ export function TodayActionCard({
         </div>
 
         <div className={styles.reason}>
-          <span className={styles.reasonIcon}>💡</span>
+          <span className={styles.reasonIcon}>
+            <Lightbulb size={16} />
+          </span>
           <span>{action.reason}</span>
         </div>
 
