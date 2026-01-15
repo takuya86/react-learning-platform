@@ -1,170 +1,330 @@
+/**
+ * AdminPage - Dark Theme Styles
+ *
+ * 管理画面ダッシュボードのダークテーマスタイル
+ */
+
+@import '../styles/adminDarkTheme.css';
+
+/* ========================================
+ * Container & Layout
+ * ======================================== */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--admin-spacing-xl);
+  min-height: 100vh;
+  background: var(--admin-bg-primary);
+  font-family: var(--admin-font);
+  animation: adminFadeIn 0.4s ease;
 }
 
+/* ========================================
+ * Header
+ * ======================================== */
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: var(--admin-spacing-2xl);
+  animation: adminSlideDown 0.5s ease;
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #1a1a1a;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: var(--admin-spacing-sm);
+  color: var(--admin-text-primary);
+  background: var(--admin-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 1rem;
-  color: #666;
+  font-size: 1.125rem;
+  color: var(--admin-text-secondary);
+  font-weight: 400;
 }
 
+/* ========================================
+ * Content
+ * ======================================== */
 .content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--admin-spacing-xl);
 }
 
+/* ========================================
+ * Section Cards
+ * ======================================== */
 .section {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--admin-surface);
+  border-radius: var(--admin-radius-xl);
+  padding: var(--admin-spacing-xl);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow-md);
+  animation: adminSlideUp 0.5s ease backwards;
+  transition: all var(--admin-transition-normal);
+}
+
+.section:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.section:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.section:hover {
+  border-color: var(--admin-border-hover);
+  box-shadow: var(--admin-shadow-lg);
 }
 
 .sectionTitle {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #1a1a1a;
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin-bottom: var(--admin-spacing-lg);
+  color: var(--admin-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--admin-spacing-sm);
 }
 
+.sectionTitle::before {
+  content: '';
+  width: 4px;
+  height: 1.25em;
+  background: var(--admin-gradient-primary);
+  border-radius: var(--admin-radius-full);
+}
+
+/* ========================================
+ * Info Card (User Info)
+ * ======================================== */
 .infoCard {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--admin-spacing-sm);
 }
 
 .infoRow {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: #f9fafb;
-  border-radius: 6px;
+  gap: var(--admin-spacing-lg);
+  padding: var(--admin-spacing-md) var(--admin-spacing-lg);
+  background: var(--admin-bg-secondary);
+  border-radius: var(--admin-radius-lg);
+  border: 1px solid var(--admin-border);
+  transition: all var(--admin-transition-fast);
+}
+
+.infoRow:hover {
+  background: var(--admin-surface-hover);
+  border-color: var(--admin-border-hover);
 }
 
 .infoLabel {
   font-weight: 600;
-  color: #4b5563;
+  color: var(--admin-text-secondary);
   min-width: 150px;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .infoValue {
-  color: #1f2937;
-  font-family: monospace;
+  color: var(--admin-text-primary);
+  font-family: var(--admin-font-mono);
+  font-size: 0.9375rem;
 }
 
+/* ========================================
+ * Role Badge
+ * ======================================== */
 .roleBadge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  font-family: inherit;
+  padding: 0.375rem 1rem;
+  border-radius: var(--admin-radius-full);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: var(--admin-font);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--admin-transition-fast);
 }
 
 .roleBadge.admin {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(20, 184, 166, 0.2) 100%);
+  color: var(--admin-accent-cyan);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.roleBadge.admin:hover {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(20, 184, 166, 0.3) 100%);
 }
 
 .roleBadge.user {
-  background-color: #f3f4f6;
-  color: #374151;
+  background: rgba(161, 161, 170, 0.15);
+  color: var(--admin-text-secondary);
+  border: 1px solid var(--admin-border);
 }
 
+/* ========================================
+ * Features Grid
+ * ======================================== */
 .featuresGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--admin-spacing-lg);
 }
 
+/* ========================================
+ * Feature Card
+ * ======================================== */
 .featureCard {
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  padding: var(--admin-spacing-xl);
+  background: var(--admin-bg-secondary);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-xl);
+  transition: all var(--admin-transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.featureCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--admin-gradient-primary);
+  opacity: 0;
+  transition: opacity var(--admin-transition-normal);
 }
 
 .featureCard:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  background: var(--admin-surface);
+  border-color: var(--admin-border-hover);
+  box-shadow: var(--admin-shadow-lg), var(--admin-shadow-glow-cyan);
+  transform: translateY(-4px);
+}
+
+.featureCard:hover::before {
+  opacity: 1;
 }
 
 .featureTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #1a1a1a;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--admin-spacing-sm);
+  color: var(--admin-text-primary);
 }
 
 .featureDescription {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+  color: var(--admin-text-secondary);
+  margin-bottom: var(--admin-spacing-lg);
   flex-grow: 1;
+  line-height: 1.6;
 }
 
+/* ========================================
+ * Feature Button
+ * ======================================== */
 .featureButton {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background: #3b82f6;
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  background: var(--admin-gradient-primary);
+  color: var(--admin-bg-primary);
   border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: var(--admin-radius-lg);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-family: var(--admin-font);
   cursor: pointer;
   text-decoration: none;
   text-align: center;
-  transition: background-color 0.2s ease;
+  transition: all var(--admin-transition-normal);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .featureButton:hover:not(:disabled) {
-  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-md), var(--admin-shadow-glow-cyan);
+  filter: brightness(1.1);
+}
+
+.featureButton:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .featureButton:disabled {
-  background: #d1d5db;
-  color: #9ca3af;
+  background: var(--admin-surface);
+  color: var(--admin-text-disabled);
   cursor: not-allowed;
+  box-shadow: none;
+  border: 1px solid var(--admin-border);
 }
 
+/* ========================================
+ * Responsive Design
+ * ======================================== */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem;
+    padding: var(--admin-spacing-md);
   }
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .section {
+    padding: var(--admin-spacing-lg);
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
   }
 
   .featuresGrid {
     grid-template-columns: 1fr;
   }
 
+  .featureCard {
+    padding: var(--admin-spacing-lg);
+  }
+
   .infoRow {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--admin-spacing-xs);
   }
 
   .infoLabel {
     min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: var(--admin-spacing-sm);
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .featureButton {
+    width: 100%;
   }
 }
