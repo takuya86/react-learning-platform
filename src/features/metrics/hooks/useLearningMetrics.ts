@@ -185,15 +185,18 @@ export function useLearningMetrics(): UseLearningMetricsResult {
         // Update metrics
         const newMetrics = updateMetricsOnEvent(metrics, today);
 
-        const { error: metricsError } = await supabase.from('user_learning_metrics').upsert({
-          user_id: user.id,
-          streak: newMetrics.streak,
-          last_activity_date: newMetrics.lastActivityDate,
-          weekly_goal_type: newMetrics.weeklyGoal.type,
-          weekly_goal_target: newMetrics.weeklyGoal.target,
-          weekly_goal_progress: newMetrics.weeklyGoal.progress,
-          week_start_date: newMetrics.weeklyGoal.weekStartDate,
-        });
+        const { error: metricsError } = await supabase.from('user_learning_metrics').upsert(
+          {
+            user_id: user.id,
+            streak: newMetrics.streak,
+            last_activity_date: newMetrics.lastActivityDate,
+            weekly_goal_type: newMetrics.weeklyGoal.type,
+            weekly_goal_target: newMetrics.weeklyGoal.target,
+            weekly_goal_progress: newMetrics.weeklyGoal.progress,
+            week_start_date: newMetrics.weeklyGoal.weekStartDate,
+          },
+          { onConflict: 'user_id' }
+        );
 
         if (metricsError) {
           console.error('Failed to update metrics:', metricsError);
