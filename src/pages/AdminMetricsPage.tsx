@@ -971,7 +971,15 @@ function AdminTrendChart({ data }: AdminTrendChartProps) {
 
   return (
     <div>
-      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', margin: '0 0 0.75rem' }}>
+      <h3
+        style={{
+          fontSize: '1rem',
+          fontWeight: 700,
+          color: '#ffffff',
+          margin: '0 0 0.75rem',
+          letterSpacing: '-0.01em',
+        }}
+      >
         日次イベント数（30日）
       </h3>
       <svg
@@ -979,14 +987,34 @@ function AdminTrendChart({ data }: AdminTrendChartProps) {
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
         preserveAspectRatio="xMidYMid meet"
       >
+        <defs>
+          <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#06b6d4" />
+            <stop offset="100%" stopColor="#14b8a6" />
+          </linearGradient>
+        </defs>
         <g transform={`translate(${padding.left}, ${padding.top})`}>
           {/* Y-axis grid lines */}
           {yTicks.map((tick, i) => {
             const y = innerHeight - (tick / maxValue) * innerHeight;
             return (
               <g key={i}>
-                <line x1={0} y1={y} x2={innerWidth} y2={y} stroke="#e5e7eb" strokeWidth={1} />
-                <text x={-5} y={y + 3} textAnchor="end" fontSize={10} fill="#6b7280">
+                <line
+                  x1={0}
+                  y1={y}
+                  x2={innerWidth}
+                  y2={y}
+                  stroke="rgba(255,255,255,0.06)"
+                  strokeWidth={1}
+                />
+                <text
+                  x={-5}
+                  y={y + 3}
+                  textAnchor="end"
+                  fontSize={10}
+                  fill="#71717a"
+                  fontWeight={600}
+                >
                   {Math.round(tick)}
                 </text>
               </g>
@@ -1007,8 +1035,9 @@ function AdminTrendChart({ data }: AdminTrendChartProps) {
                 y={y}
                 width={Math.max(width, 1)}
                 height={Math.max(barHeight, 0)}
-                fill="#3b82f6"
-                rx={1}
+                fill="url(#barGradient)"
+                rx={2}
+                style={{ transition: 'height 0.3s ease, y 0.3s ease' }}
               />
             );
           })}
@@ -1024,7 +1053,8 @@ function AdminTrendChart({ data }: AdminTrendChartProps) {
                 y={innerHeight + 15}
                 textAnchor="middle"
                 fontSize={9}
-                fill="#6b7280"
+                fill="#71717a"
+                fontWeight={500}
               >
                 {point.x.slice(5)}
               </text>
