@@ -47,6 +47,7 @@ describe('RequireRole', () => {
       loading: true,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -63,6 +64,7 @@ describe('RequireRole', () => {
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -79,6 +81,7 @@ describe('RequireRole', () => {
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -97,6 +100,7 @@ describe('RequireRole', () => {
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     });
 

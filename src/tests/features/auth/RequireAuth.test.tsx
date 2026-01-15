@@ -47,6 +47,7 @@ describe('RequireAuth', () => {
       role: 'user',
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -63,6 +64,7 @@ describe('RequireAuth', () => {
       role: 'user',
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     });
 
@@ -79,6 +81,7 @@ describe('RequireAuth', () => {
       role: 'user',
       signIn: vi.fn(),
       signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
     });
 
