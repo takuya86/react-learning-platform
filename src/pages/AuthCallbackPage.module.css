@@ -35,7 +35,7 @@
 }
 
 .button {
-  background-color: var(--color-primary, #2563eb);
+  background-color: var(--color-primary, #0891b2);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -46,7 +46,7 @@
 }
 
 .button:hover {
-  background-color: var(--color-primary-dark, #1d4ed8);
+  background-color: var(--color-primary-dark, #0e7490);
 }
 
 .spinner {
@@ -54,7 +54,7 @@
   height: 40px;
   margin: 0 auto;
   border: 3px solid var(--color-border, #e5e5e5);
-  border-top-color: var(--color-primary, #2563eb);
+  border-top-color: var(--color-primary, #0891b2);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

@@ -22,8 +22,8 @@
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--color-primary, #3b82f6);
-  box-shadow: 0 0 0 3px var(--color-primary-light, rgba(59, 130, 246, 0.1));
+  border-color: var(--color-primary, #0891b2);
+  box-shadow: 0 0 0 3px var(--color-primary-light, rgba(8, 145, 178, 0.1));
 }
 
 .list {
@@ -57,7 +57,7 @@
 }
 
 .item.selected {
-  background-color: var(--color-primary-light, #dbeafe);
+  background-color: var(--color-primary-light, #cffafe);
 }
 
 .itemContent {

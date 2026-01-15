@@ -57,7 +57,7 @@
 
 .lessonLink {
   font-size: 0.75rem;
-  color: var(--color-primary, #3b82f6);
+  color: var(--color-primary, #0891b2);
   text-decoration: none;
 }
 
@@ -97,7 +97,7 @@
 }
 
 .toggleButton.active {
-  background-color: var(--color-primary, #3b82f6);
+  background-color: var(--color-primary, #0891b2);
   color: white;
 }
 

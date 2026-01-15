@@ -34,7 +34,7 @@
 .link {
   display: inline-block;
   padding: 12px 24px;
-  background-color: #3b82f6;
+  background-color: #0891b2;
   color: white;
   text-decoration: none;
   border-radius: 6px;
@@ -43,5 +43,5 @@
 }
 
 .link:hover {
-  background-color: #2563eb;
+  background-color: #0e7490;
 }

@@ -13,7 +13,7 @@
 }
 
 .breadcrumb a {
-  color: #3b82f6;
+  color: #0891b2;
   text-decoration: none;
 }
 
@@ -87,8 +87,8 @@
   display: inline-block;
   padding: 4px 10px;
   font-size: 13px;
-  color: #3b82f6;
-  background-color: #eff6ff;
+  color: #0891b2;
+  background-color: #ecfeff;
   border-radius: 4px;
   text-decoration: none;
   transition:
@@ -97,8 +97,8 @@
 }
 
 .prerequisiteLink:hover {
-  background-color: #dbeafe;
-  color: #2563eb;
+  background-color: #cffafe;
+  color: #0e7490;
 }
 
 .content {
@@ -176,7 +176,7 @@
 
 .noteLink,
 .quizLink {
-  color: #3b82f6;
+  color: #0891b2;
   text-decoration: none;
   font-size: 14px;
 }
@@ -213,7 +213,7 @@
 }
 
 .notFound a {
-  color: #3b82f6;
+  color: #0891b2;
   text-decoration: none;
 }
 
@@ -259,8 +259,8 @@
 }
 
 .nextLessonCard:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  border-color: #0891b2;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.1);
 }
 
 .nextLessonMeta {
