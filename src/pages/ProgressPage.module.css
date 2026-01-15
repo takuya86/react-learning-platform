@@ -1,106 +1,238 @@
+/* ========================================
+ * Progress Page - Gamified Learning Dashboard
+ * Aesthetic: Achievement-focused, Celebratory, Dynamic
+ * ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
 .container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 40px 24px;
+  font-family: 'Outfit', sans-serif;
+  position: relative;
 }
 
+/* Subtle background pattern */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.02) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Header */
 .header {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 .headerTop {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 16px;
-  color: #6b7280;
+  font-size: 17px;
+  color: #64748b;
   margin: 0;
+  font-weight: 500;
 }
 
+/* Stats Grid - Achievement Cards */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .statCard {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 12px;
+  padding: 24px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative glow on stat cards */
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.statCard:hover::before {
+  opacity: 1;
 }
 
 .statLabel {
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .statValue {
-  font-size: 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 36px;
   font-weight: 700;
-  color: #111827;
+  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
 }
 
+/* Progress Bar - Hero Element */
 .progressBar {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  padding: 32px;
+  background: linear-gradient(135deg, #fafafa 0%, #f1f5f9 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.03),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .progressLabel {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #374151;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.progressLabel span:first-child {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.progressLabel span:last-child {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .progressTrack {
-  height: 12px;
-  background-color: #e5e7eb;
-  border-radius: 6px;
+  height: 20px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 100%);
+  border-radius: 10px;
   overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .progressFill {
   height: 100%;
-  background-color: #3b82f6;
-  border-radius: 6px;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 40%, #a855f7 70%, #ec4899 100%);
+  border-radius: 10px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
+/* Animated shimmer effect */
+.progressFill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Recent Activity Card */
 .recentCard {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.03);
 }
 
 .emptyMessage {
   text-align: center;
-  color: #6b7280;
-  padding: 20px;
+  color: #64748b;
+  padding: 48px 20px;
+  font-size: 16px;
 }
 
 .emptyMessage a {
-  color: #3b82f6;
+  color: #6366f1;
   text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
 }
 
 .emptyMessage a:hover {
+  color: #4f46e5;
   text-decoration: underline;
 }
 
+/* Recent List */
 .recentList {
   list-style: none;
   padding: 0;
@@ -111,35 +243,162 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .recentItem:last-child {
   border-bottom: none;
 }
 
+.recentItem:hover {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.02) 0%, transparent 100%);
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
 .recentInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .recentTitle {
-  color: #111827;
+  color: #1e293b;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 15px;
+  transition: color 0.2s ease;
 }
 
 .recentTitle:hover {
-  color: #3b82f6;
+  color: #6366f1;
 }
 
 .recentDate {
-  font-size: 12px;
-  color: #9ca3af;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Reset Section */
+.resetSection {
+  text-align: center;
+  padding-top: 20px;
+}
+
+.resetSection button {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.resetSection button:hover {
+  transform: translateY(-1px);
+}
+
+/* Card enhancements for this page */
+.statsGrid :global(.card) {
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+.statsGrid :global(.card):hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px -10px rgba(99, 102, 241, 0.15),
+    0 4px 6px -1px rgba(0, 0, 0, 0.03);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* First stat card (completed) - special styling */
+.statsGrid > :first-child :global(.card) {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.statsGrid > :first-child .statValue {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Second stat card (percentage) */
+.statsGrid > :nth-child(2) :global(.card) {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.statsGrid > :nth-child(2) .statValue {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Third stat card (streak) - fire theme */
+.statsGrid > :nth-child(3) :global(.card) {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.statsGrid > :nth-child(3) .statValue {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Fourth stat card (in progress) */
+.statsGrid > :nth-child(4) :global(.card) {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.statsGrid > :nth-child(4) .statValue {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animation on page load */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.statsGrid {
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+.progressBar {
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+.recentCard {
+  animation: fadeInUp 0.6s ease-out 0.3s backwards;
 }
 
 .resetSection {
-  text-align: center;
+  animation: fadeInUp 0.6s ease-out 0.4s backwards;
 }
