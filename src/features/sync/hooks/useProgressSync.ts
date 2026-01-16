@@ -74,12 +74,14 @@ export function useProgressSync(
 
       const result = await saveProgress(user.id, progress);
 
+      // Update lastPushedRef regardless of success/error to prevent infinite retry loops
+      // The same progress data won't be retried until it actually changes
+      lastPushedRef.current = progress;
+
       if (result.error) {
         updateSyncState({ status: 'error', error: result.error });
         return;
       }
-
-      lastPushedRef.current = progress;
       updateSyncState({
         status: 'idle',
         lastSyncedAt: new Date().toISOString(),

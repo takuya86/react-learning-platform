@@ -68,17 +68,17 @@ export function useNotesSync(onSyncStateChange?: (state: SyncState) => void): Us
 
       const result = await saveNote(user.id, note);
 
-      if (result.error) {
-        updateSyncState({ status: 'error', error: result.error });
-        return;
-      }
-
-      // Update last pushed cache
+      // Update last pushed cache regardless of success/error to prevent infinite retry loops
       if (lastPushedRef.current) {
         lastPushedRef.current = {
           ...lastPushedRef.current,
           [note.lessonId]: note,
         };
+      }
+
+      if (result.error) {
+        updateSyncState({ status: 'error', error: result.error });
+        return;
       }
 
       updateSyncState({
@@ -125,12 +125,13 @@ export function useNotesSync(onSyncStateChange?: (state: SyncState) => void): Us
 
       const result = await saveAllNotes(user.id, notes);
 
+      // Update lastPushedRef regardless of success/error to prevent infinite retry loops
+      lastPushedRef.current = notes;
+
       if (result.error) {
         updateSyncState({ status: 'error', error: result.error });
         return;
       }
-
-      lastPushedRef.current = notes;
       updateSyncState({
         status: 'idle',
         lastSyncedAt: new Date().toISOString(),
