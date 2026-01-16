@@ -7,15 +7,7 @@ interface SyncStatusIndicatorProps {
 }
 
 export function SyncStatusIndicator({ showTime = true, className = '' }: SyncStatusIndicatorProps) {
-  const { state, combinedStatus, lastSyncedAtFormatted } = useSyncState();
-
-  // Debug: エラー内容をコンソールに出力
-  if (combinedStatus === 'error') {
-    console.error('[Sync Error]', {
-      progress: state.progress.error,
-      notes: state.notes.error,
-    });
-  }
+  const { combinedStatus, lastSyncedAtFormatted } = useSyncState();
 
   const statusConfig = {
     idle: {
