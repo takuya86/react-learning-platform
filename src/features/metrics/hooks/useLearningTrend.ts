@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase, isMockMode } from '@/lib/supabase';
+import { MockDataManager } from '@/lib/mock/MockDataManager';
 import { getUTCDateString, type LearningEvent } from '../services/metricsService';
 import {
   getTrendData,
@@ -26,21 +27,18 @@ interface UseLearningTrendResult {
   refresh: () => Promise<void>;
 }
 
-// Mock storage for learning events (shared)
-let mockLearningEvents: LearningEvent[] = [];
-
 /**
  * Set mock events for testing
  */
 export function setMockTrendEvents(events: LearningEvent[]): void {
-  mockLearningEvents = [...events];
+  MockDataManager.getInstance().setTrendEvents(events);
 }
 
 /**
  * Reset mock events for testing
  */
 export function resetMockTrendEvents(): void {
-  mockLearningEvents = [];
+  MockDataManager.getInstance().clearTrendEvents();
 }
 
 export function useLearningTrend(): UseLearningTrendResult {
@@ -75,7 +73,8 @@ export function useLearningTrend(): UseLearningTrendResult {
 
     if (isMockMode) {
       // In mock mode, filter mock events to date range
-      const filtered = mockLearningEvents.filter(
+      const mockEvents = MockDataManager.getInstance().getTrendEvents();
+      const filtered = mockEvents.filter(
         (e) => e.event_date >= dateRange.start && e.event_date <= dateRange.end
       );
       setEvents(filtered);

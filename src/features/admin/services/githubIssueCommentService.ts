@@ -14,6 +14,7 @@
  */
 
 import { isMockMode } from '@/lib/supabase/client';
+import { MockDataManager } from '@/lib/mock/MockDataManager';
 
 // Environment variables for GitHub API
 const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
@@ -50,39 +51,32 @@ export interface CommentResult<T> {
   error: string | null;
 }
 
-// Mock storage for testing
-const mockIssueDetails: Map<number, IssueDetails> = new Map();
-const mockIssueComments: Map<number, IssueComment[]> = new Map();
-let mockCommentIdCounter = 1;
-
 /**
  * Set mock issue details for testing
  */
 export function setMockIssueDetails(issueNumber: number, details: IssueDetails): void {
-  mockIssueDetails.set(issueNumber, details);
+  MockDataManager.getInstance().setIssueDetails(issueNumber, details);
 }
 
 /**
  * Set mock issue comments for testing
  */
 export function setMockIssueComments(issueNumber: number, comments: IssueComment[]): void {
-  mockIssueComments.set(issueNumber, [...comments]);
+  MockDataManager.getInstance().setIssueComments(issueNumber, comments);
 }
 
 /**
  * Get mock issue comments for testing
  */
 export function getMockIssueComments(issueNumber: number): IssueComment[] {
-  return mockIssueComments.get(issueNumber) || [];
+  return MockDataManager.getInstance().getIssueComments(issueNumber);
 }
 
 /**
  * Reset mock data
  */
 export function resetMockCommentData(): void {
-  mockIssueDetails.clear();
-  mockIssueComments.clear();
-  mockCommentIdCounter = 1;
+  MockDataManager.getInstance().clearCommentData();
 }
 
 /**
@@ -94,7 +88,7 @@ export function resetMockCommentData(): void {
 export async function getIssueDetails(issueNumber: number): Promise<CommentResult<IssueDetails>> {
   // Mock mode
   if (isMockMode) {
-    const details = mockIssueDetails.get(issueNumber);
+    const details = MockDataManager.getInstance().getIssueDetails(issueNumber);
     if (!details) {
       return {
         data: null,
@@ -165,7 +159,7 @@ export async function listIssueComments(
 ): Promise<CommentResult<IssueComment[]>> {
   // Mock mode
   if (isMockMode) {
-    const comments = mockIssueComments.get(issueNumber) || [];
+    const comments = MockDataManager.getInstance().getIssueComments(issueNumber);
     return { data: comments, error: null };
   }
 
@@ -228,14 +222,10 @@ export async function createIssueComment(
 ): Promise<CommentResult<IssueComment>> {
   // Mock mode
   if (isMockMode) {
-    const newComment: IssueComment = {
-      id: mockCommentIdCounter++,
+    const newComment = MockDataManager.getInstance().addIssueComment(issueNumber, {
       body,
       createdAt: new Date().toISOString(),
-    };
-
-    const existingComments = mockIssueComments.get(issueNumber) || [];
-    mockIssueComments.set(issueNumber, [...existingComments, newComment]);
+    });
 
     return { data: newComment, error: null };
   }

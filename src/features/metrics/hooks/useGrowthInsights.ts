@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase, isMockMode } from '@/lib/supabase';
+import { MockDataManager } from '@/lib/mock/MockDataManager';
 import { getUTCDateString, type LearningEvent } from '../services/metricsService';
 import {
   buildGrowthInsights,
@@ -22,21 +23,18 @@ interface UseGrowthInsightsResult {
   refresh: () => Promise<void>;
 }
 
-// Mock storage (shared with useLearningHeatmap)
-let mockGrowthEvents: LearningEvent[] = [];
-
 /**
  * Set mock events for testing
  */
 export function setMockGrowthEvents(events: LearningEvent[]): void {
-  mockGrowthEvents = [...events];
+  MockDataManager.getInstance().setGrowthEvents(events);
 }
 
 /**
  * Reset mock events for testing
  */
 export function resetMockGrowthEvents(): void {
-  mockGrowthEvents = [];
+  MockDataManager.getInstance().clearGrowthEvents();
 }
 
 export function useGrowthInsights(): UseGrowthInsightsResult {
@@ -54,7 +52,7 @@ export function useGrowthInsights(): UseGrowthInsightsResult {
 
     if (isMockMode) {
       // In mock mode, return mock events
-      setEvents(mockGrowthEvents);
+      setEvents(MockDataManager.getInstance().getGrowthEvents());
       setIsLoading(false);
       return;
     }

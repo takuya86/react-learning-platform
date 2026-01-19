@@ -9,16 +9,18 @@ interface LessonListProps {
 export function LessonList({ lessons }: LessonListProps) {
   if (lessons.length === 0) {
     return (
-      <div className={styles.empty}>
+      <div className={styles.empty} role="status" aria-live="polite">
         <p>該当するレッスンが見つかりませんでした。</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.grid}>
+    <div className={styles.grid} role="list" aria-label={`${lessons.length}件のレッスン`}>
       {lessons.map((lesson) => (
-        <LessonCard key={lesson.id} lesson={lesson} />
+        <div key={lesson.id} role="listitem">
+          <LessonCard lesson={lesson} />
+        </div>
       ))}
     </div>
   );

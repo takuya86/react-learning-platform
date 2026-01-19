@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import {
@@ -29,7 +30,7 @@ const difficultyVariants: Record<Difficulty, 'success' | 'warning' | 'danger'> =
   advanced: 'danger',
 };
 
-export function LessonCard({ lesson }: LessonCardProps) {
+function LessonCardComponent({ lesson }: LessonCardProps) {
   const { isLessonCompleted, isLessonOpened } = useProgress();
   const completed = isLessonCompleted(lesson.id);
   const opened = isLessonOpened(lesson.id);
@@ -67,3 +68,8 @@ export function LessonCard({ lesson }: LessonCardProps) {
     </Card>
   );
 }
+
+// lesson.idが同じであれば再レンダリングをスキップ
+export const LessonCard = memo(LessonCardComponent, (prevProps, nextProps) => {
+  return prevProps.lesson.id === nextProps.lesson.id;
+});

@@ -34,24 +34,39 @@ export function LessonFilter({
   ];
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} role="search">
       <div className={styles.searchWrapper}>
+        <label htmlFor="lesson-search" className="sr-only">
+          レッスン検索
+        </label>
         <Input
+          id="lesson-search"
           placeholder="タイトルやタグで検索..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
+          aria-label="レッスンをタイトルやタグで検索"
         />
       </div>
-      <div className={styles.filters}>
+      <div className={styles.filters} role="group" aria-label="フィルター条件">
+        <label htmlFor="tag-filter" className="sr-only">
+          タグフィルター
+        </label>
         <Select
+          id="tag-filter"
           options={tagOptions}
           value={selectedTag}
           onChange={(e) => onTagChange(e.target.value)}
+          aria-label="タグでフィルター"
         />
+        <label htmlFor="difficulty-filter" className="sr-only">
+          難易度フィルター
+        </label>
         <Select
+          id="difficulty-filter"
           options={difficultyOptions}
           value={selectedDifficulty}
           onChange={(e) => onDifficultyChange(e.target.value as Difficulty | '')}
+          aria-label="難易度でフィルター"
         />
       </div>
     </div>

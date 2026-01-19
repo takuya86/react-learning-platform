@@ -1,5 +1,6 @@
 import type { QuizSession } from '@/domain/types';
 import { QUIZ_SESSION_VERSION } from '@/domain/types';
+import { logger } from '@/lib/logger';
 
 const SESSION_KEY_PREFIX = 'quiz_session:';
 
@@ -28,21 +29,18 @@ function parseSession(data: unknown, quizId: string): QuizSession | null {
   const session: QuizSession = {
     version: typeof raw.version === 'number' ? raw.version : QUIZ_SESSION_VERSION,
     quizId: raw.quizId,
-    currentIndex: typeof raw.currentIndex === 'number' && raw.currentIndex >= 0
-      ? raw.currentIndex
-      : 0,
+    currentIndex:
+      typeof raw.currentIndex === 'number' && raw.currentIndex >= 0 ? raw.currentIndex : 0,
     answers: isValidAnswers(raw.answers) ? raw.answers : {},
     skippedQuestionIds: Array.isArray(raw.skippedQuestionIds)
       ? raw.skippedQuestionIds.filter((id): id is string => typeof id === 'string')
       : [],
-    hintUsedByQuestionId: isValidHintMap(raw.hintUsedByQuestionId)
-      ? raw.hintUsedByQuestionId
-      : {},
+    hintUsedByQuestionId: isValidHintMap(raw.hintUsedByQuestionId) ? raw.hintUsedByQuestionId : {},
     startedAt: typeof raw.startedAt === 'string' ? raw.startedAt : new Date().toISOString(),
-    lastUpdatedAt: typeof raw.lastUpdatedAt === 'string' ? raw.lastUpdatedAt : new Date().toISOString(),
-    timeRemainingSec: typeof raw.timeRemainingSec === 'number'
-      ? Math.max(0, raw.timeRemainingSec)
-      : null,
+    lastUpdatedAt:
+      typeof raw.lastUpdatedAt === 'string' ? raw.lastUpdatedAt : new Date().toISOString(),
+    timeRemainingSec:
+      typeof raw.timeRemainingSec === 'number' ? Math.max(0, raw.timeRemainingSec) : null,
     isFinished: typeof raw.isFinished === 'boolean' ? raw.isFinished : false,
   };
 
@@ -66,7 +64,10 @@ export function saveQuizSession(session: QuizSession): void {
     const key = getSessionKey(session.quizId);
     localStorage.setItem(key, JSON.stringify(session));
   } catch (error) {
-    console.error('Failed to save quiz session:', error);
+    logger.error('Failed to save quiz session', {
+      category: 'storage',
+      context: { quizId: session.quizId, error },
+    });
   }
 }
 
@@ -81,14 +82,20 @@ export function loadQuizSession(quizId: string): QuizSession | null {
       parsed = JSON.parse(data);
     } catch {
       // JSON parse failed - delete corrupted data
-      console.warn('Corrupted quiz session data, deleting:', quizId);
+      logger.warn('Corrupted quiz session data, deleting', {
+        category: 'storage',
+        context: { quizId },
+      });
       deleteQuizSession(quizId);
       return null;
     }
 
     const session = parseSession(parsed, quizId);
     if (!session) {
-      console.warn('Invalid quiz session schema, deleting:', quizId);
+      logger.warn('Invalid quiz session schema, deleting', {
+        category: 'storage',
+        context: { quizId },
+      });
       deleteQuizSession(quizId);
       return null;
     }
@@ -101,7 +108,10 @@ export function loadQuizSession(quizId: string): QuizSession | null {
 
     return session;
   } catch (error) {
-    console.error('Failed to load quiz session:', error);
+    logger.error('Failed to load quiz session', {
+      category: 'storage',
+      context: { quizId, error },
+    });
     return null;
   }
 }
@@ -111,7 +121,10 @@ export function deleteQuizSession(quizId: string): void {
     const key = getSessionKey(quizId);
     localStorage.removeItem(key);
   } catch (error) {
-    console.error('Failed to delete quiz session:', error);
+    logger.error('Failed to delete quiz session', {
+      category: 'storage',
+      context: { quizId, error },
+    });
   }
 }
 

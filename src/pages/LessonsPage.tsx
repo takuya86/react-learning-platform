@@ -33,24 +33,30 @@ export function LessonsPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>レッスン一覧</h1>
+      <header className={styles.header} role="banner">
+        <h1 className={styles.title} id="lessons-page-title">
+          レッスン一覧
+        </h1>
         <p className={styles.subtitle}>
           Reactの基礎から実践までを学びましょう。全{lessons.length}レッスン
         </p>
       </header>
 
-      <LessonFilter
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedTag={selectedTag}
-        onTagChange={setSelectedTag}
-        selectedDifficulty={selectedDifficulty}
-        onDifficultyChange={setSelectedDifficulty}
-        availableTags={availableTags}
-      />
+      <section aria-label="レッスンフィルター">
+        <LessonFilter
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedTag={selectedTag}
+          onTagChange={setSelectedTag}
+          selectedDifficulty={selectedDifficulty}
+          onDifficultyChange={setSelectedDifficulty}
+          availableTags={availableTags}
+        />
+      </section>
 
-      <LessonList lessons={filteredLessons} />
+      <section aria-label="レッスンリスト" aria-live="polite" aria-atomic="false">
+        <LessonList lessons={filteredLessons} />
+      </section>
     </div>
   );
 }
