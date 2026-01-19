@@ -306,6 +306,75 @@ npm run test:coverage # カバレッジ付きテスト
 npm run build         # プロダクションビルド
 ```
 
+### テストカバレッジ
+
+| カテゴリ             | テスト数 | 主な内容                                          |
+| -------------------- | -------- | ------------------------------------------------- |
+| ページコンポーネント | 80+      | DashboardPage, LessonsPage, ProgressPage          |
+| 同期フック           | 150+     | useProgressSync, useNotesSync, useSyncStatus      |
+| メトリクスサービス   | 100+     | 習慣スコア、ストリーク、週間目標                  |
+| UIコンポーネント     | 60+      | Badge, Button, Input, Select, SyncStatusIndicator |
+
+## Architecture & Code Quality
+
+### 統一ロガーモジュール
+
+カテゴリ別のログ管理により、開発時のデバッグと本番環境でのエラー追跡を統一。
+
+```typescript
+import { logger } from '@/lib/logger';
+
+// 使用例
+logger.error('Failed to save data', {
+  category: 'storage', // storage, network, metrics, auth, quiz, notes, github, general
+  context: { key: 'quiz_session', error: err },
+});
+```
+
+| 環境 | 動作                                            |
+| ---- | ----------------------------------------------- |
+| 開発 | console出力（カテゴリ・コンテキスト付き）       |
+| 本番 | 外部サービス連携準備済み（Sentry, LogRocket等） |
+
+### アクセシビリティ（A11y）
+
+主要ページにWCAG準拠のアクセシビリティ属性を実装。
+
+| 属性              | 用途                 | 適用箇所                         |
+| ----------------- | -------------------- | -------------------------------- |
+| `role`            | 要素の役割を明示     | banner, navigation, progressbar  |
+| `aria-label`      | 説明テキスト         | フィルター、フォームコントロール |
+| `aria-labelledby` | セクション見出し参照 | カードセクション                 |
+| `aria-live`       | 動的更新の通知       | レッスンリスト、検索結果         |
+| `aria-invalid`    | 入力エラー状態       | フォーム入力                     |
+
+### パフォーマンス最適化
+
+| 最適化             | 効果                     | 対象                                                |
+| ------------------ | ------------------------ | --------------------------------------------------- |
+| React.memo         | 不要な再レンダリング防止 | LessonCard（id比較）                                |
+| コンポーネント分割 | バンドルサイズ削減       | AdminMetricsPage（900行→535行+4サブコンポーネント） |
+| MDX遅延読み込み    | 初期ロード高速化         | レッスンコンテンツ                                  |
+
+### 型安全性
+
+- `as any` の使用を排除
+- Supabaseクライアントモック: `Pick<SupabaseClient, 'auth' | 'from'>` で型安全なモック実装
+- 定数の抽出: クイズタイマー定数（`TIMER_INTERVAL_MS`, `LOW_TIME_THRESHOLD_SEC`等）
+
+### モック管理
+
+`MockDataManager` シングルトンによる統一的なモックデータ管理。
+
+```typescript
+import { MockDataManager } from '@/lib/mock/MockDataManager';
+
+// カテゴリ別モックデータ
+MockDataManager.getAdminMetrics();
+MockDataManager.getLearningTrend();
+MockDataManager.getGitHubIssue();
+```
+
 ## E2E Tests (Mock Mode Contract)
 
 E2E tests must always run in mock mode to avoid flakiness from local Supabase env vars.
@@ -518,9 +587,23 @@ VITE_GITHUB_REPO=react-learning-platform  # リポジトリ名
 | Sprint 5-B | Vercelデプロイ対応                                 |
 | Sprint 6   | Supabase Auth認証機能（ログイン必須化）            |
 | Sprint 7   | **30レッスン教材完成**（設計判断レベル）           |
+| Sprint 8   | コード品質改善（ロガー、型安全、A11y、テスト強化） |
+
+### Sprint 8 詳細
+
+| カテゴリ       | 改善内容                                                   |
+| -------------- | ---------------------------------------------------------- |
+| テスト         | ページコンポーネント、同期フックのテスト追加（150+ケース） |
+| ロギング       | 統一ロガーモジュール（カテゴリ別、本番連携準備）           |
+| 型安全         | `as any` 排除、型安全なモック実装                          |
+| A11y           | ARIA属性追加（role, aria-label, aria-live等）              |
+| パフォーマンス | React.memo、コンポーネント分割、MDX遅延読み込み            |
+| 保守性         | 定数抽出、MockDataManager統一                              |
 
 ### 今後の候補
 
+- Sentry/LogRocket連携（本番エラー監視）
+- E2Eテスト拡充（認証フロー、エッジケース）
 - ダークモード対応
 - PWA対応（オフライン学習）
 - レッスン追加（Server Components、Next.js連携等）
