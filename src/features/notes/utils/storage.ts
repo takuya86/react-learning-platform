@@ -4,6 +4,7 @@ import {
   NOTES_STORAGE_VERSION,
   initialNotesData,
 } from '@/domain/types';
+import { logger } from '@/lib/logger';
 
 const STORAGE_KEY = 'notes_data';
 
@@ -47,10 +48,7 @@ function parseStorageData(data: unknown): NotesStorageData {
   // Validate notesByLessonId
   const notesByLessonId: Record<string, Note> = {};
 
-  if (
-    typeof storageData.notesByLessonId === 'object' &&
-    storageData.notesByLessonId !== null
-  ) {
+  if (typeof storageData.notesByLessonId === 'object' && storageData.notesByLessonId !== null) {
     const notesMap = storageData.notesByLessonId as Record<string, unknown>;
 
     for (const [lessonId, noteData] of Object.entries(notesMap)) {
@@ -92,9 +90,12 @@ export function loadNotesData(): NotesStorageData {
 export function saveNotesData(data: NotesStorageData): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    // Storage quota exceeded or other error - silently fail
-    console.error('Failed to save notes data to localStorage');
+  } catch (error) {
+    // Storage quota exceeded or other error
+    logger.error('Failed to save notes data to localStorage', {
+      category: 'storage',
+      context: { error },
+    });
   }
 }
 

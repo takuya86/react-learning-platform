@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase, isMockMode } from '@/lib/supabase';
+import { logger } from '@/lib/logger';
 import {
   type LearningMetrics,
   type LearningEventType,
@@ -179,7 +180,10 @@ export function useLearningMetrics(): UseLearningMetricsResult {
         );
 
         if (eventError) {
-          console.error('Failed to upsert learning event:', eventError);
+          logger.error('Failed to upsert learning event', {
+            category: 'metrics',
+            context: { eventType, referenceId, error: eventError },
+          });
         }
 
         // Update metrics
@@ -199,13 +203,19 @@ export function useLearningMetrics(): UseLearningMetricsResult {
         );
 
         if (metricsError) {
-          console.error('Failed to update metrics:', metricsError);
+          logger.error('Failed to update metrics', {
+            category: 'metrics',
+            context: { error: metricsError },
+          });
         }
 
         setMetrics(newMetrics);
         setTodayCount((prev) => prev + 1);
       } catch (err) {
-        console.error('Error recording event:', err);
+        logger.error('Error recording event', {
+          category: 'metrics',
+          context: { error: err },
+        });
       }
     },
     [user, metrics]

@@ -21,6 +21,7 @@
  */
 
 import { isMockMode } from '@/lib/supabase/client';
+import { MockDataManager } from '@/lib/mock/MockDataManager';
 import type { HintType } from '@/features/metrics';
 
 // Environment variables for GitHub API
@@ -86,81 +87,53 @@ export interface OpenIssue {
   labels: string[];
 }
 
-// Mock storage for testing
-let mockCreatedIssues: CreatedIssue[] = [];
-let mockOpenIssues: OpenIssue[] = [];
-let mockClosedIssues: OpenIssue[] = [];
-
-// Mock storage for issue state and labels
-const mockIssueStates: Map<number, 'open' | 'closed'> = new Map();
-const mockIssueLabels: Map<number, string[]> = new Map();
-
 /**
  * Set mock open issues for testing
  */
 export function setMockOpenIssues(issues: OpenIssue[]): void {
-  mockOpenIssues = [...issues];
+  MockDataManager.getInstance().setOpenIssues(issues);
 }
 
 /**
  * Set mock closed issues for testing
  */
 export function setMockClosedIssues(issues: OpenIssue[]): void {
-  mockClosedIssues = [...issues];
+  MockDataManager.getInstance().setClosedIssues(issues);
 }
 
 /**
  * Get mock created issues for testing
  */
 export function getMockCreatedIssues(): CreatedIssue[] {
-  return [...mockCreatedIssues];
+  return MockDataManager.getInstance().getCreatedIssues();
 }
 
 /**
  * Reset mock data
  */
 export function resetMockIssueData(): void {
-  mockCreatedIssues = [];
-  mockOpenIssues = [];
-  mockClosedIssues = [];
-  mockIssueStates.clear();
-  mockIssueLabels.clear();
+  MockDataManager.getInstance().clearIssueData();
 }
 
 /**
  * Set mock issue state for testing (mock mode only)
  */
 export function setMockIssueState(issueNumber: number, state: 'open' | 'closed'): void {
-  mockIssueStates.set(issueNumber, state);
-
-  // Update mockOpenIssues and mockClosedIssues accordingly
-  if (state === 'closed') {
-    const issueIndex = mockOpenIssues.findIndex((issue) => issue.number === issueNumber);
-    if (issueIndex !== -1) {
-      const [issue] = mockOpenIssues.splice(issueIndex, 1);
-      mockClosedIssues.push(issue);
-    }
-  } else {
-    const issueIndex = mockClosedIssues.findIndex((issue) => issue.number === issueNumber);
-    if (issueIndex !== -1) {
-      const [issue] = mockClosedIssues.splice(issueIndex, 1);
-      mockOpenIssues.push(issue);
-    }
-  }
+  MockDataManager.getInstance().setIssueState(issueNumber, state);
 }
 
 /**
  * Get mock issue state for testing (mock mode only)
  */
 export function getMockIssueState(issueNumber: number): 'open' | 'closed' | null {
-  return mockIssueStates.get(issueNumber) || null;
+  return MockDataManager.getInstance().getIssueState(issueNumber) || null;
 }
 
 /**
  * Get mock issue labels for testing (mock mode only)
  */
 export function getMockIssueLabels(issueNumber: number): string[] {
-  return mockIssueLabels.get(issueNumber) || [];
+  return MockDataManager.getInstance().getIssueLabels(issueNumber);
 }
 
 /**
@@ -291,6 +264,7 @@ export async function isDuplicateIssue(
   if (isMockMode) {
     const expectedTitle = `[Lesson Improvement]`;
     const hintLabel = `hint:${hintType}`;
+    const mockOpenIssues = MockDataManager.getInstance().getOpenIssues();
     const isDuplicate = mockOpenIssues.some(
       (issue) =>
         issue.title.includes(expectedTitle) &&
@@ -351,6 +325,7 @@ export async function listOpenIssuesByLesson(
 ): Promise<IssueResult<OpenIssue[]>> {
   // Mock mode
   if (isMockMode) {
+    const mockOpenIssues = MockDataManager.getInstance().getOpenIssues();
     const filtered = mockOpenIssues.filter((issue) => issue.title.includes(lessonSlug));
     return { data: filtered, error: null };
   }
@@ -438,26 +413,31 @@ export async function createIssue(params: CreateIssueParams): Promise<IssueResul
 
   // Mock mode
   if (isMockMode) {
+    const mockManager = MockDataManager.getInstance();
     const title = buildIssueTitle(lessonSlug, lessonTitle, hintType);
-    const issueNumber = mockCreatedIssues.length + 1;
+    const issueNumber = mockManager.getCreatedIssues().length + 1;
     const issue: CreatedIssue = {
       number: issueNumber,
       url: `https://github.com/mock/repo/issues/${issueNumber}`,
       title,
     };
-    mockCreatedIssues.push(issue);
+    mockManager.addCreatedIssue(issue);
 
     const labels = getIssueLabels(lessonSlug, hintType);
 
     // Also add to open issues for duplicate detection
-    mockOpenIssues.push({
-      ...issue,
-      labels,
-    });
+    const currentOpenIssues = mockManager.getOpenIssues();
+    mockManager.setOpenIssues([
+      ...currentOpenIssues,
+      {
+        ...issue,
+        labels,
+      },
+    ]);
 
     // Initialize mock state and labels
-    mockIssueStates.set(issueNumber, 'open');
-    mockIssueLabels.set(issueNumber, [...labels]);
+    mockManager.setIssueState(issueNumber, 'open');
+    mockManager.setIssueLabels(issueNumber, labels);
 
     return { data: issue, error: null };
   }
@@ -588,6 +568,7 @@ export async function listAllOpenImprovementIssues(): Promise<
 > {
   // Mock mode
   if (isMockMode) {
+    const mockOpenIssues = MockDataManager.getInstance().getOpenIssues();
     const trackerItems: ImprovementTrackerItem[] = mockOpenIssues
       .filter((issue) => issue.labels.includes(ISSUE_LABEL_PREFIX))
       .map((issue) => {
@@ -695,6 +676,7 @@ export async function listAllClosedImprovementIssues(): Promise<
 > {
   // Mock mode
   if (isMockMode) {
+    const mockClosedIssues = MockDataManager.getInstance().getClosedIssues();
     const trackerItems: ImprovementTrackerItem[] = mockClosedIssues
       .filter((issue) => issue.labels.includes(ISSUE_LABEL_PREFIX))
       .map((issue) => {
@@ -804,7 +786,8 @@ export async function closeIssue(
 ): Promise<IssueResult<void>> {
   // Mock mode
   if (isMockMode) {
-    const currentState = mockIssueStates.get(issueNumber);
+    const mockManager = MockDataManager.getInstance();
+    const currentState = mockManager.getIssueState(issueNumber);
     if (currentState === 'closed') {
       // Already closed - idempotent behavior
       return { data: undefined, error: null };
@@ -890,14 +873,15 @@ export async function addLabelToIssue(
 ): Promise<IssueResult<void>> {
   // Mock mode
   if (isMockMode) {
-    const existingLabels = mockIssueLabels.get(issueNumber) || [];
+    const mockManager = MockDataManager.getInstance();
+    const existingLabels = mockManager.getIssueLabels(issueNumber);
 
     // Idempotent - don't add if already present
     if (existingLabels.includes(label)) {
       return { data: undefined, error: null };
     }
 
-    mockIssueLabels.set(issueNumber, [...existingLabels, label]);
+    mockManager.addIssueLabel(issueNumber, label);
 
     // Also update the mockOpenIssues or mockClosedIssues
     const updateIssueLabels = (issues: OpenIssue[]) => {
@@ -907,8 +891,13 @@ export async function addLabelToIssue(
       }
     };
 
+    const mockOpenIssues = mockManager.getOpenIssues();
+    const mockClosedIssues = mockManager.getClosedIssues();
     updateIssueLabels(mockOpenIssues);
     updateIssueLabels(mockClosedIssues);
+    // Update the manager with modified arrays
+    mockManager.setOpenIssues(mockOpenIssues);
+    mockManager.setClosedIssues(mockClosedIssues);
 
     return { data: undefined, error: null };
   }

@@ -8,6 +8,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase, isMockMode } from '@/lib/supabase';
 import { getAllLessons } from '@/lib/lessons';
+import { logger } from '@/lib/logger';
+import { MockDataManager } from '@/lib/mock/MockDataManager';
 import { getUTCDateString, type LearningEvent } from '../services/metricsService';
 import {
   type AdminPeriod,
@@ -82,30 +84,25 @@ interface UseAdminMetricsResult {
   refresh: () => Promise<void>;
 }
 
-// Mock storage for admin metrics testing
-let mockAdminEvents: LearningEvent[] = [];
-let mockAdminUserMetrics: UserLearningMetric[] = [];
-
 /**
  * Set mock events for admin metrics testing
  */
 export function setMockAdminEvents(events: LearningEvent[]): void {
-  mockAdminEvents = [...events];
+  MockDataManager.getInstance().setAdminEvents(events);
 }
 
 /**
  * Set mock user metrics for admin testing
  */
 export function setMockAdminUserMetrics(metrics: UserLearningMetric[]): void {
-  mockAdminUserMetrics = [...metrics];
+  MockDataManager.getInstance().setAdminUserMetrics(metrics);
 }
 
 /**
  * Reset mock admin data
  */
 export function resetMockAdminData(): void {
-  mockAdminEvents = [];
-  mockAdminUserMetrics = [];
+  MockDataManager.getInstance().clearAdminData();
 }
 
 const HEATMAP_DAYS = 84; // 12 weeks
@@ -122,8 +119,9 @@ export function useAdminMetrics(): UseAdminMetricsResult {
   const fetchData = useCallback(async () => {
     if (isMockMode) {
       // In mock mode, use mock data
-      setEvents(mockAdminEvents);
-      setUserMetrics(mockAdminUserMetrics);
+      const mockManager = MockDataManager.getInstance();
+      setEvents(mockManager.getAdminEvents());
+      setUserMetrics(mockManager.getAdminUserMetrics());
       // Fetch improvement tracker items in mock mode
       const trackerResult = await listAllOpenImprovementIssues();
       if (trackerResult.data) {
@@ -191,7 +189,10 @@ export function useAdminMetrics(): UseAdminMetricsResult {
       if (trackerResult.data) {
         setTrackerItems(trackerResult.data);
       } else if (trackerResult.error) {
-        console.warn('Failed to fetch improvement tracker:', trackerResult.error);
+        logger.warn('Failed to fetch improvement tracker', {
+          category: 'github',
+          context: { error: trackerResult.error },
+        });
         setTrackerItems([]);
       }
     } catch (err) {

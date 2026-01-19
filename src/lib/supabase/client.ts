@@ -28,7 +28,8 @@ function createMockQueryBuilder() {
 }
 
 // Create a mock Supabase client for testing
-function createMockClient(): SupabaseClient {
+// Using 'as unknown as' pattern to bypass strict type checking for mock client
+function createMockClient() {
   return {
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
@@ -40,10 +41,9 @@ function createMockClient(): SupabaseClient {
       signOut: async () => ({ error: null }),
     },
     from: () => createMockQueryBuilder(),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  } as unknown as SupabaseClient;
 }
 
-export const supabase: SupabaseClient = isMockMode
+export const supabase = isMockMode
   ? createMockClient()
   : createClient(supabaseUrl, supabaseAnonKey);

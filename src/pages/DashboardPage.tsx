@@ -72,8 +72,10 @@ export function DashboardPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>React学習プラットフォーム</h1>
+      <header className={styles.header} role="banner">
+        <h1 className={styles.title} id="dashboard-title">
+          React学習プラットフォーム
+        </h1>
         <p className={styles.subtitle}>Reactの基礎から実践までを体系的に学びましょう</p>
       </header>
 
@@ -138,47 +140,71 @@ export function DashboardPage() {
         </>
       )}
 
-      <div className={styles.statsRow}>
+      <section className={styles.statsRow} aria-labelledby="progress-heading">
         <Card className={styles.progressCard}>
           <CardContent>
             <div className={styles.progressInfo}>
               <div>
-                <span className={styles.progressLabel}>学習進捗</span>
-                <div className={styles.progressValue}>{progressPercentage}%</div>
+                <span className={styles.progressLabel} id="progress-heading">
+                  学習進捗
+                </span>
+                <div
+                  className={styles.progressValue}
+                  aria-label={`学習進捗 ${progressPercentage}パーセント`}
+                >
+                  {progressPercentage}%
+                </div>
               </div>
               <div className={styles.progressDetails}>
-                <span>
+                <span aria-label={`${completedCount}レッスン完了、全${totalCount}レッスン中`}>
                   {completedCount} / {totalCount} レッスン完了
                 </span>
               </div>
             </div>
-            <div className={styles.progressTrack}>
+            <div
+              className={styles.progressTrack}
+              role="progressbar"
+              aria-valuenow={progressPercentage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="学習進捗バー"
+            >
               <div className={styles.progressFill} style={{ width: `${progressPercentage}%` }} />
             </div>
           </CardContent>
         </Card>
-      </div>
+      </section>
 
       {hasRecommendations && (
-        <section className={styles.section}>
+        <section className={styles.section} aria-labelledby="recommendations-heading">
           <NextLessonsCard recommendations={recommendations} />
         </section>
       )}
 
       {nextLesson && !hasRecommendations && (
-        <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>次のレッスン</h2>
+        <section className={styles.section} aria-labelledby="next-lesson-heading">
+          <h2 className={styles.sectionTitle} id="next-lesson-heading">
+            次のレッスン
+          </h2>
           <Card>
             <CardHeader>
               <CardTitle>{nextLesson.title}</CardTitle>
               <CardDescription>{nextLesson.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className={styles.lessonMeta}>
-                <Badge variant="primary">{nextLesson.difficulty}</Badge>
-                <span>約 {nextLesson.estimatedMinutes} 分</span>
+              <div className={styles.lessonMeta} role="list" aria-label="レッスン情報">
+                <Badge variant="primary" role="listitem">
+                  {nextLesson.difficulty}
+                </Badge>
+                <span role="listitem" aria-label={`推定所要時間 ${nextLesson.estimatedMinutes}分`}>
+                  約 {nextLesson.estimatedMinutes} 分
+                </span>
               </div>
-              <Link to={`/lessons/${nextLesson.id}`} className={styles.startButton}>
+              <Link
+                to={`/lessons/${nextLesson.id}`}
+                className={styles.startButton}
+                aria-label={`${nextLesson.title}のレッスンを始める`}
+              >
                 学習を始める
               </Link>
             </CardContent>
@@ -186,13 +212,19 @@ export function DashboardPage() {
         </section>
       )}
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>クイックアクセス</h2>
-        <div className={styles.quickLinks}>
-          <Link to="/lessons" className={styles.quickLink}>
+      <section className={styles.section} aria-labelledby="quick-access-heading">
+        <h2 className={styles.sectionTitle} id="quick-access-heading">
+          クイックアクセス
+        </h2>
+        <nav className={styles.quickLinks} aria-label="クイックアクセスメニュー">
+          <Link
+            to="/lessons"
+            className={styles.quickLink}
+            aria-label={`レッスン一覧へ移動。全${lessons.length}レッスン`}
+          >
             <Card className={styles.quickCard}>
               <CardContent>
-                <div className={styles.quickIcon}>
+                <div className={styles.quickIcon} aria-hidden="true">
                   <BookOpen size={32} />
                 </div>
                 <div className={styles.quickLabel}>レッスン一覧</div>
@@ -200,10 +232,14 @@ export function DashboardPage() {
               </CardContent>
             </Card>
           </Link>
-          <Link to="/quiz" className={styles.quickLink}>
+          <Link
+            to="/quiz"
+            className={styles.quickLink}
+            aria-label={`クイズへ移動。全${quizzes.length}クイズ`}
+          >
             <Card className={styles.quickCard}>
               <CardContent>
-                <div className={styles.quickIcon}>
+                <div className={styles.quickIcon} aria-hidden="true">
                   <FileText size={32} />
                 </div>
                 <div className={styles.quickLabel}>クイズ</div>
@@ -211,10 +247,14 @@ export function DashboardPage() {
               </CardContent>
             </Card>
           </Link>
-          <Link to="/progress" className={styles.quickLink}>
+          <Link
+            to="/progress"
+            className={styles.quickLink}
+            aria-label={`進捗確認へ移動。現在${progressPercentage}パーセント完了`}
+          >
             <Card className={styles.quickCard}>
               <CardContent>
-                <div className={styles.quickIcon}>
+                <div className={styles.quickIcon} aria-hidden="true">
                   <BarChart3 size={32} />
                 </div>
                 <div className={styles.quickLabel}>進捗確認</div>
@@ -222,7 +262,7 @@ export function DashboardPage() {
               </CardContent>
             </Card>
           </Link>
-        </div>
+        </nav>
       </section>
     </div>
   );

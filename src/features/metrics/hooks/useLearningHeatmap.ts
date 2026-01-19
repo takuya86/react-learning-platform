@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/features/auth';
 import { supabase, isMockMode } from '@/lib/supabase';
+import { MockDataManager } from '@/lib/mock/MockDataManager';
 import { getUTCDateString, type LearningEvent } from '../services/metricsService';
 import { getHeatmapData, type HeatmapDay } from '../services/heatmapService';
 
@@ -18,28 +19,25 @@ interface UseLearningHeatmapResult {
   refresh: () => Promise<void>;
 }
 
-// Mock storage for learning events (shared with useLearningMetrics in mock mode)
-let mockLearningEvents: LearningEvent[] = [];
-
 /**
  * Add mock event for testing
  */
 export function addMockLearningEvent(event: LearningEvent): void {
-  mockLearningEvents.push(event);
+  MockDataManager.getInstance().addLearningEvent(event);
 }
 
 /**
  * Reset mock events for testing
  */
 export function resetMockLearningEvents(): void {
-  mockLearningEvents = [];
+  MockDataManager.getInstance().clearLearningEvents();
 }
 
 /**
  * Set mock events for testing
  */
 export function setMockLearningEvents(events: LearningEvent[]): void {
-  mockLearningEvents = [...events];
+  MockDataManager.getInstance().setLearningEvents(events);
 }
 
 const HEATMAP_DAYS = 84; // 12 weeks
@@ -59,7 +57,7 @@ export function useLearningHeatmap(): UseLearningHeatmapResult {
 
     if (isMockMode) {
       // In mock mode, return mock events
-      setEvents(mockLearningEvents);
+      setEvents(MockDataManager.getInstance().getLearningEvents());
       setIsLoading(false);
       return;
     }

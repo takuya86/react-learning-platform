@@ -124,13 +124,13 @@ test.describe('Admin Metrics Page', () => {
     const effectiveness = page.getByTestId('admin-metrics-effectiveness');
     await expect(effectiveness).toBeVisible();
 
-    // Check for effectiveness labels
-    await expect(effectiveness.getByText('学習効果')).toBeVisible();
-    await expect(effectiveness.getByText('Follow-up率')).toBeVisible();
-    await expect(effectiveness.getByText('完了率')).toBeVisible();
-    await expect(effectiveness.getByText('起点イベント')).toBeVisible();
-    await expect(effectiveness.getByText('Follow-up数')).toBeVisible();
-    await expect(effectiveness.getByText('Top Action')).toBeVisible();
+    // Check for effectiveness labels (use .first() where text appears multiple times)
+    await expect(effectiveness.getByText('学習効果').first()).toBeVisible();
+    await expect(effectiveness.getByText('Follow-up率').first()).toBeVisible();
+    await expect(effectiveness.getByText('完了率').first()).toBeVisible();
+    await expect(effectiveness.getByText('起点イベント').first()).toBeVisible();
+    await expect(effectiveness.getByText('Follow-up数').first()).toBeVisible();
+    await expect(effectiveness.getByText('Top Action').first()).toBeVisible();
   });
 
   /**
@@ -339,18 +339,18 @@ test.describe('Admin Metrics Page - Origin Ranking', () => {
     const originRanking = page.getByTestId('admin-metrics-origin-ranking');
     await expect(originRanking).toBeVisible();
 
-    // Check initial table headers show lesson_viewed origin
-    await expect(originRanking.getByText(/レッスン閲覧起点/)).toBeVisible();
+    // Check initial table headers show lesson_viewed origin (use .first() as both Best/Worst tables exist)
+    await expect(originRanking.getByText(/レッスン閲覧起点/).first()).toBeVisible();
 
     // Switch to lesson_completed
     const completedTab = page.getByTestId('origin-tab-lesson_completed');
     await completedTab.click();
-    await expect(originRanking.getByText(/レッスン完了起点/)).toBeVisible();
+    await expect(originRanking.getByText(/レッスン完了起点/).first()).toBeVisible();
 
     // Switch to review_started
     const reviewTab = page.getByTestId('origin-tab-review_started');
     await reviewTab.click();
-    await expect(originRanking.getByText(/復習起点/)).toBeVisible();
+    await expect(originRanking.getByText(/復習起点/).first()).toBeVisible();
   });
 });
 

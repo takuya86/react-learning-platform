@@ -1,5 +1,10 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { Timer } from 'lucide-react';
+import {
+  TIMER_INTERVAL_MS,
+  LOW_TIME_THRESHOLD_SEC,
+  CRITICAL_TIME_THRESHOLD_SEC,
+} from '../constants';
 import styles from './QuizTimer.module.css';
 
 interface QuizTimerProps {
@@ -44,7 +49,7 @@ export function QuizTimer({ timeRemainingSec, onTick, isRunning }: QuizTimerProp
     if (intervalRef.current === null) {
       intervalRef.current = window.setInterval(() => {
         onTickRef.current();
-      }, 1000);
+      }, TIMER_INTERVAL_MS);
     }
 
     return clearTimer;
@@ -63,8 +68,8 @@ export function QuizTimer({ timeRemainingSec, onTick, isRunning }: QuizTimerProp
     return null;
   }
 
-  const isLowTime = timeRemainingSec <= 30;
-  const isCritical = timeRemainingSec <= 10;
+  const isLowTime = timeRemainingSec <= LOW_TIME_THRESHOLD_SEC;
+  const isCritical = timeRemainingSec <= CRITICAL_TIME_THRESHOLD_SEC;
 
   return (
     <div

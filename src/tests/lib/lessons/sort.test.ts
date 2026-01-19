@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import { lazy } from 'react';
 import { topologicalSort, groupByDifficulty, getLessonsForRoadmap } from '@/lib/lessons/sort';
 import type { LoadedLesson } from '@/lib/lessons/types';
-import type { ComponentType } from 'react';
 
-// Mock component for testing
-const MockComponent: ComponentType = () => null;
+// Mock lazy component for testing
+const MockComponent = lazy(() => Promise.resolve({ default: () => null }));
 
 function createMockLesson(
   id: string,

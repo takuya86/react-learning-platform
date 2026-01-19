@@ -45,20 +45,28 @@ export function ProgressPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
+      <header className={styles.header} role="banner">
         <div className={styles.headerTop}>
-          <h1 className={styles.title}>学習の進捗</h1>
+          <h1 className={styles.title} id="progress-page-title">
+            学習の進捗
+          </h1>
           {user && <SyncStatusIndicator />}
         </div>
         <p className={styles.subtitle}>あなたの学習状況を確認しましょう</p>
       </header>
 
-      <div className={styles.statsGrid}>
+      <section className={styles.statsGrid} aria-label="学習統計">
         <Card>
           <CardContent>
             <div className={styles.statCard}>
-              <span className={styles.statLabel}>完了したレッスン</span>
-              <span className={styles.statValue}>
+              <span className={styles.statLabel} id="completed-lessons-label">
+                完了したレッスン
+              </span>
+              <span
+                className={styles.statValue}
+                aria-labelledby="completed-lessons-label"
+                aria-label={`${completedCount}レッスン完了、全${totalCount}レッスン中`}
+              >
                 {completedCount} / {totalCount}
               </span>
             </div>
@@ -68,8 +76,16 @@ export function ProgressPage() {
         <Card>
           <CardContent>
             <div className={styles.statCard}>
-              <span className={styles.statLabel}>進捗率</span>
-              <span className={styles.statValue}>{progressPercentage}%</span>
+              <span className={styles.statLabel} id="progress-percentage-label">
+                進捗率
+              </span>
+              <span
+                className={styles.statValue}
+                aria-labelledby="progress-percentage-label"
+                aria-label={`進捗率 ${progressPercentage}パーセント`}
+              >
+                {progressPercentage}%
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -77,8 +93,16 @@ export function ProgressPage() {
         <Card>
           <CardContent>
             <div className={styles.statCard}>
-              <span className={styles.statLabel}>連続学習日数</span>
-              <span className={styles.statValue}>{progress.streak} 日</span>
+              <span className={styles.statLabel} id="streak-label">
+                連続学習日数
+              </span>
+              <span
+                className={styles.statValue}
+                aria-labelledby="streak-label"
+                aria-label={`連続${progress.streak}日間`}
+              >
+                {progress.streak} 日
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -86,50 +110,75 @@ export function ProgressPage() {
         <Card>
           <CardContent>
             <div className={styles.statCard}>
-              <span className={styles.statLabel}>学習中のレッスン</span>
-              <span className={styles.statValue}>{openedCount - completedCount}</span>
+              <span className={styles.statLabel} id="in-progress-label">
+                学習中のレッスン
+              </span>
+              <span
+                className={styles.statValue}
+                aria-labelledby="in-progress-label"
+                aria-label={`${openedCount - completedCount}レッスン学習中`}
+              >
+                {openedCount - completedCount}
+              </span>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </section>
 
-      <div className={styles.progressBar}>
+      <section className={styles.progressBar} aria-labelledby="overall-progress-label">
         <div className={styles.progressLabel}>
-          <span>全体の進捗</span>
-          <span>{progressPercentage}%</span>
+          <span id="overall-progress-label">全体の進捗</span>
+          <span aria-label={`${progressPercentage}パーセント`}>{progressPercentage}%</span>
         </div>
-        <div className={styles.progressTrack}>
+        <div
+          className={styles.progressTrack}
+          role="progressbar"
+          aria-valuenow={progressPercentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-labelledby="overall-progress-label"
+        >
           <div className={styles.progressFill} style={{ width: `${progressPercentage}%` }} />
         </div>
-      </div>
+      </section>
 
       <Card className={styles.recentCard}>
         <CardHeader>
-          <CardTitle>最近の学習履歴</CardTitle>
+          <CardTitle id="recent-history-heading">最近の学習履歴</CardTitle>
         </CardHeader>
         <CardContent>
           {recentLessons.length === 0 ? (
             <p className={styles.emptyMessage}>
               まだ学習履歴がありません。
-              <Link to="/lessons">レッスンを始めましょう！</Link>
+              <Link to="/lessons" aria-label="レッスン一覧ページへ移動してレッスンを開始">
+                レッスンを始めましょう！
+              </Link>
             </p>
           ) : (
-            <ul className={styles.recentList}>
+            <ul className={styles.recentList} aria-labelledby="recent-history-heading">
               {recentLessons.map((item) => (
                 <li key={item.lessonId} className={styles.recentItem}>
                   <div className={styles.recentInfo}>
-                    <Link to={`/lessons/${item.lessonId}`} className={styles.recentTitle}>
+                    <Link
+                      to={`/lessons/${item.lessonId}`}
+                      className={styles.recentTitle}
+                      aria-label={`${item.lesson?.title || item.lessonId}のレッスンへ移動`}
+                    >
                       {item.lesson?.title || item.lessonId}
                     </Link>
-                    <span className={styles.recentDate}>
+                    <time className={styles.recentDate} dateTime={item.openedAt}>
                       {new Date(item.openedAt).toLocaleDateString('ja-JP')}
-                    </span>
+                    </time>
                   </div>
                   <div>
                     {item.completedAt ? (
-                      <Badge variant="success">完了</Badge>
+                      <Badge variant="success" role="status" aria-label="完了済み">
+                        完了
+                      </Badge>
                     ) : (
-                      <Badge variant="primary">学習中</Badge>
+                      <Badge variant="primary" role="status" aria-label="学習中">
+                        学習中
+                      </Badge>
                     )}
                   </div>
                 </li>
@@ -139,11 +188,15 @@ export function ProgressPage() {
         </CardContent>
       </Card>
 
-      <div className={styles.resetSection}>
-        <Button variant="outline" onClick={handleReset}>
+      <section className={styles.resetSection} aria-label="進捗リセット操作">
+        <Button
+          variant="outline"
+          onClick={handleReset}
+          aria-label="すべての学習進捗をリセットします。この操作は取り消せません"
+        >
           進捗をリセット
         </Button>
-      </div>
+      </section>
     </div>
   );
 }

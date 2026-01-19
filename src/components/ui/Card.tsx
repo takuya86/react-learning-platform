@@ -13,47 +13,62 @@ export function Card({ children, className = '', ...props }: CardProps) {
   );
 }
 
-interface CardHeaderProps {
+interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  className?: string;
 }
 
-export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`${styles.header} ${className}`}>{children}</div>;
+export function CardHeader({ children, className = '', ...props }: CardHeaderProps) {
+  return (
+    <div className={`${styles.header} ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }
 
-interface CardTitleProps {
+interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
   children: ReactNode;
-  className?: string;
 }
 
-export function CardTitle({ children, className = '' }: CardTitleProps) {
-  return <h3 className={`${styles.title} ${className}`}>{children}</h3>;
+export function CardTitle({ children, className = '', ...props }: CardTitleProps) {
+  return (
+    <h3 className={`${styles.title} ${className}`} {...props}>
+      {children}
+    </h3>
+  );
 }
 
-interface CardDescriptionProps {
+interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {
   children: ReactNode;
-  className?: string;
 }
 
-export function CardDescription({ children, className = '' }: CardDescriptionProps) {
-  return <p className={`${styles.description} ${className}`}>{children}</p>;
+export function CardDescription({ children, className = '', ...props }: CardDescriptionProps) {
+  return (
+    <p className={`${styles.description} ${className}`} {...props}>
+      {children}
+    </p>
+  );
 }
 
-interface CardContentProps {
+interface CardContentProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  className?: string;
 }
 
-export function CardContent({ children, className = '' }: CardContentProps) {
-  return <div className={`${styles.content} ${className}`}>{children}</div>;
+export function CardContent({ children, className = '', ...props }: CardContentProps) {
+  return (
+    <div className={`${styles.content} ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }
 
-interface CardFooterProps {
+interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  className?: string;
 }
 
-export function CardFooter({ children, className = '' }: CardFooterProps) {
-  return <div className={`${styles.footer} ${className}`}>{children}</div>;
+export function CardFooter({ children, className = '', ...props }: CardFooterProps) {
+  return (
+    <div className={`${styles.footer} ${className}`} {...props}>
+      {children}
+    </div>
+  );
 }

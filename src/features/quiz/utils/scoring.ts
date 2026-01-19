@@ -1,5 +1,6 @@
 import type { QuizQuestion, QuestionResult, QuizAttempt } from '@/domain/types';
 import type { QuizState } from '../state/quizReducer';
+import { MILLISECONDS_PER_SECOND } from '../constants';
 
 export function buildQuestionResults(
   state: QuizState,
@@ -22,16 +23,13 @@ export function buildQuestionResults(
   });
 }
 
-export function buildQuizAttempt(
-  state: QuizState,
-  questions: QuizQuestion[]
-): QuizAttempt {
+export function buildQuizAttempt(state: QuizState, questions: QuizQuestion[]): QuizAttempt {
   const perQuestion = buildQuestionResults(state, questions);
   const score = perQuestion.filter((r) => r.isCorrect).length;
 
   const startTime = new Date(state.startedAt).getTime();
   const endTime = new Date(state.lastUpdatedAt).getTime();
-  const timeTakenSec = Math.round((endTime - startTime) / 1000);
+  const timeTakenSec = Math.round((endTime - startTime) / MILLISECONDS_PER_SECOND);
 
   return {
     quizId: state.quizId,
