@@ -1701,6 +1701,297 @@ export const quizzes: Quiz[] = [
       },
     ],
   },
+  // Advanced quizzes
+  {
+    id: 'react-performance-quiz',
+    title: 'パフォーマンス最適化',
+    description: 'Reactパフォーマンス最適化の理解度を確認',
+    relatedLessonIds: ['react-performance'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'rp1',
+        question:
+          "以下のコードでReact.memoが効かない原因として最も適切なものはどれか？\n\n```tsx\nfunction Parent() {\n  const [count, setCount] = useState(0);\n  return (\n    <MemoizedChild\n      onClick={() => console.log('click')}\n      style={{ color: 'red' }}\n    />\n  );\n}\n```",
+        options: [
+          'onClick propsとstyle propsが毎回新しい参照になるため、shallow comparisonで差分が検出される',
+          'MemoizedChildコンポーネントの内部でuseStateを使用しているため',
+          'Parent コンポーネントでuseCallbackを使用していないため',
+          'React.memoは関数コンポーネントには使用できないため',
+        ],
+        correctIndex: 0,
+        explanation:
+          'React.memoはpropsのshallow comparisonを行い、propsが同じなら再レンダリングをスキップします。しかし、インライン関数（onClick）とインラインオブジェクト（style）は毎回新しい参照が作られるため、propsが変わったと判断され、React.memoの効果がありません。useCallbackとuseMemoで参照を安定させる必要があります。',
+        hint: 'オブジェクトと関数の「参照の同一性」について考えてみましょう。',
+        tags: ['React.memo', 'useCallback', 'shallow-comparison'],
+      },
+      {
+        id: 'rp2',
+        question:
+          'レッスンの「判断基準」表によると、useMemoを使った最適化を「する」べき状況はどれか？',
+        options: [
+          '配列が50件以下でフィルタリング処理を行う場合',
+          'React DevTools Profilerで16msを超えるレンダリングが計測された場合',
+          '単純な足し算（a + b）の計算を行う場合',
+          'とりあえず念のため最適化しておきたい場合',
+        ],
+        correctIndex: 1,
+        explanation:
+          'レッスンでは「Profilerで16ms超のレンダリング」を最適化すべき状況（◎ する）としています。16msは60fps（1秒間に60フレーム）を維持するための閾値で、これを超えるとユーザー体感に影響します。配列50件以下、単純な計算、「念のため」の最適化は不要（× しない）とされています。',
+        hint: '60fpsを維持するための時間の閾値を考えましょう。',
+        tags: ['useMemo', 'profiler', 'measurement'],
+      },
+      {
+        id: 'rp3',
+        question:
+          '以下の練習問題のコードレビューで、最も重大な問題はどれか？\n\n```tsx\nfunction ProductList({ products, onSelect }) {\n  const filtered = useMemo(\n    () => products.filter(p => p.name.includes(filter)),\n    [products, filter]\n  );\n  return (\n    <div>\n      {filtered.map((product, index) => (\n        <ProductCard\n          key={index}\n          onClick={() => onSelect(product.id)}\n          style={{ marginBottom: 8 }}\n        />\n      ))}\n    </div>\n  );\n}\nconst ProductCard = memo(({ product, onClick, style }) => (\n  <div style={style} onClick={onClick}>{product.name}</div>\n));\n```',
+        options: [
+          'keyにインデックスを使用しているため、配列の順序が変わると全アイテムが再マウントされる',
+          'useMemoの依存配列にproductsとfilterが含まれていないため',
+          'ProductCardでmemoを使っているがonClickとstyleが毎回新しい参照になるため効果がない',
+          'ProductListコンポーネントでuseStateを使用していないため',
+        ],
+        correctIndex: 0,
+        explanation:
+          '最も重大な問題はkeyにインデックスを使用していることです。配列の順序が変わる（例：フィルタリングや並び替え）と、Reactは全アイテムを「別物」と判断してアンマウント→再マウントします。レッスンでは「keyには一意で安定したIDを使う」ことが推奨されており、`key={product.id}`とすべきです。onClickとstyleの問題も重要ですが、keyの問題の方がパフォーマンスへの影響が大きいです。',
+        hint: 'Reactがリストの各要素を識別する仕組みについて考えましょう。',
+        tags: ['key', 'list-rendering', 'code-review'],
+      },
+      {
+        id: 'rp4',
+        question:
+          "Contextの値を最適化する際、以下のコードの問題点と正しい修正方法の組み合わせとして最も適切なものはどれか？\n\n```tsx\nfunction ThemeProvider({ children }) {\n  const [theme, setTheme] = useState('light');\n  return (\n    <ThemeContext.Provider value={{ theme, setTheme }}>\n      {children}\n    </ThemeContext.Provider>\n  );\n}\n```",
+        options: [
+          '問題: valueが毎回新しいオブジェクトになる / 修正: `const value = useMemo(() => ({ theme, setTheme }), [theme]);`',
+          '問題: ThemeContext.Providerを使用している / 修正: useContextフックを使用する',
+          '問題: childrenが再レンダリングされる / 修正: childrenをReact.memoでラップする',
+          '問題: setThemeが依存配列に含まれていない / 修正: `useMemo(() => ({ theme, setTheme }), [theme, setTheme]);`',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Contextの値がオブジェクトの場合、毎回新しい参照が作られるとすべての購読コンポーネントが再レンダリングされます。レッスンでは「Context.ProviderのvalueはuseMemoでメモ化する」ことが推奨されています。setThemeはsetState関数なので依存配列に含める必要はありません（参照が安定している）。正しい修正は`useMemo(() => ({ theme, setTheme }), [theme])`です。',
+        hint: 'Context.Providerのvalueの参照が変わると、何が起きるか考えましょう。',
+        tags: ['context', 'useMemo', 're-rendering'],
+      },
+    ],
+  },
+  {
+    id: 'state-management-patterns-quiz',
+    title: '状態管理パターン',
+    description: '状態管理パターンの理解度を確認',
+    relatedLessonIds: ['state-management-patterns'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'smp1',
+        question:
+          "以下の状態のうち、Contextで管理すべきでないものはどれですか？\n\n```tsx\nconst AppContext = createContext({\n  user: null,           // A\n  theme: 'light',       // B\n  isMenuOpen: false,    // C\n  selectedProductId: null // D\n});\n```",
+        options: [
+          'C（isMenuOpen）とD（selectedProductId）の両方',
+          'A（user）とB（theme）の両方',
+          'C（isMenuOpen）のみ',
+          '全てContextで管理すべき',
+        ],
+        correctIndex: 0,
+        explanation:
+          'isMenuOpenはヘッダー内でしか使わないLocalな状態、selectedProductIdは商品ページでしか使わないため、これらをグローバルなContextに入れるべきではありません。一方、userやthemeはアプリ全体で使われるため、Contextで管理するのが適切です。状態のスコープは「誰が使うか」で判断します。',
+        hint: '「この状態は誰が使う？」を考えましょう。1-2コンポーネントで使う状態はLocalで十分です。',
+        tags: ['state-scope', 'context', 'pitfall'],
+      },
+      {
+        id: 'smp2',
+        question:
+          "以下の状態管理設計で、UI StateとDomain Stateを分離するための正しい改善方法はどれですか？\n\n```tsx\ntype State = {\n  users: User[];           // サーバーから取得\n  selectedUserId: string;  // ユーザー選択\n  isLoading: boolean;      // ローディング状態\n  sortOrder: 'asc' | 'desc'; // ソート順\n};\n```",
+        options: [
+          'usersとisLoadingはTanStack Queryなどで管理し、selectedUserIdとsortOrderはuseStateで管理する',
+          '全ての状態を1つのuseReducerで管理する',
+          '全ての状態を外部ストア（Zustand等）で管理する',
+          'usersとselectedUserIdをContext、isLoadingとsortOrderをuseStateで管理する',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Domain State（users、isLoading）はサーバーと同期が必要なため、TanStack Queryなどのサーバー状態管理ライブラリで扱います。UI State（selectedUserId、sortOrder）はローカルで完結するため、useStateで管理します。この分離により、キャッシュ戦略が明確になり、テストも容易になります。',
+        hint: '「この状態はサーバーにあるべきか、クライアントだけで持つべきか」を考えましょう。',
+        tags: ['ui-state', 'domain-state', 'separation'],
+      },
+      {
+        id: 'smp3',
+        question: 'カートの状態管理でuseReducerを使うべき理由として最も適切なものはどれですか？',
+        options: [
+          '複数のアクション（追加、削除、数量変更、クリア）が相互に関連する複雑な状態遷移があるため',
+          'グローバルに状態を共有したいため',
+          'useStateより処理速度が速いため',
+          'Contextと組み合わせる際に必須だから',
+        ],
+        correctIndex: 0,
+        explanation:
+          'useReducerは「複数のアクションが状態を変更する」「状態遷移のロジックが複雑」な場合に適しています。カートの場合、追加時に既存アイテムの数量を増やす、削除時にフィルタリングする、など複数の状態遷移があり、これらをReducerで一元管理することで見通しが良くなります。useReducerはグローバル化や速度のためのツールではありません。',
+        hint: '「複数のアクションが状態を変更する」「状態遷移が複雑」な場合を考えましょう。',
+        tags: ['useReducer', 'complex-state', 'cart'],
+      },
+      {
+        id: 'smp4',
+        question:
+          '状態の寿命（ライフサイクル）に基づいた管理方法の組み合わせとして正しいものはどれですか？\n\n- モーダルの開閉状態\n- ユーザーのログイン状態\n- フォームの入力値\n- テーマ設定（ダークモード）',
+        options: [
+          'useState / Context+外部ストア / useState / localStorage+Context',
+          'Context / useState / Context / useState',
+          '全てlocalStorage+外部ストア',
+          'useState / localStorage / Context / useReducer',
+        ],
+        correctIndex: 0,
+        explanation:
+          '状態の寿命に応じて適切な管理方法を選びます。モーダル開閉は一時的な状態でuseState、ログイン状態はセッション中保持でContext+外部ストア、フォーム入力はページ内でuseState、テーマ設定は永続化が必要でlocalStorage+Contextが適切です。寿命が短い状態ほどLocalに、長い状態ほど上位で管理します。',
+        hint: '一時的/ページ/セッション/永続の4つの寿命を考えましょう。',
+        tags: ['lifecycle', 'state-lifetime', 'management-method'],
+      },
+    ],
+  },
+  {
+    id: 'testing-basics-quiz',
+    title: 'テスト基礎',
+    description: 'Reactテストの基礎の理解度を確認',
+    relatedLessonIds: ['testing-basics'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'tb1',
+        question:
+          "以下のテストコードの問題点として最も適切なものはどれか？\n\n```tsx\nit('sets isOpen state to true when clicking button', () => {\n  const { result } = renderHook(() => useModal());\n  act(() => {\n    result.current.open();\n  });\n  expect(result.current.isOpen).toBe(true);\n});\n```",
+        options: [
+          '内部stateを直接検証しているため、リファクタリング時にテストが壊れやすい',
+          'act()の使い方が間違っているため、警告が発生する',
+          'renderHookではなくrenderを使うべきである',
+          'waitForを使わずに即座に検証しているため、非同期処理に対応できない',
+        ],
+        correctIndex: 0,
+        explanation:
+          'このテストは内部の実装詳細（isOpenというstate名）に依存しています。isOpenをisVisibleに変更しただけでテストが壊れてしまいます。ユーザーに見える結果（モーダルコンテンツが表示される）をテストすべきです。',
+        hint: '「ユーザー視点のテスト」の原則を思い出してください。実装を変えても動作が同じなら、テストは通るべきです。',
+        tags: ['testing', 'pitfalls', 'implementation-details'],
+      },
+      {
+        id: 'tb2',
+        question: 'テストピラミッドに関する説明として最も適切なものはどれか？',
+        options: [
+          'E2Eテストは本番環境に最も近いため、全てのテストケースをE2Eでカバーすべきである',
+          'Unitテストを多く、Integrationテストを中程度、E2Eテストを少なくするのが原則である',
+          'Integrationテストだけあれば十分で、UnitテストとE2Eテストは不要である',
+          'カバレッジ100%を達成するため、全レイヤーで同じ数のテストを書くべきである',
+        ],
+        correctIndex: 1,
+        explanation:
+          'テストピラミッドの原則は、下層（Unit）を厚く、上層（E2E）を薄くすることです。Unitテストは速くて安定、E2Eは遅くて不安定なため、コスト効率を最大化するにはこの配分が最適です。E2Eはクリティカルパスのみをカバーします。',
+        hint: '各レイヤーの速度と信頼性のトレードオフを考えてください。',
+        tags: ['testing', 'test-pyramid', 'strategy'],
+      },
+      {
+        id: 'tb3',
+        question:
+          "以下のコードで適切な待機方法はどれか？\n\n```tsx\nit('API呼び出し後にデータが表示される', async () => {\n  const user = userEvent.setup();\n  render(<UserList />);\n  await user.click(screen.getByRole('button', { name: '読み込む' }));\n  // データ表示を確認したい\n});\n```",
+        options: [
+          "expect(await screen.findByText('John')).toBeInTheDocument();",
+          "await new Promise(r => setTimeout(r, 500)); expect(screen.getByText('John')).toBeInTheDocument();",
+          "expect(screen.getByText('John')).toBeInTheDocument();",
+          "await waitFor(() => {}); expect(screen.getByText('John')).toBeInTheDocument();",
+        ],
+        correctIndex: 0,
+        explanation:
+          'findByは非同期処理を適切に待機できるため、API呼び出し後の要素取得に最適です。固定時間のsetTimeoutは環境によって不安定になり、waitForの空呼び出しも意味がありません。',
+        hint: 'findByは要素が見つかるまで自動的に待機します。',
+        tags: ['testing', 'async', 'testing-library'],
+      },
+      {
+        id: 'tb4',
+        question:
+          'バリデーションロジックとUIコンポーネントのテスト戦略として最も適切なものはどれか？',
+        options: [
+          'validateEmail関数の全パターン（空文字、無効形式、有効形式など）をLoginFormのIntegrationテストで検証する',
+          'validateEmail関数はUnitテストで全パターンを検証し、LoginFormでは連携確認（エラー表示、送信可否）のみテストする',
+          '全てE2Eテストでカバーし、UnitテストとIntegrationテストは書かない',
+          'カバレッジ100%達成のため、両方で同じパターンを重複してテストする',
+        ],
+        correctIndex: 1,
+        explanation:
+          'ロジックとUIの責務を分離することで、効率的なテスト戦略が実現できます。validateEmailのような純粋なロジックはUnitテストで高速に全パターンを検証し、LoginFormのIntegrationテストでは「バリデーション結果がUIに正しく反映されるか」という連携のみを確認します。これにより重複を避け、高速で保守しやすいテストスイートになります。',
+        hint: '「UIテストでロジックを検証する」のPitfallsセクションを思い出してください。',
+        tags: ['testing', 'separation-of-concerns', 'unit-vs-integration'],
+      },
+    ],
+  },
+  {
+    id: 'typescript-with-react-quiz',
+    title: 'TypeScriptとReact',
+    description: 'TypeScriptとReactの理解度を確認',
+    relatedLessonIds: ['typescript-with-react'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'tr1',
+        question:
+          '以下のコードにおいて、型設計上の問題点として最も適切なものはどれか？\n\n```tsx\ntype User = {\n  id: string;\n  name: string;\n  isLoading: boolean;\n  error: Error | null;\n};\n\nconst user: User = await fetchUser();\n```',
+        options: [
+          'Domain型（User）にUI状態（isLoading、error）が混入しており、責務が分離されていない',
+          'Errorオブジェクトをnullと共用体にするべきではなく、undefinedを使うべき',
+          'idとnameの型がstringで統一されており、区別できない',
+          'async/await構文を使っているため、型推論が正しく機能しない',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Domain型（APIから返されるビジネスロジック用の型）にUI状態（isLoading、errorなど）を混ぜると責務が曖昧になります。User型はAPIスキーマのみを表現し、UI状態は`AsyncState<User>`などの別の型で管理すべきです。',
+        hint: 'レッスンの「UI用の型とDomain型の混同」セクションを参照してください。',
+        tags: ['typescript', 'design', 'discriminated-union'],
+      },
+      {
+        id: 'tr2',
+        question:
+          '外部APIからのレスポンスデータを安全に処理する方法として、最も適切なものはどれか？\n\n```tsx\nasync function fetchUser(id: string) {\n  const response = await fetch(`/api/users/${id}`);\n  const data = await response.json();\n  // ここでdataをどう処理するか？\n}\n```',
+        options: [
+          '`const user = data as User;` で型アサーションを使い、User型として扱う',
+          '`const data: User = await response.json();` で直接User型を指定する',
+          '`const data: unknown = await response.json();` で受け取り、型ガード関数で検証してからUser型として扱う',
+          '`const data: any = await response.json();` で受け取り、後でUser型に変換する',
+        ],
+        correctIndex: 2,
+        explanation:
+          'API境界では何が返ってくるか信頼できないため、まず`unknown`で受け取り、型ガード関数（`isUser(data): data is User`）で実際のデータ構造を検証してから型安全に使用します。型アサーション（as）や直接型指定は実行時の検証がないため危険です。',
+        hint: 'レッスンの「型ガード（API境界で使う）」セクションと「なぜunknown + 型ガードを推奨するのか」を参照してください。',
+        tags: ['typescript', 'type-guard', 'api'],
+      },
+      {
+        id: 'tr3',
+        question:
+          '以下のコンポーネントにおいて、Generic `<T>` を使用する必要性について最も適切な判断はどれか？\n\n```tsx\ntype UserCardProps<T extends User> = {\n  user: T;\n  onSelect: (user: T) => void;\n};\n\nfunction UserCard<T extends User>({ user, onSelect }: UserCardProps<T>) {\n  return <div onClick={() => onSelect(user)}>{user.name}</div>;\n}\n```',
+        options: [
+          '必要。User型を拡張した様々な型に対応できるため、汎用性が高まる',
+          '不要。このコンポーネントは特定のUser型でしか使われておらず、過剰なGenericで可読性を下げている',
+          '必要。TypeScriptのベストプラクティスとして、コンポーネントは常にGenericで定義すべき',
+          '不要。Reactコンポーネントでは型パラメータを使用できないため、削除が必須',
+        ],
+        correctIndex: 1,
+        explanation:
+          'このコンポーネントは1箇所（User型）でしか使われていないため、Genericは不要です。`type UserCardProps = { user: User; onSelect: (user: User) => void; }`とシンプルに書くべきです。Genericは複数の異なる型で再利用される場合にのみ価値があります。',
+        hint: 'レッスンの「過剰なGeneric」セクションと「なぜGenericは必要な場合だけなのか」を参照してください。',
+        tags: ['typescript', 'generic', 'design'],
+      },
+      {
+        id: 'tr4',
+        question:
+          "Discriminated Unionを使った状態管理において、以下のコードの利点として最も適切なものはどれか？\n\n```tsx\ntype AsyncState<T> =\n  | { status: 'idle' }\n  | { status: 'loading' }\n  | { status: 'error'; error: Error }\n  | { status: 'success'; data: T };\n\nswitch (state.status) {\n  case 'success':\n    return <p>{state.data.name}</p>; // state.dataは確実に存在\n}\n```",
+        options: [
+          'switch文を使うことでコードの実行速度が向上し、パフォーマンスが改善される',
+          'statusプロパティで型が自動的に絞り込まれ、成功時にはstate.dataが確実に存在することをTypeScriptが保証する',
+          'すべての状態を1つのオブジェクトで管理できるため、メモリ使用量が削減される',
+          '非同期処理の順序を保証し、loading → success の順に必ず実行される',
+        ],
+        correctIndex: 1,
+        explanation:
+          "Discriminated Union（判別可能な共用体型）では、共通プロパティ（status）で分岐すると、TypeScriptが自動的に型を絞り込みます。`case 'success'`では`state.data`が確実に存在し、`case 'error'`では`state.error`が存在することが型レベルで保証されるため、実行時エラーを防げます。",
+        hint: 'レッスンの「Discriminated Unionで状態を表現」セクションを参照してください。',
+        tags: ['typescript', 'discriminated-union', 'type-narrowing'],
+      },
+    ],
+  },
 ];
 
 export function getQuizById(id: string): Quiz | undefined {
