@@ -799,6 +799,908 @@ export const quizzes: Quiz[] = [
       },
     ],
   },
+  // Intermediate Level Quizzes
+  {
+    id: 'context-patterns-quiz',
+    title: 'Contextの設計パターン',
+    description: 'Context設計パターンの理解度を確認',
+    relatedLessonIds: ['context-patterns'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'cp1',
+        question: '状態と更新関数を分離するパターンの主な目的は何ですか？',
+        options: [
+          '不要な再レンダリングを防ぐため',
+          'コードの行数を減らすため',
+          'TypeScriptの型推論を改善するため',
+          '複数のProviderを管理しやすくするため',
+        ],
+        correctIndex: 0,
+        explanation:
+          '状態と更新関数を別々のContextに分離することで、更新関数だけを使うコンポーネントは状態が変わっても再レンダリングされません。これにより、パフォーマンスが向上します。',
+        hint: 'setUserだけを使うコンポーネントがuserの変更で再レンダリングされる問題を思い出してみましょう',
+        tags: ['context', 'patterns', 'performance'],
+      },
+      {
+        id: 'cp2',
+        question: 'useReducerとContextを組み合わせるパターンはどのような場合に適していますか？',
+        options: [
+          'テーマカラーだけを管理する単純な状態',
+          '複数の関連する状態を持つ複雑な状態管理',
+          'APIから取得したデータをキャッシュする場合',
+          '頻繁に更新される時計の表示',
+        ],
+        correctIndex: 1,
+        explanation:
+          'useReducerは複数の関連する状態（user、isLoading、errorなど）を一貫性を持って管理できます。アクションベースの更新により、状態遷移が明確になり保守性が向上します。',
+        hint: 'レッスンのAuthProviderの例を思い出してください。どんな状態を管理していましたか？',
+        tags: ['context', 'useReducer', 'patterns'],
+      },
+      {
+        id: 'cp3',
+        question: 'カスタムフックでContextをラップする際、エラーをスローする理由は何ですか？',
+        options: [
+          'TypeScriptの型チェックを厳密にするため',
+          'Provider外でContextを使用した際に早期に検知するため',
+          'パフォーマンスを向上させるため',
+          '複数のProviderを使えるようにするため',
+        ],
+        correctIndex: 1,
+        explanation:
+          'context が null かチェックしてエラーをスローすることで、Provider外でフックを使用したミスを開発時に早期発見できます。これにより、ランタイムエラーを防ぎ、デバッグが容易になります。',
+        hint: 'useTheme()の実装で「if (!context) throw new Error...」が何をチェックしているか考えてみましょう',
+        tags: ['context', 'custom-hooks', 'error-handling'],
+      },
+      {
+        id: 'cp4',
+        question: '次のうち、Contextのアンチパターンはどれですか？',
+        options: [
+          '状態と更新関数を別々のContextに分離する',
+          '毎秒更新される時刻をContextで管理する',
+          'useReducerとContextを組み合わせる',
+          'カスタムフックでContextをラップする',
+        ],
+        correctIndex: 1,
+        explanation:
+          '頻繁に変わる値（時刻など）をContextに入れると、全ての購読コンポーネントが頻繁に再レンダリングされ、パフォーマンスが悪化します。このような値はローカルステートで管理すべきです。',
+        hint: 'レッスンの「頻繁に変わる値を入れる」というアンチパターンの例を確認しましょう',
+        tags: ['context', 'anti-patterns', 'performance'],
+      },
+    ],
+  },
+  {
+    id: 'custom-hooks-quiz',
+    title: 'カスタムフック',
+    description: 'カスタムフックの理解度を確認',
+    relatedLessonIds: ['custom-hooks'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'ch1',
+        question: 'カスタムフックの命名規則として正しいものはどれですか？',
+        options: [
+          'use で始まる名前をつける必要がある',
+          'hook で始まる名前をつける必要がある',
+          'custom で始まる名前をつける必要がある',
+          '特に命名規則はなく、任意の名前をつけられる',
+        ],
+        correctIndex: 0,
+        explanation:
+          'カスタムフックは必ず `use` で始まる名前をつける必要があります。これにより、Reactがフックとして認識し、フックのルールを適用できるようになります。',
+        hint: 'Reactの組み込みフック（useState、useEffectなど）の命名を思い出してみましょう',
+        tags: ['hooks', 'custom-hooks', 'naming'],
+      },
+      {
+        id: 'ch2',
+        question: 'カスタムフックに切り出すべき場面として適切でないものはどれですか？',
+        options: [
+          '2つ以上のコンポーネントで同じロジックを使う場合',
+          '状態と副作用がセットで動く複雑なロジック',
+          '1つのコンポーネントでしか使わないUIの見た目に関するロジック',
+          'テスト可能にしたい複雑なロジック',
+        ],
+        correctIndex: 2,
+        explanation:
+          'UIの見た目に関するロジックはコンポーネントに残すべきです。カスタムフックは「何をするか」を担当し、「どう見せるか」はコンポーネントに任せるのが適切な設計です。また、1つのコンポーネントでしか使わないロジックもフックに切り出す必要はありません。',
+        hint: 'カスタムフックの責務は「ロジックの再利用」であり、UIには関与しません',
+        tags: ['hooks', 'custom-hooks', 'design'],
+      },
+      {
+        id: 'ch3',
+        question:
+          'useEffectで副作用を実装したカスタムフックで、必ずcleanup（クリーンアップ）が必要なケースはどれですか？',
+        options: [
+          'データのフェッチ（fetch）を実行する場合',
+          'setIntervalでタイマーを登録する場合',
+          'useStateで状態を更新する場合',
+          '単純な計算処理を実行する場合',
+        ],
+        correctIndex: 1,
+        explanation:
+          'setIntervalでタイマーを登録した場合、コンポーネントがアンマウントされてもタイマーが動き続けるため、必ずclearIntervalでクリーンアップする必要があります。addEventListener、WebSocket接続なども同様にcleanupが必須です。',
+        hint: 'アンマウント後も動き続けるとメモリリークや予期しない動作の原因になるものは何でしょうか',
+        tags: ['hooks', 'custom-hooks', 'useEffect', 'cleanup'],
+      },
+      {
+        id: 'ch4',
+        question:
+          'カスタムフックで関数を返す際、useCallbackでラップする理由として正しいものはどれですか？',
+        options: [
+          '関数の処理速度を高速化するため',
+          '関数の参照を安定させ、使う側での不要な再レンダリングを防ぐため',
+          'TypeScriptの型チェックを通すため',
+          'メモリ使用量を削減するため',
+        ],
+        correctIndex: 1,
+        explanation:
+          'useCallbackを使わないと、カスタムフックが再実行されるたびに新しい関数が生成されます。関数は参照で比較されるため、使う側のコンポーネントでReact.memoが効かず、不要な再レンダリングが発生してしまいます。useCallbackで参照を安定させることで、この問題を防げます。',
+        hint: 'JavaScriptでは関数やオブジェクトは「参照」で比較されることを思い出しましょう',
+        tags: ['hooks', 'custom-hooks', 'useCallback', 'performance'],
+      },
+    ],
+  },
+  {
+    id: 'data-fetching-quiz',
+    title: 'データ取得',
+    description: 'データ取得の理解度を確認',
+    relatedLessonIds: ['data-fetching'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'df1',
+        question: 'useEffectでデータ取得する際、AbortControllerを使う主な理由は何ですか？',
+        options: [
+          'Race ConditionとUnmounted後のsetStateを防ぐため',
+          'APIリクエストの速度を上げるため',
+          'コンポーネントの再レンダリングを防ぐため',
+          'fetchの代わりにaxiosを使えるようにするため',
+        ],
+        correctIndex: 0,
+        explanation:
+          'AbortControllerは、連続リクエストで古いデータが新しいデータを上書きするRace Conditionと、コンポーネントがアンマウントされた後にsetStateが呼ばれるメモリリーク警告を防ぐために使います。cleanup関数でcontroller.abort()を呼ぶことで、不要になったリクエストをキャンセルできます。',
+        hint: 'レッスンで説明されていた「よくある間違い」の1番と2番を思い出してください',
+        tags: ['fetch', 'AbortController', 'race-condition'],
+      },
+      {
+        id: 'df2',
+        question:
+          "以下のコードの問題点は何ですか？\n\n```tsx\nuseEffect(() => {\n  fetch('/api/users')\n    .then(r => r.json())\n    .then(setUsers);\n}, []);\n```",
+        options: [
+          'エラーハンドリングがなく、アンマウント後のsetStateも起きる',
+          'async/awaitを使っていない',
+          '依存配列が空配列になっている',
+          'fetchの代わりにaxiosを使うべき',
+        ],
+        correctIndex: 0,
+        explanation:
+          'このコードには、エラーハンドリングがないこと、コンポーネントがアンマウントされた後にsetUsersが呼ばれる可能性があること、連続リクエストでrace conditionが起きる可能性があることなど、複数の問題があります。AbortControllerとtry-catchでこれらを防ぐ必要があります。',
+        hint: 'レッスンの冒頭で「⚠️ 問題のある実装」として紹介されていたコードです',
+        tags: ['fetch', 'useEffect', 'error-handling'],
+      },
+      {
+        id: 'df3',
+        question: 'データ取得時に考慮すべき4つの状態とは何ですか？',
+        options: [
+          'loading / error / empty / success',
+          'pending / rejected / fulfilled / cancelled',
+          'idle / fetching / success / failure',
+          'initial / loading / done / retry',
+        ],
+        correctIndex: 0,
+        explanation:
+          'データ取得では、loading（読み込み中）、error（エラー発生）、empty（データが空）、success（データ取得成功）の4状態を明示的に分岐することで、すべてのケースに適切なUIを表示できます。TypeScriptの判別共用体を使うと状態分岐漏れを防げます。',
+        hint: 'レッスンの「よくある間違い」3番で説明されていました',
+        tags: ['state-management', 'ui', 'typescript'],
+      },
+      {
+        id: 'df4',
+        question:
+          'レッスンで「実務では使用を強く推奨」されているデータ取得ライブラリの組み合わせはどれですか？',
+        options: [
+          'SWR または TanStack Query',
+          'Redux または MobX',
+          'Axios または Fetch',
+          'React Router または Next.js',
+        ],
+        correctIndex: 0,
+        explanation:
+          'レッスンでは、キャッシュ、複数コンポーネントでのデータ共有、再取得、ポーリング、楽観的更新が必要な実務では、SWRやTanStack Query（旧React Query）の使用が強く推奨されています。自前実装は基礎を理解するための学習目的で行います。',
+        hint: '「設計判断の基準」セクションで「いつライブラリを使うか」として紹介されていました',
+        tags: ['library', 'best-practices', 'swr'],
+      },
+    ],
+  },
+  {
+    id: 'error-boundaries-quiz',
+    title: 'Error Boundary',
+    description: 'Error Boundaryの理解度を確認',
+    relatedLessonIds: ['error-boundaries'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'eb1',
+        question: 'Error Boundaryが直接キャッチ「できない」エラーはどれですか？',
+        options: [
+          'レンダリング中に発生したコンポーネントのエラー',
+          'イベントハンドラ内で発生したエラー',
+          'getDerivedStateFromErrorで発生したエラー',
+          'constructorで発生したエラー',
+        ],
+        correctIndex: 1,
+        explanation:
+          'Error Boundaryはレンダリング中のエラーのみをキャッチします。イベントハンドラ内のエラーはtry-catchで自分でハンドリングする必要があります。非同期エラー（fetch、setTimeoutなど）もshowBoundaryで明示的に委譲する必要があります。',
+        hint: 'ボタンクリックなどのユーザー操作時に発生するエラーの処理方法を思い出してください',
+        tags: ['error', 'boundary'],
+      },
+      {
+        id: 'eb2',
+        question: 'Error Boundaryの推奨配置方法として正しいものはどれですか？',
+        options: [
+          'アプリ全体を1つのError Boundaryで囲むだけで十分',
+          'アプリ全体、ページ単位、重要なウィジェット単位の3層構造で配置する',
+          'すべてのコンポーネントを個別にError Boundaryで囲む',
+          'Error Boundaryはルートコンポーネントにのみ必要',
+        ],
+        correctIndex: 1,
+        explanation:
+          '推奨は3層構造での配置です。（1）アプリ全体（最後の砦）、（2）ページ/ルート単位、（3）重要なウィジェット単位。こうすることで、1箇所でエラーが起きても他の部分は動作し続け、障害の影響範囲を最小化できます。',
+        hint: 'エラー発生時に「どこまで影響させたいか」を考える必要があります',
+        tags: ['error', 'boundary', 'architecture'],
+      },
+      {
+        id: 'eb3',
+        question:
+          '非同期処理（fetch）でエラーが発生した場合、Error Boundaryでキャッチするための正しい方法はどれですか？',
+        options: [
+          'useEffect内でthrow errorすれば自動的にキャッチされる',
+          'try-catchでキャッチして、showBoundaryで明示的に委譲する',
+          'async/awaitを使えば自動的にError Boundaryがキャッチする',
+          '.catch()で投げたエラーは自動的にError Boundaryに届く',
+        ],
+        correctIndex: 1,
+        explanation:
+          '非同期エラーはError Boundaryでは直接キャッチされません。useEffect内でtry-catchを使ってエラーをキャッチし、showBoundary(error)で明示的にError Boundaryに委譲する必要があります。または、loading/error状態を自分で管理してUIに反映する方法もあります。',
+        hint: 'レッスンのAsyncWidgetコンポーネントの実装を参考にしてください',
+        tags: ['error', 'boundary', 'async'],
+      },
+      {
+        id: 'eb4',
+        question: 'フォールバックUIに必ず含めるべき要素はどれですか？',
+        options: [
+          'エラーメッセージのみ表示すれば十分',
+          '再試行ボタンやホームに戻るボタンなど、ユーザーが次に取れるアクションを提供する',
+          'エラーの詳細なスタックトレースをすべて表示する',
+          'エラーが発生したことをユーザーに知らせない',
+        ],
+        correctIndex: 1,
+        explanation:
+          'フォールバックUIには必ず「再試行」「ホームに戻る」「サポートに連絡」など、ユーザーが次に取れるアクションを含める必要があります。エラーが起きたとき、ユーザーが何もできないUIは最悪のUXになります。復旧手段を提供することで、ユーザーは自分で問題を解決できる可能性があります。',
+        hint: 'エラー発生時のユーザー体験を考えてください',
+        tags: ['error', 'boundary', 'ux'],
+      },
+    ],
+  },
+  {
+    id: 'form-validation-quiz',
+    title: 'フォームバリデーション',
+    description: 'フォームバリデーションの理解度を確認',
+    relatedLessonIds: ['form-validation'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'fv1',
+        question: 'フォームバリデーションのタイミングについて、最も適切な説明はどれですか？',
+        options: [
+          'submit時バリデーションを基本とし、ユーザーが入力完了後にまとめて検証する',
+          'change時バリデーションを基本とし、入力のたびにリアルタイムでエラーを表示する',
+          'blur時バリデーションのみを使用し、フィールドを離れたときだけ検証する',
+          'バリデーションは常にサーバーサイドで行い、クライアント側では実装しない',
+        ],
+        correctIndex: 0,
+        explanation:
+          'submit時バリデーションを基本とすることで、ユーザーは入力途中に怒られることがなく、複数フィールドの関連チェックも自然にできます。blur時やchange時は補助的に使用します。',
+        hint: 'ユーザーが「入力途中」に怒られない設計を考えましょう',
+        tags: ['form', 'validation', 'ux'],
+      },
+      {
+        id: 'fv2',
+        question:
+          '次のコードの問題点として最も適切なものはどれですか？\n\nconst [name, setName] = useState("");\nconst [email, setEmail] = useState("");\nconst [password, setPassword] = useState("");\nconst [phone, setPhone] = useState("");\nconst [address, setAddress] = useState("");',
+        options: [
+          'フィールドごとに個別のuseStateを使用しており、管理が困難になる',
+          'useStateの初期値が空文字列になっている',
+          'constではなくletを使用すべきである',
+          'フィールド数が少なすぎて実用的でない',
+        ],
+        correctIndex: 0,
+        explanation:
+          'フィールドごとに個別のuseStateを使用すると、フィールドが増えるたびに管理が困難になります。オブジェクトで一括管理することで、汎用的な更新関数を作成でき、バリデーション時もformDataをそのまま渡せます。',
+        hint: 'フィールドが10個以上になったときのことを考えてみましょう',
+        tags: ['form', 'react', 'state'],
+      },
+      {
+        id: 'fv3',
+        question:
+          'バリデーションロジックをUIから分離する主な利点として、正しくないものはどれですか？',
+        options: [
+          '単体テストが書きやすくなる',
+          '同じルールをサーバーサイドでも使える',
+          'バリデーションの実行速度が向上する',
+          'バリデーションルールの変更が1箇所で済む',
+        ],
+        correctIndex: 2,
+        explanation:
+          'バリデーションロジックを分離しても、実行速度は向上しません。主な利点は、テストのしやすさ、再利用性、保守性の向上です。純粋関数として分離することで、単体テストが容易になり、サーバーサイドとの共有も可能になります。',
+        hint: 'パフォーマンスではなく、コードの品質や保守性に注目しましょう',
+        tags: ['validation', 'architecture', 'testing'],
+      },
+      {
+        id: 'fv4',
+        question:
+          '次のコードの問題点として最も適切なものはどれですか？\n\nconst handleChange = (value: string) => {\n  setEmail(value);\n  if (!value.includes("@")) {\n    setError("無効なメールアドレスです");\n  }\n};',
+        options: [
+          '入力のたびにバリデーションが実行され、ユーザーが入力途中でエラーを見ることになる',
+          'value.includes()ではなく正規表現を使うべきである',
+          'setEmailとsetErrorを同時に呼び出しているため、無限ループになる',
+          'async/awaitを使用していないため、非同期処理ができない',
+        ],
+        correctIndex: 0,
+        explanation:
+          'onChange時に即座にバリデーションを実行すると、「t」と入力した瞬間に「無効なメールアドレスです」が表示され、UX崩壊につながります。submit時またはblur時にバリデーションを行い、「touched」状態を管理することで、適切なタイミングでエラーを表示できます。',
+        hint: 'ユーザーが「まだ入力中なのに怒られている」と感じないか考えましょう',
+        tags: ['form', 'validation', 'ux'],
+      },
+    ],
+  },
+  {
+    id: 'loading-error-states-quiz',
+    title: 'ローディングとエラー状態',
+    description: 'ローディングとエラー状態の管理の理解度を確認',
+    relatedLessonIds: ['loading-error-states'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'le1',
+        question: '非同期UIの状態管理で推奨される5つの状態として正しいものはどれですか？',
+        options: [
+          'idle / loading / error / success',
+          'idle / loading / error / empty',
+          'idle / loading / error / empty / success',
+          'loading / error / complete / success',
+        ],
+        correctIndex: 2,
+        explanation:
+          '非同期UIでは、idle（初期状態）、loading（読み込み中）、error（エラー発生）、empty（データなし）、success（データ取得成功）の5状態を明示的に管理することで、UIの曖昧さをなくし、すべてのケースに対応できます。booleanだけの管理では状態の区別がつきません。',
+        hint: 'レッスンで紹介されているDiscriminated Union型の定義を思い出してください',
+        tags: ['loading', 'error', 'state'],
+      },
+      {
+        id: 'le2',
+        question: 'race conditionを防ぐための対策として適切なものはどれですか？',
+        options: [
+          'すべてのリクエストをawaitで順次実行する',
+          'リクエストごとにIDを発行し、最新のIDと一致する場合のみ状態を更新する',
+          'useEffectの依存配列を空にする',
+          'setTimeoutで遅延させてからリクエストを送る',
+        ],
+        correctIndex: 1,
+        explanation:
+          'race conditionは、後から発行したリクエストが先に返ることで古いデータが表示される問題です。requestIdRefを使ってリクエストごとにIDを発行し、currentRequestId === requestIdRef.currentの場合のみ状態を更新することで、古いリクエストの結果を無視できます。AbortControllerで前のリクエストをキャンセルする方法もあります。',
+        hint: 'レッスンのuseFetchカスタムフックでrequestIdRefがどう使われているか確認してください',
+        tags: ['race-condition', 'async', 'state'],
+      },
+      {
+        id: 'le3',
+        question: 'エラー発生時のUIデザインで必ず含めるべき要素はどれですか？',
+        options: [
+          'エラーメッセージのみ表示',
+          'console.errorでログ出力のみ',
+          'エラーメッセージと「再試行」などの次のアクションを提供',
+          '画面を真っ白にしてページリロードを促す',
+        ],
+        correctIndex: 2,
+        explanation:
+          'エラー時は、エラーメッセージの表示だけでなく、ユーザーが次に何をすべきかを示す「再試行」ボタンや「ホームに戻る」リンクなどのアクションを必ず提供します。console.errorだけではユーザーには何も伝わらず、「無反応UI」になってしまいます。',
+        hint: 'ErrorMessageコンポーネントにonRetryプロパティが含まれている理由を考えてください',
+        tags: ['error', 'ux', 'ui'],
+      },
+      {
+        id: 'le4',
+        question: 'useEffectの依存配列で無限ループを防ぐために正しいのはどれですか？',
+        options: [
+          'オブジェクトや配列をそのまま依存配列に入れる',
+          'オブジェクトのプリミティブ値（例: filters.status）を依存配列に入れる',
+          '依存配列を常に空配列にする',
+          '依存配列を指定しない',
+        ],
+        correctIndex: 1,
+        explanation:
+          'オブジェクトや配列は毎回新しい参照が作られるため、依存配列に入れると無限ループになります。代わりに、オブジェクトの中のプリミティブ値（文字列、数値など）を依存配列に指定することで、実際に値が変わった時のみuseEffectが再実行されます。オブジェクトが必要な場合はuseMemoで参照を安定させます。',
+        hint: 'レッスンの「よくある間違い3」で、filtersオブジェクトとfilters.statusの違いを確認してください',
+        tags: ['useEffect', 'dependency', 'hooks'],
+      },
+    ],
+  },
+  {
+    id: 'react-forms-quiz',
+    title: 'フォーム処理',
+    description: 'react-hook-formの理解度を確認',
+    relatedLessonIds: ['react-forms'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'rf1',
+        question: 'react-hook-formの`register`関数の役割として正しいものはどれですか？',
+        options: [
+          'フォーム入力要素をreact-hook-formに登録し、バリデーションルールを設定する',
+          'フォームの送信処理を実行する',
+          'フォームのエラーメッセージを表示する',
+          'フォームの初期値を設定する',
+        ],
+        correctIndex: 0,
+        explanation:
+          '`register`関数は、input要素などのフォーム入力要素をreact-hook-formに登録し、バリデーションルール（required, minLengthなど）を設定する役割を持ちます。',
+        hint: "コード例の`{...register('email', { required: 'メールアドレスは必須です' })}`の部分に注目してみましょう",
+        tags: ['form', 'react-hook-form', 'register'],
+      },
+      {
+        id: 'rf2',
+        question:
+          '以下のコードで、パスワードフィールドに最小文字数8文字のバリデーションを追加する正しい方法はどれですか？',
+        options: [
+          "{...register('password', { minLength: { value: 8, message: '8文字以上' } })}",
+          "{...register('password', { min: 8 })}",
+          "{...register('password', { length: 8 })}",
+          "{...register('password', { validate: length > 8 })}",
+        ],
+        correctIndex: 0,
+        explanation:
+          'react-hook-formでは、minLengthオプションをオブジェクト形式で指定します。valueプロパティに最小文字数、messageプロパティにエラーメッセージを設定します。',
+        hint: 'レッスンのpasswordフィールドのバリデーション設定を確認してみましょう',
+        tags: ['form', 'react-hook-form', 'validation'],
+      },
+      {
+        id: 'rf3',
+        question: 'Zodとreact-hook-formを連携させる際に必要なものはどれですか？',
+        options: [
+          '@hookform/resolvers/zodからzodResolverをインポートし、useFormのresolverオプションに渡す',
+          'zodスキーマをregister関数に直接渡す',
+          'useFormの代わりにuseZodFormフックを使用する',
+          'zodスキーマをhandleSubmit関数に渡す',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Zodとreact-hook-formを連携するには、@hookform/resolvers/zodパッケージのzodResolverを使用し、useFormのresolverオプションに`zodResolver(schema)`を渡します。',
+        hint: 'レッスンの「Zodとの連携」セクションのuseFormの引数に注目してください',
+        tags: ['form', 'react-hook-form', 'zod', 'validation'],
+      },
+      {
+        id: 'rf4',
+        question:
+          'formState.errorsオブジェクトを使ってエラーメッセージを表示する正しい方法はどれですか？',
+        options: [
+          '{errors.email && <span>{errors.email.message}</span>}',
+          '{errors.email.show()}',
+          '<ErrorMessage error={errors.email} />',
+          '{displayError(errors.email)}',
+        ],
+        correctIndex: 0,
+        explanation:
+          'errors.email が存在する場合に条件付きレンダリングを行い、errors.email.messageプロパティでエラーメッセージを表示します。これはreact-hook-formの標準的なエラー表示パターンです。',
+        hint: 'レッスンのコード例で、emailフィールドの下のエラー表示部分を見てみましょう',
+        tags: ['form', 'react-hook-form', 'error-handling'],
+      },
+    ],
+  },
+  {
+    id: 'react-router-basics-quiz',
+    title: 'React Router基礎',
+    description: 'React Routerの基本の理解度を確認',
+    relatedLessonIds: ['react-router-basics'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'rr1',
+        question:
+          'React Routerでページ遷移を行う際、なぜ<a>タグではなく<Link>コンポーネントを使うべきですか？',
+        options: [
+          'ページのリロードを防ぎ、SPA（シングルページアプリケーション）として動作させるため',
+          '<Link>の方がコードが短く書けるため',
+          'SEO対策として検索エンジンに認識されやすくなるため',
+          '<a>タグはReactで使用できないため',
+        ],
+        correctIndex: 0,
+        explanation:
+          '<a>タグを使うとページ全体がリロードされてしまいますが、<Link>コンポーネントを使うことでクライアントサイドルーティングが実現され、ページをリロードせずにURLに応じた画面を表示できます。',
+        hint: 'React Routerの最大の特徴は、ページリロードなしでの画面遷移です。',
+        tags: ['router', 'navigation', 'spa'],
+      },
+      {
+        id: 'rr2',
+        question:
+          '動的ルート /users/:userId でURLパラメータを取得するために使用するフックはどれですか？',
+        options: ['useSearchParams()', 'useParams()', 'useNavigate()', 'useLoaderData()'],
+        correctIndex: 1,
+        explanation:
+          'useParams()フックを使用することで、URLパス内のパラメータ（:userId など）を取得できます。useSearchParams()はクエリパラメータ（?page=1 など）の取得に使用します。',
+        hint: 'パラメータ（params）という単語に注目してください。',
+        tags: ['router', 'hooks', 'params'],
+      },
+      {
+        id: 'rr3',
+        question: '<Outlet />コンポーネントの役割として正しいものはどれですか？',
+        options: [
+          'ルート定義を簡潔に記述するためのヘルパーコンポーネント',
+          '親ルートのレイアウト内で子ルートのコンポーネントを表示する場所を指定する',
+          'エラーが発生した際のフォールバック表示を行う',
+          'ローディング中の画面を表示する',
+        ],
+        correctIndex: 1,
+        explanation:
+          '<Outlet />は、ネストされたルート構造において、親コンポーネント（レイアウト）内で子ルートのコンポーネントをレンダリングする位置を指定します。これにより、ヘッダーやフッターなどの共通レイアウトを維持しながら、ページごとの内容を切り替えることができます。',
+        hint: 'レイアウトの共有に関するセクションを思い出してください。',
+        tags: ['router', 'layout', 'components'],
+      },
+      {
+        id: 'rr4',
+        question:
+          "次のコードの問題点は何ですか？\n\nfunction BadComponent() {\n  const navigate = useNavigate();\n  if (!user) {\n    navigate('/login');\n  }\n  return <div>Content</div>;\n}",
+        options: [
+          'useNavigate()の戻り値を変数に代入してはいけない',
+          'レンダリング中にnavigate()を呼び出している',
+          'navigate()の引数が間違っている',
+          'userの存在チェックに!演算子を使用している',
+        ],
+        correctIndex: 1,
+        explanation:
+          'navigate()をレンダリング中（関数コンポーネントの本体内）で直接呼び出すのは推奨されません。正しくは、useEffect内で呼び出すか、イベントハンドラ内で実行する必要があります。レンダリング中に副作用を起こすと予期しない動作を引き起こす可能性があります。',
+        hint: 'レッスンの「よくある間違い」セクションの3番目を確認してください。',
+        tags: ['router', 'hooks', 'best-practices'],
+      },
+    ],
+  },
+  {
+    id: 'router-advanced-quiz',
+    title: 'React Router応用',
+    description: '動的ルート、ネストルート、認証ガードの理解度を確認',
+    relatedLessonIds: ['router-advanced'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'ra1',
+        question: 'ネストルートで子ルートを表示する場所を指定するために使うコンポーネントは？',
+        options: ['<Outlet />', '<Route />', '<Children />', '<Nested />'],
+        correctIndex: 0,
+        explanation:
+          '<Outlet />は親ルートのレイアウト内で子ルートを表示する位置を指定するコンポーネントです。これにより、ヘッダーやサイドバーなどの共通UIを保ちながらコンテンツ部分だけを切り替えられます。',
+        hint: '親ルートのレイアウトに配置して、子ルートの表示位置を決めるコンポーネントです',
+        tags: ['router', 'nested', 'layout'],
+      },
+      {
+        id: 'ra2',
+        question: 'URLパラメータ（例: /users/:userId）から値を取得するために使うフックは？',
+        options: ['useParams()', 'useSearchParams()', 'useLocation()', 'useNavigate()'],
+        correctIndex: 0,
+        explanation:
+          'useParams()は動的ルートのパラメータ（:userId など）を取得するフックです。const { userId } = useParams() のように使います。useSearchParams()はクエリパラメータ（?q=xxx）、useLocation()は現在のロケーション情報、useNavigate()は遷移関数を取得します。',
+        hint: '動的ルートの「:」で定義したパラメータを取得するフックです',
+        tags: ['router', 'dynamic', 'hooks'],
+      },
+      {
+        id: 'ra3',
+        question:
+          '未ログインユーザーを保護されたページからログインページにリダイレクトする正しい実装は？',
+        options: [
+          'if (!user) return <Navigate to="/login" replace />',
+          'if (!user) window.location.href = "/login"',
+          'if (!user) history.push("/login")',
+          'if (!user) useNavigate()("/login")',
+        ],
+        correctIndex: 0,
+        explanation:
+          '<Navigate>コンポーネントを使うことで、React Routerの仕組みに従った宣言的なリダイレクトができます。replace属性により履歴を置き換え、戻るボタンで保護ページに戻れないようにします。window.location.hrefは画面全体がリロードされるため非推奨です。',
+        hint: 'React Routerのコンポーネントを使った宣言的なリダイレクトが推奨されます',
+        tags: ['router', 'auth', 'redirect'],
+      },
+      {
+        id: 'ra4',
+        question: 'URLに入れるべき情報として適切なものはどれ？',
+        options: [
+          '検索条件やフィルタ設定（共有・ブックマークしたい情報）',
+          'モーダルの開閉状態やタブの選択状態',
+          'フォーム入力中の一時的な値',
+          'スクロール位置やアニメーション状態',
+        ],
+        correctIndex: 0,
+        explanation:
+          'URLには「共有したい」「ブックマークしたい」「リロードで消えてほしくない」情報を入れます。検索条件やページ番号はこれに該当します。モーダル開閉やフォーム入力中の値など、一時的なUI状態はstateで管理します。「このURLを人に送れるか？」を判断基準にしましょう。',
+        hint: '「このURLを人に送って意味があるか？」を考えてみましょう',
+        tags: ['router', 'best-practice', 'url'],
+      },
+    ],
+  },
+  {
+    id: 'useCallback-useMemo-quiz',
+    title: 'useCallback/useMemo',
+    description: 'useCallback/useMemoの理解度を確認',
+    relatedLessonIds: ['useCallback-useMemo'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'um1',
+        question: 'useMemoの主な用途として最も適切なものはどれですか？',
+        options: [
+          '重い計算結果をキャッシュして、不要な再計算を防ぐ',
+          '関数の参照を安定化させて、子コンポーネントの再レンダリングを防ぐ',
+          'コンポーネント全体をメモ化して、propsが変わらない限り再レンダリングを防ぐ',
+          '非同期処理の結果をキャッシュして、APIリクエストを減らす',
+        ],
+        correctIndex: 0,
+        explanation:
+          'useMemoは計算結果をキャッシュするためのフックです。依存配列の値が変わらない限り、前回の計算結果を再利用し、不要な再計算を防ぎます。関数のメモ化はuseCallback、コンポーネントのメモ化はReact.memoが担当します。',
+        hint: 'useMemoは「値」のメモ化に使用します',
+        tags: ['useMemo', 'performance'],
+      },
+      {
+        id: 'um2',
+        question:
+          '次のコードについて、正しい説明はどれですか？\n\n```tsx\nfunction Parent() {\n  const handleClick = useCallback(() => {}, []);\n  return <Child onClick={handleClick} />;\n}\n\nfunction Child({ onClick }) {\n  return <button onClick={onClick}>Click</button>;\n}\n```',
+        options: [
+          'useCallbackを使っているので、Childは再レンダリングされない',
+          'ChildをReact.memoでラップしていないため、Parentが再レンダリングするたびにChildも再レンダリングされる',
+          '依存配列が空なので、handleClickは毎回新しい関数が生成される',
+          'useCallbackの使い方が間違っているため、エラーが発生する',
+        ],
+        correctIndex: 1,
+        explanation:
+          'useCallbackは関数の参照を安定化させますが、それだけでは子コンポーネントの再レンダリングは防げません。子コンポーネントがReact.memoでラップされていない場合、親が再レンダリングするたびに子も再レンダリングされます。useCallbackはReact.memoと組み合わせて使う必要があります。',
+        hint: 'useCallbackだけでは効果がありません。何と組み合わせる必要があるでしょうか？',
+        tags: ['useCallback', 'React.memo', 'performance'],
+      },
+      {
+        id: 'um3',
+        question:
+          '次のコードで依存配列に関する問題はどれですか？\n\n```tsx\nconst [userId, setUserId] = useState(1);\nconst [filterType, setFilterType] = useState("all");\n\nconst fetchUser = useCallback(() => {\n  fetch(`/api/users/${userId}`);\n}, []);\n\nconst filtered = useMemo(\n  () => items.filter(i => i.type === filterType),\n  [items]\n);\n```',
+        options: [
+          'fetchUserの依存配列にuserIdがなく、filteredの依存配列にfilterTypeがない',
+          'useCallbackとuseMemoの依存配列は常に空でなければならない',
+          'userIdとfilterTypeをstateで管理しているのが間違い',
+          '問題なく、正しいコードである',
+        ],
+        correctIndex: 0,
+        explanation:
+          '依存配列には、関数や計算で使用しているすべての外部変数を含める必要があります。fetchUserはuserIdを使っているのに依存配列に含まれていないため、古いuserIdを参照し続けます。同様に、filteredはfilterTypeを使っているのに依存配列に含まれていないため、filterTypeが変わっても再計算されません。ESLintのexhaustive-depsルールを有効にすると、このような漏れを検出できます。',
+        hint: '関数や計算の中で使っている変数は、すべて依存配列に含める必要があります',
+        tags: ['useCallback', 'useMemo', 'dependencies'],
+      },
+      {
+        id: 'um4',
+        question: 'メモ化が不要で、直接計算した方が良いケースはどれですか？',
+        options: [
+          '単純な算術計算や文字列の結合',
+          '配列のフィルタリングやソート処理',
+          'React.memoされた子コンポーネントに渡す関数',
+          'useEffectの依存配列に含まれるオブジェクト',
+        ],
+        correctIndex: 0,
+        explanation:
+          'メモ化自体にもコストがかかるため、単純な計算（count * 2や文字列結合など）は直接実行した方が速いことがあります。メモ化が有効なのは、重い計算（配列のfilter/sort）や参照の安定化が必要な場合（memo化された子へのprops、useEffect依存）です。「メモ化すれば速くなる」は誤解で、過度な最適化は避けるべきです。',
+        hint: 'メモ化にもコストがあります。どんな場合に最適化が不要でしょうか？',
+        tags: ['useMemo', 'performance', 'optimization'],
+      },
+    ],
+  },
+  {
+    id: 'useEffect-hook-quiz',
+    title: 'useEffect',
+    description: 'useEffectの理解度を確認',
+    relatedLessonIds: ['useEffect-hook'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'ue1',
+        question: 'useEffectの主な用途として正しいものはどれですか？',
+        options: [
+          '副作用（データ取得、DOM操作、購読など）の処理',
+          '状態の管理',
+          'コンポーネントのスタイル定義',
+          'ルーティングの設定',
+        ],
+        correctIndex: 0,
+        explanation:
+          'useEffectは、コンポーネントの副作用（データ取得、DOM操作、購読など）を処理するためのフックです。状態管理にはuseStateを使用します。',
+        hint: 'useEffectは「副作用」を管理するフックです',
+        tags: ['useEffect', 'side-effects'],
+      },
+      {
+        id: 'ue2',
+        question: '依存配列に空配列[]を指定した場合、useEffect内の処理はいつ実行されますか？',
+        options: [
+          'コンポーネントのマウント時に1回だけ',
+          '毎回のレンダリング後',
+          'コンポーネントのアンマウント時のみ',
+          '依存する値が変更されたとき',
+        ],
+        correctIndex: 0,
+        explanation:
+          '依存配列に空配列[]を指定すると、useEffect内の処理は初回レンダリング後（マウント時）に1回だけ実行されます。',
+        hint: '空配列は「依存する値がない」ことを意味します',
+        tags: ['useEffect', 'dependency-array'],
+      },
+      {
+        id: 'ue3',
+        question:
+          '次のコードでクリーンアップ関数が実行されるタイミングはいつですか？\n\nuseEffect(() => {\n  const interval = setInterval(() => {}, 1000);\n  return () => clearInterval(interval);\n}, []);',
+        options: [
+          'コンポーネントのアンマウント時',
+          'コンポーネントのマウント時',
+          '毎回のレンダリング後',
+          'エラーが発生したとき',
+        ],
+        correctIndex: 0,
+        explanation:
+          'useEffectから返される関数（クリーンアップ関数）は、コンポーネントのアンマウント時に実行されます。タイマーやイベントリスナーなどのリソースを解放するために使用します。',
+        hint: 'returnで返される関数は「後片付け」のためのものです',
+        tags: ['useEffect', 'cleanup'],
+      },
+      {
+        id: 'ue4',
+        question:
+          'イベントリスナーを登録する際、なぜクリーンアップ関数でremoveEventListenerを呼ぶ必要がありますか？',
+        options: [
+          'メモリリークを防ぐため',
+          'パフォーマンスを向上させるため',
+          'エラーを防ぐため',
+          'コードを読みやすくするため',
+        ],
+        correctIndex: 0,
+        explanation:
+          'イベントリスナーを解除しないと、コンポーネントがアンマウントされてもリスナーが残り続け、メモリリークの原因となります。クリーンアップ関数で必ず解除する必要があります。',
+        hint: 'リソースを適切に解放しないと何が起こるでしょうか',
+        tags: ['useEffect', 'cleanup', 'memory-leak'],
+      },
+    ],
+  },
+  {
+    id: 'useReducer-hook-quiz',
+    title: 'useReducer',
+    description: 'useReducerの理解度を確認',
+    relatedLessonIds: ['useReducer-hook'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'ur1',
+        question: 'useReducerの第一引数と第二引数は何ですか？',
+        options: [
+          'reducer関数と初期状態',
+          '初期状態とreducer関数',
+          'action と state',
+          'dispatch と state',
+        ],
+        correctIndex: 0,
+        explanation:
+          'useReducerは第一引数にreducer関数、第二引数に初期状態を受け取ります。useReducer(reducer, initialState)の形式で使用します。',
+        hint: 'useReducer(?, ?)の順番を考えてみましょう',
+        tags: ['useReducer', 'state'],
+      },
+      {
+        id: 'ur2',
+        question: 'reducer関数の中で状態を更新する際、必ず守るべき原則は何ですか？',
+        options: [
+          '新しいオブジェクトを返す（イミュータブルに更新）',
+          '既存の状態を直接変更する',
+          'dispatchを呼び出す',
+          'useStateと併用する',
+        ],
+        correctIndex: 0,
+        explanation:
+          'reducer関数では、既存の状態を変更せず、常に新しい状態オブジェクトを返す必要があります。これによりReactが変更を正しく検知できます。',
+        hint: 'Reactの状態管理の基本原則を思い出してみましょう',
+        tags: ['useReducer', 'immutability'],
+      },
+      {
+        id: 'ur3',
+        question: 'useStateの代わりにuseReducerを使うべきケースはどれですか？',
+        options: [
+          '単純な真偽値の切り替え',
+          '複数の関連する状態があり、更新ロジックが複雑な場合',
+          '文字列を1つだけ管理する場合',
+          'useStateが使えない場合',
+        ],
+        correctIndex: 1,
+        explanation:
+          'useReducerは、複数の関連する状態があり、次の状態が前の状態に依存する場合や、更新ロジックが複雑な場合に適しています。単純な状態管理にはuseStateで十分です。',
+        hint: 'レッスンの「useStateとの使い分け」セクションを思い出してみましょう',
+        tags: ['useReducer', 'useState', 'state'],
+      },
+      {
+        id: 'ur4',
+        question: 'dispatch({ type: "increment" })を実行すると何が起こりますか？',
+        options: [
+          'reducerが呼び出され、actionに基づいて新しい状態が計算される',
+          '状態が直接1増える',
+          'incrementという名前の関数が実行される',
+          'エラーが発生する',
+        ],
+        correctIndex: 0,
+        explanation:
+          'dispatchを呼び出すと、渡されたactionオブジェクトと現在の状態を引数としてreducer関数が実行されます。reducerはactionのtypeを判定し、対応する新しい状態を返します。',
+        hint: 'dispatchとreducerの関係を考えてみましょう',
+        tags: ['useReducer', 'dispatch', 'action'],
+      },
+    ],
+  },
+  {
+    id: 'useRef-hook-quiz',
+    title: 'useRef',
+    description: 'useRefの理解度を確認',
+    relatedLessonIds: ['useRef-hook'],
+    timeLimitSec: 300,
+    questions: [
+      {
+        id: 'urf1',
+        question: 'useRefの主な用途として正しいものを選んでください',
+        options: [
+          'DOM要素への参照と再レンダリングを起こさない値の保持',
+          '画面に表示する値の管理と状態の更新',
+          'APIからのデータ取得と非同期処理',
+          'コンポーネント間のデータ共有とグローバル状態管理',
+        ],
+        correctIndex: 0,
+        explanation:
+          'useRefは主に「DOM要素への参照」と「再レンダリングを起こさずに値を保持」するために使用します。画面に表示する値の管理にはuseStateを使用します。',
+        hint: 'useRefは再レンダリングを起こさない特徴があります',
+        tags: ['useRef', 'basics'],
+      },
+      {
+        id: 'urf2',
+        question:
+          '次のコードで「+1」ボタンをクリックしても画面が更新されない理由は何ですか？\n\n```tsx\nconst count = useRef(0);\nreturn <button onClick={() => count.current++}>{count.current}</button>;\n```',
+        options: [
+          'useRefの値を変更しても再レンダリングが発生しないため',
+          'ref.currentの更新方法が間違っているため',
+          'useRefは数値を保持できないため',
+          'ボタンのonClickイベントが正しく設定されていないため',
+        ],
+        correctIndex: 0,
+        explanation:
+          'useRefは値が変更されても再レンダリングを起こしません。画面に表示する値にはuseStateを使う必要があります。ref.currentの値は内部的に更新されていますが、画面には反映されません。',
+        hint: 'useRefとuseStateの違いを考えてみましょう',
+        tags: ['useRef', 'useState', 'pitfalls'],
+      },
+      {
+        id: 'urf3',
+        question: 'DOM要素への参照を安全に操作するために必要なことは何ですか？',
+        options: [
+          'オプショナルチェーン（?.）やif文でnullチェックを行う',
+          'ref.currentを依存配列に追加する',
+          'useRefの初期値にDOM要素を直接渡す',
+          'forceUpdateで強制的に再レンダリングする',
+        ],
+        correctIndex: 0,
+        explanation:
+          'refの初期値はnullであり、DOM要素がマウントされるまでref.currentはnullのままです。そのため、inputRef.current?.focus()のようにオプショナルチェーンを使うか、if文でnullチェックを行う必要があります。',
+        hint: 'refの初期値はnullで、DOMがマウントされるまでnullのままです',
+        tags: ['useRef', 'dom', 'safety'],
+      },
+      {
+        id: 'urf4',
+        question: 'タイマーのintervalIdをuseRefで保持する理由として最も適切なものはどれですか？',
+        options: [
+          '再レンダリングが発生してもIDが保持され、停止ボタンでclearIntervalできるため',
+          'useStateよりもメモリ効率が良いため',
+          '画面にintervalIdを表示する必要があるため',
+          'useEffectの依存配列に含める必要があるため',
+        ],
+        correctIndex: 0,
+        explanation:
+          'intervalIdは画面に表示する必要がなく、再レンダリングを起こす必要もありません。useRefで保持することで、再レンダリングが発生してもIDが保持され、stopボタンでclearInterval(intervalRef.current)を呼び出してタイマーを停止できます。',
+        hint: 'intervalIdは画面に表示する必要がないデータです',
+        tags: ['useRef', 'timer', 'use-case'],
+      },
+    ],
+  },
 ];
 
 export function getQuizById(id: string): Quiz | undefined {
