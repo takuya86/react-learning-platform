@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { LessonFilter, LessonList } from '@/features/lessons';
 import { useDebounce } from '@/hooks';
 import { getAllLessons, getAllTags } from '@/lib/lessons';
+import { topologicalSort } from '@/lib/lessons/sort';
 import type { Difficulty } from '@/domain/types';
 import styles from './LessonsPage.module.css';
 
@@ -11,7 +12,7 @@ export function LessonsPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | ''>('');
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const lessons = useMemo(() => getAllLessons(), []);
+  const lessons = useMemo(() => topologicalSort(getAllLessons()), []);
   const availableTags = useMemo(() => getAllTags(), []);
 
   const filteredLessons = useMemo(() => {
