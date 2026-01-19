@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MDXProvider } from '@mdx-js/react';
 import { Button, Badge } from '@/components/ui';
@@ -9,6 +9,18 @@ import { getQuizByLessonId } from '@/data';
 import { mdxComponents } from '@/components/mdx';
 import type { Difficulty } from '@/domain/types';
 import styles from './LessonDetailPage.module.css';
+
+function LessonContentSkeleton() {
+  return (
+    <div className={styles.skeleton} aria-label="コンテンツを読み込み中">
+      <div className={styles.skeletonLine} style={{ width: '80%' }} />
+      <div className={styles.skeletonLine} style={{ width: '100%' }} />
+      <div className={styles.skeletonLine} style={{ width: '90%' }} />
+      <div className={styles.skeletonLine} style={{ width: '70%' }} />
+      <div className={styles.skeletonLine} style={{ width: '85%' }} />
+    </div>
+  );
+}
 
 const difficultyLabels: Record<Difficulty, string> = {
   beginner: '初級',
@@ -133,7 +145,9 @@ export function LessonDetailPage() {
 
       <article className={styles.content}>
         <MDXProvider components={mdxComponents}>
-          <lesson.Component />
+          <Suspense fallback={<LessonContentSkeleton />}>
+            <lesson.Component />
+          </Suspense>
         </MDXProvider>
       </article>
 

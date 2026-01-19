@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, LazyExoticComponent } from 'react';
 import type { Difficulty } from '@/domain/types';
 
 export interface LessonFrontmatter {
@@ -28,5 +28,6 @@ export interface LoadedLesson {
   exerciseId?: string;
   prerequisites: string[];
   relatedQuizzes: string[];
-  Component: ComponentType;
+  /** Lazy-loaded MDX component - wrap with Suspense when rendering */
+  Component: LazyExoticComponent<ComponentType>;
 }

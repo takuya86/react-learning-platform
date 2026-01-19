@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { lazy } from 'react';
 import {
   getRecommendedLessons,
   hasRecommendations,
@@ -6,6 +7,9 @@ import {
 } from '@/features/insights/services/recommendationService';
 import type { LoadedLesson } from '@/lib/lessons';
 import type { Difficulty } from '@/domain/types';
+
+// Mock lazy component for testing
+const MockComponent = lazy(() => Promise.resolve({ default: () => null }));
 
 // Mock data factory
 function createLesson(id: string, overrides: Partial<LoadedLesson> = {}): LoadedLesson {
@@ -18,7 +22,7 @@ function createLesson(id: string, overrides: Partial<LoadedLesson> = {}): Loaded
     estimatedMinutes: 10,
     prerequisites: [],
     relatedQuizzes: [],
-    Component: () => null,
+    Component: MockComponent,
     ...overrides,
   };
 }

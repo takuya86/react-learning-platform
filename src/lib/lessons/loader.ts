@@ -1,14 +1,28 @@
-import type { MDXLessonModule, LoadedLesson } from './types';
+import { lazy } from 'react';
+import type { MDXLessonModule, LoadedLesson, LessonFrontmatter } from './types';
 
-// Vite's glob import - imports all MDX files eagerly
-const lessonModules = import.meta.glob<MDXLessonModule>('/src/content/lessons/*.mdx', {
-  eager: true,
-});
+// Vite's glob import for metadata - eager load frontmatter only
+const lessonMetadata = import.meta.glob<{ frontmatter: LessonFrontmatter }>(
+  '/src/content/lessons/*.mdx',
+  {
+    eager: true,
+    import: 'frontmatter',
+  }
+);
 
-// Transform modules into LoadedLesson array
+// Vite's glob import for components - lazy load on demand
+const lessonComponents = import.meta.glob<MDXLessonModule>('/src/content/lessons/*.mdx');
+
+// Transform modules into LoadedLesson array with lazy components
 function loadLessons(): LoadedLesson[] {
-  return Object.entries(lessonModules).map(([, module]) => {
-    const { frontmatter, default: Component } = module;
+  return Object.entries(lessonMetadata).map(([path, metadata]) => {
+    const frontmatter = metadata as unknown as LessonFrontmatter;
+
+    // Create lazy component for this lesson
+    const Component = lazy(async () => {
+      const module = await lessonComponents[path]();
+      return { default: module.default };
+    });
 
     return {
       id: frontmatter.slug,

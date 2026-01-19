@@ -31,10 +31,13 @@ describe('lessons data', () => {
     });
   });
 
-  it('should have Component as a function', () => {
+  it('should have Component as a lazy component', () => {
     const lessons = getAllLessons();
     lessons.forEach((lesson) => {
-      expect(typeof lesson.Component).toBe('function');
+      // React.lazy creates an object with $$typeof symbol
+      expect(lesson.Component).toBeDefined();
+      expect(typeof lesson.Component).toBe('object');
+      expect(lesson.Component).toHaveProperty('$$typeof');
     });
   });
 
