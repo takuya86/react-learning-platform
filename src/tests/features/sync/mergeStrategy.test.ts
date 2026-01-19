@@ -452,6 +452,163 @@ describe('mergeStrategy', () => {
 
       expect(hasProgressChanges(local, remote)).toBe(false);
     });
+
+    // Additional tests for infinite retry loop prevention (Issue: sync error fix)
+    // Note: hasProgressChanges intentionally only checks primary data (lessons, quizzes, exercises, attempts)
+    // Derived data (streak, lastStudyDate, studyDates) is not checked as it's computed from primary data
+    describe('retry loop prevention - array field changes', () => {
+      it('should return true when completedQuizzes count differs', () => {
+        const local: Progress = {
+          ...baseProgress,
+          completedQuizzes: ['quiz-1', 'quiz-2'],
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          completedQuizzes: ['quiz-1'],
+        };
+
+        expect(hasProgressChanges(local, remote)).toBe(true);
+      });
+
+      it('should return false when completedQuizzes have same count (order independent)', () => {
+        const local: Progress = {
+          ...baseProgress,
+          completedQuizzes: ['quiz-1', 'quiz-2'],
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          completedQuizzes: ['quiz-2', 'quiz-1'],
+        };
+
+        // Same count - considered equal (implementation uses length check)
+        expect(hasProgressChanges(local, remote)).toBe(false);
+      });
+
+      it('should return true when completedExercises count differs', () => {
+        const local: Progress = {
+          ...baseProgress,
+          completedExercises: ['ex-1', 'ex-2'],
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          completedExercises: ['ex-1'],
+        };
+
+        expect(hasProgressChanges(local, remote)).toBe(true);
+      });
+
+      it('should return true when quizAttempts count differs', () => {
+        const local: Progress = {
+          ...baseProgress,
+          quizAttempts: [
+            {
+              quizId: 'quiz-1',
+              attemptedAt: '2025-01-01T00:00:00Z',
+              score: 80,
+              totalQuestions: 10,
+              perQuestion: [],
+            },
+          ],
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          quizAttempts: [],
+        };
+
+        expect(hasProgressChanges(local, remote)).toBe(true);
+      });
+
+      it('should return true when lessons count differs', () => {
+        const local: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': { lessonId: 'lesson-1', openedAt: '2025-01-01T00:00:00Z' },
+            'lesson-2': { lessonId: 'lesson-2', openedAt: '2025-01-02T00:00:00Z' },
+          },
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          lessons: {
+            'lesson-1': { lessonId: 'lesson-1', openedAt: '2025-01-01T00:00:00Z' },
+          },
+        };
+
+        expect(hasProgressChanges(local, remote)).toBe(true);
+      });
+    });
+
+    describe('retry loop prevention - derived data (not checked)', () => {
+      // These tests document that derived data is intentionally not checked
+      // This prevents unnecessary syncs when only metadata differs
+
+      it('should return false when only streak differs (derived data)', () => {
+        const local: Progress = { ...baseProgress, streak: 5 };
+        const remote: Progress = { ...baseProgress, streak: 3 };
+
+        // streak is derived data - not checked
+        expect(hasProgressChanges(local, remote)).toBe(false);
+      });
+
+      it('should return false when only lastStudyDate differs (derived data)', () => {
+        const local: Progress = { ...baseProgress, lastStudyDate: '2025-01-05' };
+        const remote: Progress = { ...baseProgress, lastStudyDate: '2025-01-04' };
+
+        // lastStudyDate is derived data - not checked
+        expect(hasProgressChanges(local, remote)).toBe(false);
+      });
+
+      it('should return false when only studyDates differ (derived data)', () => {
+        const local: Progress = {
+          ...baseProgress,
+          studyDates: ['2025-01-01', '2025-01-02'],
+        };
+        const remote: Progress = {
+          ...baseProgress,
+          studyDates: ['2025-01-01'],
+        };
+
+        // studyDates is derived data - not checked
+        expect(hasProgressChanges(local, remote)).toBe(false);
+      });
+    });
+
+    describe('retry loop prevention - identical data detection', () => {
+      it('should return false when all fields are empty/default', () => {
+        expect(hasProgressChanges(baseProgress, baseProgress)).toBe(false);
+      });
+
+      it('should return false when complex progress is identical', () => {
+        const complexProgress: Progress = {
+          lessons: {
+            'lesson-1': {
+              lessonId: 'lesson-1',
+              openedAt: '2025-01-01T00:00:00Z',
+              completedAt: '2025-01-02T00:00:00Z',
+            },
+            'lesson-2': {
+              lessonId: 'lesson-2',
+              openedAt: '2025-01-03T00:00:00Z',
+            },
+          },
+          completedQuizzes: ['quiz-1', 'quiz-2'],
+          completedExercises: ['ex-1'],
+          streak: 7,
+          lastStudyDate: '2025-01-05',
+          studyDates: ['2025-01-01', '2025-01-02', '2025-01-03'],
+          quizAttempts: [
+            {
+              quizId: 'quiz-1',
+              attemptedAt: '2025-01-01T00:00:00Z',
+              score: 80,
+              totalQuestions: 10,
+              perQuestion: [],
+            },
+          ],
+        };
+
+        expect(hasProgressChanges(complexProgress, complexProgress)).toBe(false);
+      });
+    });
   });
 
   describe('hasNotesChanges', () => {
