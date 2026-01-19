@@ -23,6 +23,7 @@
 import { isMockMode } from '@/lib/supabase/client';
 import { MockDataManager } from '@/lib/mock/MockDataManager';
 import type { HintType } from '@/features/metrics';
+import { logger } from '@/lib/logger';
 
 // Environment variables for GitHub API
 const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
@@ -310,6 +311,15 @@ export async function isDuplicateIssue(
 
     return { data: isDuplicate, error: null };
   } catch (err) {
+    logger.error('Failed to check duplicate issue', {
+      category: 'github',
+      context: {
+        function: 'isDuplicateIssue',
+        lessonSlug,
+        hintType,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -378,6 +388,14 @@ export async function listOpenIssuesByLesson(
 
     return { data: filtered, error: null };
   } catch (err) {
+    logger.error('Failed to list open issues by lesson', {
+      category: 'github',
+      context: {
+        function: 'listOpenIssuesByLesson',
+        lessonSlug,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -491,6 +509,15 @@ export async function createIssue(params: CreateIssueParams): Promise<IssueResul
       error: null,
     };
   } catch (err) {
+    logger.error('Failed to create issue', {
+      category: 'github',
+      context: {
+        function: 'createIssue',
+        lessonSlug: params.lessonSlug,
+        hintType: params.hintType,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -656,6 +683,13 @@ export async function listAllOpenImprovementIssues(): Promise<
 
     return { data: trackerItems, error: null };
   } catch (err) {
+    logger.error('Failed to list open improvement issues', {
+      category: 'github',
+      context: {
+        function: 'listAllOpenImprovementIssues',
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -764,6 +798,13 @@ export async function listAllClosedImprovementIssues(): Promise<
 
     return { data: trackerItems, error: null };
   } catch (err) {
+    logger.error('Failed to list closed improvement issues', {
+      category: 'github',
+      context: {
+        function: 'listAllClosedImprovementIssues',
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -851,6 +892,15 @@ export async function closeIssue(
 
     return { data: undefined, error: null };
   } catch (err) {
+    logger.error('Failed to close issue', {
+      category: 'github',
+      context: {
+        function: 'closeIssue',
+        issueNumber,
+        hasComment: !!comment,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -936,6 +986,15 @@ export async function addLabelToIssue(
 
     return { data: undefined, error: null };
   } catch (err) {
+    logger.error('Failed to add label to issue', {
+      category: 'github',
+      context: {
+        function: 'addLabelToIssue',
+        issueNumber,
+        label,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',

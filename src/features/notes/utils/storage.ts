@@ -5,8 +5,9 @@ import {
   initialNotesData,
 } from '@/domain/types';
 import { logger } from '@/lib/logger';
+import { STORAGE_KEYS } from '@/lib/constants/storageKeys';
 
-const STORAGE_KEY = 'notes_data';
+const STORAGE_KEY = STORAGE_KEYS.NOTES_DATA;
 
 /**
  * Validate and normalize note data

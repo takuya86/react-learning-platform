@@ -15,6 +15,7 @@
 
 import { isMockMode } from '@/lib/supabase/client';
 import { MockDataManager } from '@/lib/mock/MockDataManager';
+import { logger } from '@/lib/logger';
 
 // Environment variables for GitHub API
 const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
@@ -141,6 +142,14 @@ export async function getIssueDetails(issueNumber: number): Promise<CommentResul
       error: null,
     };
   } catch (err) {
+    logger.error('Failed to get issue details', {
+      category: 'github',
+      context: {
+        function: 'getIssueDetails',
+        issueNumber,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -202,6 +211,14 @@ export async function listIssueComments(
       error: null,
     };
   } catch (err) {
+    logger.error('Failed to list issue comments', {
+      category: 'github',
+      context: {
+        function: 'listIssueComments',
+        issueNumber,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -271,6 +288,14 @@ export async function createIssueComment(
       error: null,
     };
   } catch (err) {
+    logger.error('Failed to create issue comment', {
+      category: 'github',
+      context: {
+        function: 'createIssueComment',
+        issueNumber,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',

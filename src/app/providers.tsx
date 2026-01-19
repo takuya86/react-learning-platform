@@ -3,6 +3,7 @@ import { AuthProvider } from '@/features/auth';
 import { ProgressProvider } from '@/features/progress';
 import { SyncProvider, useSync } from '@/features/sync';
 import type { Progress } from '@/domain/types';
+import { ErrorBoundary } from '@/components';
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -28,10 +29,16 @@ function SyncedProgressProvider({ children }: { children: ReactNode }) {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <AuthProvider>
-      <SyncProvider>
-        <SyncedProgressProvider>{children}</SyncedProgressProvider>
-      </SyncProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ErrorBoundary>
+          <SyncProvider>
+            <ErrorBoundary>
+              <SyncedProgressProvider>{children}</SyncedProgressProvider>
+            </ErrorBoundary>
+          </SyncProvider>
+        </ErrorBoundary>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

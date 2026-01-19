@@ -1,11 +1,10 @@
 import type { QuizSession } from '@/domain/types';
 import { QUIZ_SESSION_VERSION } from '@/domain/types';
 import { logger } from '@/lib/logger';
-
-const SESSION_KEY_PREFIX = 'quiz_session:';
+import { getQuizSessionKey } from '@/lib/constants/storageKeys';
 
 export function getSessionKey(quizId: string): string {
-  return `${SESSION_KEY_PREFIX}${quizId}`;
+  return getQuizSessionKey(quizId);
 }
 
 /**
