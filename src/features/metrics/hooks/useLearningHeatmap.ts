@@ -11,6 +11,7 @@ import { supabase, isMockMode } from '@/lib/supabase';
 import { MockDataManager } from '@/lib/mock/MockDataManager';
 import { getUTCDateString, type LearningEvent } from '../services/metricsService';
 import { getHeatmapData, type HeatmapDay } from '../services/heatmapService';
+import { logger } from '@/lib/logger';
 
 interface UseLearningHeatmapResult {
   heatmapData: HeatmapDay[];
@@ -94,6 +95,15 @@ export function useLearningHeatmap(): UseLearningHeatmapResult {
         }))
       );
     } catch (err) {
+      logger.error('Failed to fetch learning events', {
+        category: 'metrics',
+        context: {
+          function: 'useLearningHeatmap.fetchEvents',
+          userId: user?.id,
+          heatmapDays: HEATMAP_DAYS,
+          error: err instanceof Error ? err.message : String(err),
+        },
+      });
       setError(err instanceof Error ? err.message : 'Failed to fetch learning events');
       setEvents([]);
     } finally {

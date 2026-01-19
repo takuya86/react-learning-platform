@@ -14,6 +14,7 @@ import {
   listAllClosedImprovementIssues,
   type ImprovementTrackerItem,
 } from '@/features/admin/services/githubIssueService';
+import { logger } from '@/lib/logger';
 
 /**
  * ROI calculation status
@@ -237,6 +238,13 @@ export function useImprovementRoi(): UseImprovementRoiResult {
       });
       setIssueClosedDates(closedDates);
     } catch (err) {
+      logger.error('Failed to fetch ROI data', {
+        category: 'metrics',
+        context: {
+          function: 'useImprovementRoi.fetchData',
+          error: err instanceof Error ? err.message : String(err),
+        },
+      });
       setError(err instanceof Error ? err.message : 'Failed to fetch ROI data');
       setClosedIssues([]);
       setAllEvents([]);

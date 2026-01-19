@@ -1,4 +1,5 @@
 import { isMockMode } from '@/lib/supabase/client';
+import { logger } from '@/lib/logger';
 
 // Environment variables for GitHub API
 const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
@@ -76,6 +77,15 @@ export async function triggerLessonWorkflow(
     // workflow_dispatch returns 204 No Content on success
     return { data: { triggered: true }, error: null };
   } catch (err) {
+    logger.error('Failed to trigger lesson workflow', {
+      category: 'github',
+      context: {
+        function: 'triggerLessonWorkflow',
+        slugs,
+        maxLessons,
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',
@@ -137,6 +147,13 @@ export async function checkExistingLessonPR(): Promise<PRCheckResult> {
 
     return { data: { exists: false }, error: null };
   } catch (err) {
+    logger.error('Failed to check existing lesson PR', {
+      category: 'github',
+      context: {
+        function: 'checkExistingLessonPR',
+        error: err instanceof Error ? err.message : String(err),
+      },
+    });
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Unknown error occurred',

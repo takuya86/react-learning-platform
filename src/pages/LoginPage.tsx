@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth';
 import { Button, Input } from '@/components/ui';
 import { isMockMode } from '@/lib/supabase';
+import { STORAGE_KEYS } from '@/lib/constants/storageKeys';
 import styles from './LoginPage.module.css';
 
 export function LoginPage() {
@@ -17,7 +18,7 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mockRole, setMockRole] = useState<'user' | 'admin'>(() => {
     if (isMockMode && typeof window !== 'undefined') {
-      const stored = localStorage.getItem('e2e_mock_role');
+      const stored = localStorage.getItem(STORAGE_KEYS.E2E_MOCK_ROLE);
       return stored === 'admin' ? 'admin' : 'user';
     }
     return 'user';
@@ -33,7 +34,7 @@ export function LoginPage() {
 
   const handleRoleChange = (newRole: 'user' | 'admin') => {
     setMockRole(newRole);
-    localStorage.setItem('e2e_mock_role', newRole);
+    localStorage.setItem(STORAGE_KEYS.E2E_MOCK_ROLE, newRole);
   };
 
   const handleOAuthSignIn = async (provider: 'google' | 'github') => {

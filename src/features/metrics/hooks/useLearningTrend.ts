@@ -17,6 +17,7 @@ import {
   generateWeeklyRangeUTC,
   type TrendMode,
 } from '../services/trendService';
+import { logger } from '@/lib/logger';
 
 interface UseLearningTrendResult {
   mode: TrendMode;
@@ -107,6 +108,15 @@ export function useLearningTrend(): UseLearningTrendResult {
         }))
       );
     } catch (err) {
+      logger.error('Failed to fetch learning events', {
+        category: 'metrics',
+        context: {
+          function: 'useLearningTrend.fetchEvents',
+          userId: user?.id,
+          dateRange,
+          error: err instanceof Error ? err.message : String(err),
+        },
+      });
       setError(err instanceof Error ? err.message : 'Failed to fetch learning events');
       setEvents([]);
     } finally {

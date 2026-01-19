@@ -17,6 +17,7 @@ import {
   AdminPage,
   AdminBacklogPage,
   AdminMetricsPage,
+  ErrorBoundaryTestPage,
 } from '@/pages';
 
 function LessonDetailRoute() {
@@ -110,6 +111,10 @@ export const router = createBrowserRouter([
             <AdminMetricsPage />
           </RequireRole>
         ),
+      },
+      {
+        path: 'error-test',
+        element: <ErrorBoundaryTestPage />,
       },
       {
         path: '*',

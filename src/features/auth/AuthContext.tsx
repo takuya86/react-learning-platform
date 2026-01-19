@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { Session, User, AuthError, Provider } from '@supabase/supabase-js';
 import { supabase, isMockMode } from '@/lib/supabase';
+import { STORAGE_KEYS } from '@/lib/constants/storageKeys';
 
 interface AuthContextType {
   session: Session | null;
@@ -41,7 +42,7 @@ const MOCK_SESSION: Session = {
 // Check if E2E mock auth is enabled via localStorage
 function isE2EMockAuthEnabled(): boolean {
   if (typeof window === 'undefined') return false;
-  return isMockMode && localStorage.getItem('e2e_mock_authenticated') === 'true';
+  return isMockMode && localStorage.getItem(STORAGE_KEYS.E2E_MOCK_AUTHENTICATED) === 'true';
 }
 
 // Extract role from user metadata
@@ -50,7 +51,7 @@ function getUserRole(user: User | null): 'user' | 'admin' {
 
   // In mock mode, check localStorage for role override
   if (isMockMode && typeof window !== 'undefined') {
-    const mockRole = localStorage.getItem('e2e_mock_role');
+    const mockRole = localStorage.getItem(STORAGE_KEYS.E2E_MOCK_ROLE);
     if (mockRole === 'admin' || mockRole === 'user') {
       return mockRole;
     }
@@ -59,9 +60,6 @@ function getUserRole(user: User | null): 'user' | 'admin' {
   const role = user.app_metadata?.role || user.user_metadata?.role || 'user';
   return role === 'admin' ? 'admin' : 'user';
 }
-
-// Storage key for multi-tab sync
-const AUTH_STORAGE_KEY = 'supabase.auth.token';
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
@@ -105,7 +103,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Multi-tab synchronization: listen to storage events
     const handleStorageChange = (e: StorageEvent) => {
       // When another tab signs out, the auth token is removed from localStorage
-      if (e.key === AUTH_STORAGE_KEY && e.newValue === null) {
+      if (e.key === STORAGE_KEYS.SUPABASE_AUTH_TOKEN && e.newValue === null) {
         // Another tab signed out, update local state
         handleSessionUpdate(null);
       }

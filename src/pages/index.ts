@@ -13,3 +13,4 @@ export { AuthCallbackPage } from './AuthCallbackPage';
 export { AdminPage } from './AdminPage';
 export { AdminBacklogPage } from './AdminBacklogPage';
 export { AdminMetricsPage } from './AdminMetricsPage';
+export { ErrorBoundaryTestPage } from './ErrorBoundaryTestPage';

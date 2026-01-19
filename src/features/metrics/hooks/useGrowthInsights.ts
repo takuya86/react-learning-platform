@@ -15,6 +15,7 @@ import {
   getLastWeekStartUTC,
   type GrowthInsights,
 } from '../services/growthInsightsService';
+import { logger } from '@/lib/logger';
 
 interface UseGrowthInsightsResult {
   insights: GrowthInsights | null;
@@ -112,6 +113,14 @@ export function useGrowthInsights(): UseGrowthInsightsResult {
 
       setEvents(mergedEvents);
     } catch (err) {
+      logger.error('Failed to fetch learning events', {
+        category: 'metrics',
+        context: {
+          function: 'useGrowthInsights.fetchEvents',
+          userId: user?.id,
+          error: err instanceof Error ? err.message : String(err),
+        },
+      });
       setError(err instanceof Error ? err.message : 'Failed to fetch learning events');
       setEvents([]);
     } finally {
