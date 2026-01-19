@@ -8,7 +8,11 @@ export function Layout() {
   const isAdminPage = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (

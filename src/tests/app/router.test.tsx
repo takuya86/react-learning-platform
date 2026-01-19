@@ -31,6 +31,7 @@ vi.mock('@/pages', () => ({
   AdminPage: () => <div data-testid="page-admin">Admin</div>,
   AdminBacklogPage: () => <div data-testid="page-admin-backlog">Admin Backlog</div>,
   AdminMetricsPage: () => <div data-testid="page-admin-metrics">Admin Metrics</div>,
+  ErrorBoundaryTestPage: () => <div data-testid="page-error-test">Error Boundary Test</div>,
 }));
 
 // Mock Layout
