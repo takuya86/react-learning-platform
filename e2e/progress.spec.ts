@@ -66,18 +66,18 @@ test.describe('進捗ページ - Progress Page', () => {
   });
 
   test('学習履歴が空の場合は案内メッセージが表示される', async ({ page }) => {
+    // 確認ダイアログを自動承認（先に設定）
+    page.on('dialog', (dialog) => dialog.accept());
+
     // 新しいコンテキストで進捗をリセット
     await page.goto('/progress');
     await page.waitForLoadState('networkidle');
 
     // リセットボタンをクリック
     const resetButton = page.getByRole('button', { name: '進捗をリセット' });
-    if (await resetButton.isVisible()) {
-      // 確認ダイアログを自動承認
-      page.on('dialog', (dialog) => dialog.accept());
-      await resetButton.click();
-      await page.waitForTimeout(500);
-    }
+    await expect(resetButton).toBeVisible();
+    await resetButton.click();
+    await page.waitForTimeout(500);
 
     // 空のメッセージが表示される
     await expect(page.getByText(/まだ学習履歴がありません/)).toBeVisible();

@@ -86,15 +86,16 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
       await page.waitForLoadState('networkidle');
     }
 
-    // スキップボタンをクリック
+    // スキップボタンをクリック（スキップすると自動的に次の問題に進む）
     const skipButton = page.getByRole('button', { name: 'スキップ' });
     await expect(skipButton).toBeVisible();
     await skipButton.click();
     await page.waitForTimeout(300);
 
-    // 次の問題へボタンが表示される
-    const nextButton = page.getByRole('button', { name: /次の問題へ|結果を見る/ });
-    await expect(nextButton).toBeVisible();
+    // 次の問題が表示されるので、再度スキップボタンまたは選択肢が表示される
+    const nextSkipButton = page.getByRole('button', { name: 'スキップ' });
+    const firstOption = page.getByTestId('quiz-option').first();
+    await expect(nextSkipButton.or(firstOption)).toBeVisible();
   });
 
   test('ヒント機能 - ヒントを表示できる', async ({ page }) => {

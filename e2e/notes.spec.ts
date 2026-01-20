@@ -299,6 +299,7 @@ test.describe('ノート機能 - Notes Functionality', () => {
     await notesLink.click();
 
     // ノートページに遷移
+    await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/notes\?lessonId=.+/);
     await expect(page.getByTestId('notes-page')).toBeVisible();
   });

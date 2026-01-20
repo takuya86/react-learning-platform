@@ -105,9 +105,8 @@ test.describe('レッスン一覧ページ - Lessons Page', () => {
     await searchInput.fill('React');
     await page.waitForTimeout(500);
 
-    // 結果が表示される（またはゼロ件でもエラーにならない）
-    const lessonCards = page.getByTestId('lesson-card');
-    await expect(lessonCards.or(page.getByRole('heading', { name: 'レッスン一覧' }))).toBeVisible();
+    // 結果が表示される（ページは常に表示される）
+    await expect(page.getByRole('heading', { name: 'レッスン一覧' })).toBeVisible();
   });
 
   test('レッスンカードをクリックすると詳細ページに遷移する', async ({ page }) => {
