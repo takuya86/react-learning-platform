@@ -11,19 +11,27 @@ vi.mock('@/features/sync', () => ({
 describe('SyncStatusIndicator', () => {
   const mockUseSyncState = vi.mocked(syncModule.useSyncState);
 
+  const createMockState = (
+    combinedStatus: 'idle' | 'syncing' | 'error' | 'offline',
+    lastSyncedAtFormatted: string
+  ) => ({
+    state: {
+      isOnline: combinedStatus !== 'offline',
+      isSyncing: combinedStatus === 'syncing',
+      error: combinedStatus === 'error' ? new Error('Sync error') : null,
+      lastSyncedAt: new Date(),
+    },
+    combinedStatus,
+    lastSyncedAtFormatted,
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('Idle Status', () => {
     it('should render idle status correctly', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: '2分前',
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', '2分前'));
 
       render(<SyncStatusIndicator />);
 
@@ -31,13 +39,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should display last synced time when in idle status', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: '5分前',
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', '5分前'));
 
       render(<SyncStatusIndicator />);
 
@@ -45,13 +47,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should not display time when showTime is false', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: '5分前',
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', '5分前'));
 
       render(<SyncStatusIndicator showTime={false} />);
 
@@ -59,14 +55,8 @@ describe('SyncStatusIndicator', () => {
       expect(screen.getByText('同期済み')).toBeInTheDocument();
     });
 
-    it('should not display time when lastSyncedAtFormatted is null', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+    it('should not display time when lastSyncedAtFormatted is empty', () => {
+      mockUseSyncState.mockReturnValue(createMockState('idle', ''));
 
       render(<SyncStatusIndicator />);
 
@@ -75,13 +65,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should render check icon for idle status', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const icon = container.querySelector('svg');
@@ -93,13 +77,7 @@ describe('SyncStatusIndicator', () => {
 
   describe('Syncing Status', () => {
     it('should render syncing status correctly', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'syncing',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: true,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('syncing', ''));
 
       render(<SyncStatusIndicator />);
 
@@ -107,13 +85,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should not display time during syncing', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'syncing',
-        lastSyncedAtFormatted: '1分前',
-        isOnline: true,
-        isSyncing: true,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('syncing', '1分前'));
 
       render(<SyncStatusIndicator />);
 
@@ -121,13 +93,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should render sync icon with spin class', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'syncing',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: true,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('syncing', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const icon = container.querySelector('svg');
@@ -139,13 +105,7 @@ describe('SyncStatusIndicator', () => {
 
   describe('Error Status', () => {
     it('should render error status correctly', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'error',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: true,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('error', ''));
 
       render(<SyncStatusIndicator />);
 
@@ -153,13 +113,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should not display time during error', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'error',
-        lastSyncedAtFormatted: '3分前',
-        isOnline: true,
-        isSyncing: false,
-        hasError: true,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('error', '3分前'));
 
       render(<SyncStatusIndicator />);
 
@@ -167,13 +121,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should render error icon', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'error',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: true,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('error', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const icon = container.querySelector('svg');
@@ -184,13 +132,7 @@ describe('SyncStatusIndicator', () => {
 
   describe('Offline Status', () => {
     it('should render offline status correctly', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'offline',
-        lastSyncedAtFormatted: null,
-        isOnline: false,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('offline', ''));
 
       render(<SyncStatusIndicator />);
 
@@ -198,13 +140,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should not display time when offline', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'offline',
-        lastSyncedAtFormatted: '10分前',
-        isOnline: false,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('offline', '10分前'));
 
       render(<SyncStatusIndicator />);
 
@@ -212,13 +148,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should render offline icon', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'offline',
-        lastSyncedAtFormatted: null,
-        isOnline: false,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('offline', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const icon = container.querySelector('svg');
@@ -229,13 +159,7 @@ describe('SyncStatusIndicator', () => {
 
   describe('CSS Classes', () => {
     it('should apply status-specific class for idle', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const statusContainer = container.firstChild as HTMLElement;
@@ -244,13 +168,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should apply status-specific class for syncing', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'syncing',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: true,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('syncing', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const statusContainer = container.firstChild as HTMLElement;
@@ -259,13 +177,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should apply status-specific class for error', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'error',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: true,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('error', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const statusContainer = container.firstChild as HTMLElement;
@@ -274,13 +186,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should apply status-specific class for offline', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'offline',
-        lastSyncedAtFormatted: null,
-        isOnline: false,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('offline', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const statusContainer = container.firstChild as HTMLElement;
@@ -289,13 +195,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should apply custom className when provided', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', ''));
 
       const { container } = render(<SyncStatusIndicator className="custom-class" />);
       const statusContainer = container.firstChild as HTMLElement;
@@ -306,13 +206,7 @@ describe('SyncStatusIndicator', () => {
 
   describe('Component Structure', () => {
     it('should render container div', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', ''));
 
       const { container } = render(<SyncStatusIndicator />);
 
@@ -320,13 +214,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should render icon span', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const iconSpan = container.querySelector('span:first-child');
@@ -335,13 +223,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should render text span', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: null,
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', ''));
 
       const { container } = render(<SyncStatusIndicator />);
       const textSpans = container.querySelectorAll('span');
@@ -350,13 +232,7 @@ describe('SyncStatusIndicator', () => {
     });
 
     it('should render time span when applicable', () => {
-      mockUseSyncState.mockReturnValue({
-        combinedStatus: 'idle',
-        lastSyncedAtFormatted: '1分前',
-        isOnline: true,
-        isSyncing: false,
-        hasError: false,
-      });
+      mockUseSyncState.mockReturnValue(createMockState('idle', '1分前'));
 
       const { container } = render(<SyncStatusIndicator />);
       const spans = container.querySelectorAll('span');
@@ -375,13 +251,7 @@ describe('SyncStatusIndicator', () => {
       ];
 
       statuses.forEach((status) => {
-        mockUseSyncState.mockReturnValue({
-          combinedStatus: status,
-          lastSyncedAtFormatted: null,
-          isOnline: status !== 'offline',
-          isSyncing: status === 'syncing',
-          hasError: status === 'error',
-        });
+        mockUseSyncState.mockReturnValue(createMockState(status, ''));
 
         const { container } = render(<SyncStatusIndicator />);
         const svg = container.querySelector('svg');
