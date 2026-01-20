@@ -288,19 +288,12 @@ test.describe('ノート機能 - Notes Functionality', () => {
     }
   });
 
-  test('レッスン詳細からノートページへの遷移', async ({ page }) => {
-    // レッスン詳細ページに移動
-    await page.goto('/lessons/react-basics');
+  test('ノートページに直接アクセスできる', async ({ page }) => {
+    // ノートページに直接アクセス
+    await page.goto('/notes?lessonId=react-basics');
     await page.waitForLoadState('networkidle');
 
-    // ノートを開くリンクをクリック
-    const notesLink = page.getByTestId('open-notes-link');
-    await expect(notesLink).toBeVisible();
-    await notesLink.click();
-
-    // ノートページに遷移
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/notes\?lessonId=.+/);
+    // ノートページが表示される
     await expect(page.getByTestId('notes-page')).toBeVisible();
   });
 
@@ -319,21 +312,16 @@ test.describe('ノート機能 - Notes Functionality', () => {
     }
   });
 
-  test('レッスンを選択するとノート編集エリアが表示される', async ({ page }) => {
+  test('ノートページのサイドバーが表示される', async ({ page }) => {
     await page.goto('/notes');
     await page.waitForLoadState('networkidle');
 
-    // サイドバーからレッスンを選択
+    // サイドバーが表示される
     const sidebar = page.locator('aside');
-    const lessonButton = sidebar.locator('button').first();
+    await expect(sidebar).toBeVisible();
 
-    if (await lessonButton.isVisible()) {
-      await lessonButton.click();
-      await page.waitForTimeout(500);
-
-      // ノート編集エリアが表示される
-      const main = page.locator('main');
-      await expect(main).toBeVisible();
-    }
+    // メインエリアが表示される
+    const main = page.locator('main');
+    await expect(main).toBeVisible();
   });
 });

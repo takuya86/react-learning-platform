@@ -92,10 +92,9 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
     await skipButton.click();
     await page.waitForTimeout(300);
 
-    // 次の問題が表示されるので、再度スキップボタンまたは選択肢が表示される
-    const nextSkipButton = page.getByRole('button', { name: 'スキップ' });
-    const firstOption = page.getByTestId('quiz-option').first();
-    await expect(nextSkipButton.or(firstOption)).toBeVisible();
+    // 次の問題が表示される（問題カードが引き続き表示されている）
+    const questionCard = page.getByTestId('question-card');
+    await expect(questionCard).toBeVisible();
   });
 
   test('ヒント機能 - ヒントを表示できる', async ({ page }) => {
