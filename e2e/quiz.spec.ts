@@ -47,11 +47,11 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
     }
 
     // 問題文が表示される
-    const questionCard = page.locator('.questionCard');
+    const questionCard = page.getByTestId('question-card');
     await expect(questionCard).toBeVisible();
 
     // 選択肢が表示される
-    const options = page.locator('.option');
+    const options = page.getByTestId('quiz-option');
     await expect(options.first()).toBeVisible();
   });
 
@@ -67,7 +67,7 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
     }
 
     // 最初の選択肢をクリック
-    const firstOption = page.locator('.option').first();
+    const firstOption = page.getByTestId('quiz-option').first();
     await firstOption.click();
 
     // 「次の問題へ」または「結果を見る」ボタンが表示される
@@ -132,7 +132,7 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
     // すべての問題に回答（最大5問まで）
     for (let i = 0; i < 5; i++) {
       // 選択肢をクリック
-      const firstOption = page.locator('.option').first();
+      const firstOption = page.getByTestId('quiz-option').first();
       if (await firstOption.isVisible()) {
         await firstOption.click();
         await page.waitForTimeout(300);
@@ -159,7 +159,7 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
     await expect(resultTitle).toBeVisible();
 
     // スコアが表示される
-    await expect(page.locator('.score')).toBeVisible();
+    await expect(page.getByTestId('quiz-score')).toBeVisible();
   });
 
   test('クイズ結果 - スコア表示の確認', async ({ page }) => {
@@ -174,7 +174,7 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
     }
 
     // 1問だけ回答して完了させる
-    const firstOption = page.locator('.option').first();
+    const firstOption = page.getByTestId('quiz-option').first();
     if (await firstOption.isVisible()) {
       await firstOption.click();
       await page.waitForTimeout(300);
@@ -201,7 +201,7 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
     }
 
     // 結果画面でパーセンテージが表示される
-    await expect(page.locator('.percentage')).toBeVisible();
+    await expect(page.getByTestId('quiz-percentage')).toBeVisible();
   });
 
   test('クイズ結果 - もう一度挑戦ボタンが機能する', async ({ page }) => {

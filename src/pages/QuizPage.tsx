@@ -211,11 +211,13 @@ export function QuizPage() {
         <Card className={styles.resultCard}>
           <CardContent>
             <h2 className={styles.resultTitle}>クイズ完了！</h2>
-            <div className={styles.score}>
+            <div className={styles.score} data-testid="quiz-score">
               <span className={styles.scoreValue}>{correct}</span>
               <span className={styles.scoreTotal}>/ {total}</span>
             </div>
-            <p className={styles.percentage}>{percentage}% 正解</p>
+            <p className={styles.percentage} data-testid="quiz-percentage">
+              {percentage}% 正解
+            </p>
             <div className={styles.resultMessage}>
               {percentage === 100 && <p>素晴らしい！完璧です！</p>}
               {percentage >= 70 && percentage < 100 && <p>よくできました！</p>}
@@ -268,7 +270,7 @@ export function QuizPage() {
         />
       </div>
 
-      <Card className={styles.questionCard}>
+      <Card className={styles.questionCard} data-testid="question-card">
         <CardContent>
           <div className={styles.questionHeader}>
             <h2 className={styles.question}>{currentQuestion.question}</h2>
@@ -320,6 +322,7 @@ export function QuizPage() {
                   className={optionClass}
                   onClick={() => handleSelectAnswer(index)}
                   disabled={hasAnswered || isSkipped}
+                  data-testid="quiz-option"
                 >
                   <span className={styles.optionIndex}>{String.fromCharCode(65 + index)}</span>
                   <span className={styles.optionText}>{option}</span>
