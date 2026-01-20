@@ -1,24 +1,45 @@
+import { lazy } from 'react';
 import { createBrowserRouter, useParams } from 'react-router-dom';
 import { Layout } from './Layout';
 import { RequireAuth, RequireRole } from '@/features/auth';
-import {
-  DashboardPage,
-  LessonsPage,
-  LessonDetailPage,
-  ExercisePage,
-  QuizListPage,
-  QuizPage,
-  ProgressPage,
-  NotesPage,
-  RoadmapPage,
-  NotFoundPage,
-  LoginPage,
-  AuthCallbackPage,
-  AdminPage,
-  AdminBacklogPage,
-  AdminMetricsPage,
-  ErrorBoundaryTestPage,
-} from '@/pages';
+
+// Eagerly loaded pages (critical path)
+import { LoginPage, AuthCallbackPage, NotFoundPage } from '@/pages';
+
+// Lazy loaded pages (code splitting)
+const DashboardPage = lazy(() =>
+  import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const LessonsPage = lazy(() =>
+  import('@/pages/LessonsPage').then((m) => ({ default: m.LessonsPage }))
+);
+const LessonDetailPage = lazy(() =>
+  import('@/pages/LessonDetailPage').then((m) => ({ default: m.LessonDetailPage }))
+);
+const ExercisePage = lazy(() =>
+  import('@/pages/ExercisePage').then((m) => ({ default: m.ExercisePage }))
+);
+const QuizListPage = lazy(() =>
+  import('@/pages/QuizListPage').then((m) => ({ default: m.QuizListPage }))
+);
+const QuizPage = lazy(() => import('@/pages/QuizPage').then((m) => ({ default: m.QuizPage })));
+const ProgressPage = lazy(() =>
+  import('@/pages/ProgressPage').then((m) => ({ default: m.ProgressPage }))
+);
+const NotesPage = lazy(() => import('@/pages/NotesPage').then((m) => ({ default: m.NotesPage })));
+const RoadmapPage = lazy(() =>
+  import('@/pages/RoadmapPage').then((m) => ({ default: m.RoadmapPage }))
+);
+const AdminPage = lazy(() => import('@/pages/AdminPage').then((m) => ({ default: m.AdminPage })));
+const AdminBacklogPage = lazy(() =>
+  import('@/pages/AdminBacklogPage').then((m) => ({ default: m.AdminBacklogPage }))
+);
+const AdminMetricsPage = lazy(() =>
+  import('@/pages/AdminMetricsPage').then((m) => ({ default: m.AdminMetricsPage }))
+);
+const ErrorBoundaryTestPage = lazy(() =>
+  import('@/pages/ErrorBoundaryTestPage').then((m) => ({ default: m.ErrorBoundaryTestPage }))
+);
 
 function LessonDetailRoute() {
   const { id } = useParams<{ id: string }>();

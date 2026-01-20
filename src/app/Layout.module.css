@@ -257,3 +257,44 @@
     display: none;
   }
 }
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--space-4, 16px);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-neutral-200, #e2e8f0);
+  border-top-color: var(--color-primary-500, #0891b2);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingContainer p {
+  color: var(--color-neutral-500, #64748b);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Admin theme loading */
+.adminTheme .loadingSpinner {
+  border-color: var(--admin-border);
+  border-top-color: var(--admin-accent-cyan);
+}
+
+.adminTheme .loadingContainer p {
+  color: var(--admin-text-muted);
+}

@@ -19,4 +19,22 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core - rarely changes
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Supabase client - separate chunk for better caching
+          supabase: ['@supabase/supabase-js'],
+          // Form handling - only loaded on exercise/form pages
+          form: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          // MDX rendering - loaded when viewing lessons
+          mdx: ['@mdx-js/react'],
+          // Icons - frequently used but cacheable
+          icons: ['lucide-react'],
+        },
+      },
+    },
+  },
 });
