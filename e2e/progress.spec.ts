@@ -59,7 +59,7 @@ test.describe('進捗ページ - Progress Page', () => {
 
     // 学習履歴がある場合はリストが表示される
     const historyList = page.getByTestId('recent-history-list');
-    const emptyMessage = page.getByText('まだ学習履歴がありません');
+    const emptyMessage = page.getByText(/まだ学習履歴がありません/);
 
     // どちらかが表示される
     await expect(historyList.or(emptyMessage)).toBeVisible();
@@ -80,7 +80,7 @@ test.describe('進捗ページ - Progress Page', () => {
     }
 
     // 空のメッセージが表示される
-    await expect(page.getByText('まだ学習履歴がありません')).toBeVisible();
+    await expect(page.getByText(/まだ学習履歴がありません/)).toBeVisible();
     await expect(page.getByRole('link', { name: 'レッスンを始めましょう！' })).toBeVisible();
   });
 

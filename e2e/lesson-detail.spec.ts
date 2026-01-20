@@ -39,8 +39,8 @@ test.describe('レッスン詳細ページ - Lesson Detail Page', () => {
     const difficultyBadge = page.getByTestId('difficulty-badge');
     await expect(difficultyBadge).toBeVisible();
 
-    // 所要時間が表示される
-    await expect(page.getByText(/約.*分/)).toBeVisible();
+    // 所要時間が表示される（lesson-meta内に限定）
+    await expect(page.getByTestId('lesson-meta').getByText(/約.*分/)).toBeVisible();
   });
 
   test('完了ボタンをクリックするとレッスンが完了状態になる', async ({ page }) => {
