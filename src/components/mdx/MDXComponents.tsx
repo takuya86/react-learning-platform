@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react';
+import { Children, isValidElement, type ComponentProps, type ReactNode } from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
 
 // Extract language from className (e.g., "language-jsx" -> "jsx")
@@ -8,53 +8,86 @@ function extractLanguage(className?: string): string {
   return match ? match[1] : 'text';
 }
 
-// Syntax highlighted code block
-function CodeBlock({ children, className, ...props }: ComponentProps<'code'>) {
-  const isInline = !className;
+// Extract code string from children
+function extractCode(children: ReactNode): string {
+  if (typeof children === 'string') {
+    return children.trim();
+  }
+  if (Array.isArray(children)) {
+    return children.map(extractCode).join('');
+  }
+  if (isValidElement(children)) {
+    const props = children.props as { children?: ReactNode };
+    if (props.children) {
+      return extractCode(props.children);
+    }
+  }
+  return String(children || '').trim();
+}
 
-  if (isInline) {
+// Inline code (used for `code` in text)
+function InlineCode({ children, className, ...props }: ComponentProps<'code'>) {
+  // If it has a language class, it's inside a pre block - render as-is for Pre to handle
+  if (className?.includes('language-')) {
     return (
-      <code
-        className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono text-pink-600 dark:text-pink-400"
-        {...props}
-      >
+      <code className={className} {...props}>
         {children}
       </code>
     );
   }
 
-  const language = extractLanguage(className);
-  const code = typeof children === 'string' ? children.trim() : String(children).trim();
-
+  // Inline code styling
   return (
-    <Highlight theme={themes.nightOwl} code={code} language={language}>
-      {({ className: highlightClassName, style, tokens, getLineProps, getTokenProps }) => (
-        <code
-          className={highlightClassName}
-          style={{ ...style, background: 'transparent' }}
-          {...props}
-        >
-          {tokens.map((line, i) => (
-            <div key={i} {...getLineProps({ line })}>
-              <span className="inline-block w-8 text-gray-500 select-none text-right mr-4 text-xs">
-                {i + 1}
-              </span>
-              {line.map((token, key) => (
-                <span key={key} {...getTokenProps({ token })} />
-              ))}
-            </div>
-          ))}
-        </code>
-      )}
-    </Highlight>
+    <code
+      className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono text-pink-600 dark:text-pink-400"
+      {...props}
+    >
+      {children}
+    </code>
   );
 }
 
-// Pre block for code blocks
+// Pre block with syntax highlighting
 function Pre({ children, ...props }: ComponentProps<'pre'>) {
+  // Try to extract language and code from children
+  let language = 'text';
+  let code = '';
+
+  // Children should be a <code> element with className="language-xxx"
+  const child = Children.only(children);
+  if (isValidElement(child)) {
+    const childProps = child.props as { className?: string; children?: ReactNode };
+    language = extractLanguage(childProps.className);
+    code = extractCode(childProps.children);
+  }
+
+  // If no language detected, just render as plain pre
+  if (language === 'text' && !code) {
+    return (
+      <pre className="bg-[#011627] p-4 rounded-lg overflow-x-auto text-sm my-4" {...props}>
+        {children}
+      </pre>
+    );
+  }
+
   return (
     <pre className="bg-[#011627] p-4 rounded-lg overflow-x-auto text-sm my-4" {...props}>
-      {children}
+      <Highlight theme={themes.nightOwl} code={code} language={language}>
+        {({ className, style, tokens, getLineProps, getTokenProps }) => (
+          <code className={className} style={{ ...style, background: 'transparent' }}>
+            {tokens.map((line, i) => (
+              <div key={i} {...getLineProps({ line })}>
+                <span className="inline-block w-8 text-gray-500 select-none text-right mr-4 text-xs">
+                  {i + 1}
+                </span>
+                {line.map((token, key) => (
+                  <span key={key} {...getTokenProps({ token })} />
+                ))}
+              </div>
+            ))}
+          </code>
+        )}
+      </Highlight>
     </pre>
   );
 }
@@ -167,7 +200,7 @@ function Hr(props: ComponentProps<'hr'>) {
 
 // MDX component mapping
 export const mdxComponents = {
-  code: CodeBlock,
+  code: InlineCode,
   pre: Pre,
   h1: H1,
   h2: H2,
