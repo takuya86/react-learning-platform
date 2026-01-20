@@ -75,16 +75,30 @@ function Pre({ children, ...props }: ComponentProps<'pre'>) {
       <Highlight theme={themes.nightOwl} code={code} language={language}>
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <code className={className} style={{ ...style, background: 'transparent' }}>
-            {tokens.map((line, i) => (
-              <div key={i} {...getLineProps({ line })}>
-                <span className="inline-block w-8 text-gray-500 select-none text-right mr-4 text-xs">
-                  {i + 1}
-                </span>
-                {line.map((token, key) => (
-                  <span key={key} {...getTokenProps({ token })} />
-                ))}
-              </div>
-            ))}
+            {tokens.map((line, i) => {
+              const lineProps = getLineProps({ line });
+              return (
+                <div key={i} {...lineProps} style={{ ...lineProps.style, display: 'flex' }}>
+                  <span
+                    style={{
+                      width: '3em',
+                      textAlign: 'right',
+                      paddingRight: '1.5em',
+                      color: '#6b7280',
+                      userSelect: 'none',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span style={{ flex: 1 }}>
+                    {line.map((token, key) => (
+                      <span key={key} {...getTokenProps({ token })} />
+                    ))}
+                  </span>
+                </div>
+              );
+            })}
           </code>
         )}
       </Highlight>
