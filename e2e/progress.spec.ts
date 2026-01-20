@@ -58,7 +58,7 @@ test.describe('進捗ページ - Progress Page', () => {
     await expect(page.getByText('最近の学習履歴')).toBeVisible();
 
     // 学習履歴がある場合はリストが表示される
-    const historyList = page.locator('.recentList');
+    const historyList = page.getByTestId('recent-history-list');
     const emptyMessage = page.getByText('まだ学習履歴がありません');
 
     // どちらかが表示される
@@ -100,7 +100,7 @@ test.describe('進捗ページ - Progress Page', () => {
     await page.waitForLoadState('networkidle');
 
     // 履歴リストからリンクをクリック
-    const historyList = page.locator('.recentList');
+    const historyList = page.getByTestId('recent-history-list');
     if (await historyList.isVisible()) {
       const firstLink = historyList.locator('a').first();
       if (await firstLink.isVisible()) {
@@ -144,7 +144,7 @@ test.describe('進捗ページ - Progress Page', () => {
     await page.waitForLoadState('networkidle');
 
     // リセット前の完了数を確認
-    const statValue = page.locator('.statValue').first();
+    const statValue = page.getByTestId('completed-lessons-value');
     const beforeResetText = await statValue.textContent();
     expect(beforeResetText).toBeTruthy();
 
@@ -161,7 +161,8 @@ test.describe('進捗ページ - Progress Page', () => {
     await page.waitForTimeout(500);
 
     // リセット後の状態を確認
-    const afterResetText = await statValue.textContent();
+    const afterResetStatValue = page.getByTestId('completed-lessons-value');
+    const afterResetText = await afterResetStatValue.textContent();
     expect(afterResetText).toContain('0');
   });
 
@@ -200,9 +201,9 @@ test.describe('進捗ページ - Progress Page', () => {
     await page.goto('/progress');
     await page.waitForLoadState('networkidle');
 
-    const historyList = page.locator('.recentList');
-    if (await historyList.isVisible()) {
-      const completeBadge = historyList.locator('text=完了').first();
+    const historyListForBadge = page.getByTestId('recent-history-list');
+    if (await historyListForBadge.isVisible()) {
+      const completeBadge = historyListForBadge.locator('text=完了').first();
       if (await completeBadge.isVisible()) {
         await expect(completeBadge).toBeVisible();
       }
@@ -224,9 +225,9 @@ test.describe('進捗ページ - Progress Page', () => {
     await page.goto('/progress');
     await page.waitForLoadState('networkidle');
 
-    const historyList = page.locator('.recentList');
-    if (await historyList.isVisible()) {
-      const inProgressBadge = historyList.locator('text=学習中').first();
+    const historyListForInProgress = page.getByTestId('recent-history-list');
+    if (await historyListForInProgress.isVisible()) {
+      const inProgressBadge = historyListForInProgress.locator('text=学習中').first();
       if (await inProgressBadge.isVisible()) {
         await expect(inProgressBadge).toBeVisible();
       }

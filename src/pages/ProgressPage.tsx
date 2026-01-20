@@ -66,6 +66,7 @@ export function ProgressPage() {
                 className={styles.statValue}
                 aria-labelledby="completed-lessons-label"
                 aria-label={`${completedCount}レッスン完了、全${totalCount}レッスン中`}
+                data-testid="completed-lessons-value"
               >
                 {completedCount} / {totalCount}
               </span>
@@ -155,7 +156,11 @@ export function ProgressPage() {
               </Link>
             </p>
           ) : (
-            <ul className={styles.recentList} aria-labelledby="recent-history-heading">
+            <ul
+              className={styles.recentList}
+              aria-labelledby="recent-history-heading"
+              data-testid="recent-history-list"
+            >
               {recentLessons.map((item) => (
                 <li key={item.lessonId} className={styles.recentItem}>
                   <div className={styles.recentInfo}>

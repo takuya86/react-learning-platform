@@ -19,7 +19,7 @@ test.describe('レッスン詳細ページ - Lesson Detail Page', () => {
     // レッスン詳細ページの要素を確認
     await expect(page).toHaveURL(/\/lessons\/.+/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(page.locator('.breadcrumb')).toContainText('レッスン一覧');
+    await expect(page.getByTestId('breadcrumb')).toContainText('レッスン一覧');
   });
 
   test('レッスンコンテンツが表示される', async ({ page }) => {
@@ -36,8 +36,8 @@ test.describe('レッスン詳細ページ - Lesson Detail Page', () => {
     await page.waitForLoadState('networkidle');
 
     // 難易度バッジが表示される
-    const badges = page.locator('.badge');
-    await expect(badges.first()).toBeVisible();
+    const difficultyBadge = page.getByTestId('difficulty-badge');
+    await expect(difficultyBadge).toBeVisible();
 
     // 所要時間が表示される
     await expect(page.getByText(/約.*分/)).toBeVisible();
@@ -121,10 +121,10 @@ test.describe('レッスン詳細ページ - Lesson Detail Page', () => {
     await page.waitForLoadState('networkidle');
 
     // 前提レッスンセクションが表示される可能性がある
-    const prerequisitesSection = page.locator('.prerequisites');
+    const prerequisitesText = page.getByText('前提レッスン:');
 
-    if (await prerequisitesSection.isVisible()) {
-      await expect(prerequisitesSection).toContainText('前提レッスン');
+    if (await prerequisitesText.isVisible()) {
+      await expect(prerequisitesText).toBeVisible();
     }
   });
 
@@ -146,7 +146,9 @@ test.describe('レッスン詳細ページ - Lesson Detail Page', () => {
     await page.waitForLoadState('networkidle');
 
     // パンくずリストのレッスン一覧リンクをクリック
-    const breadcrumbLink = page.locator('.breadcrumb').getByRole('link', { name: 'レッスン一覧' });
+    const breadcrumbLink = page
+      .getByTestId('breadcrumb')
+      .getByRole('link', { name: 'レッスン一覧' });
     await expect(breadcrumbLink).toBeVisible();
     await breadcrumbLink.click();
 

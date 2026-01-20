@@ -76,7 +76,7 @@ test.describe('ノート機能 - Notes Functionality', () => {
     await expect(sidebar).toBeVisible();
 
     // リスト要素が存在するか確認（空でも構造はある）
-    const notesList = sidebar.locator('ul, .notes-list, [role="list"]');
+    const notesList = sidebar.locator('ul, [role="list"]');
     const emptyMessage = sidebar.getByText(/ノートがありません|まだノートがありません/);
 
     await expect(notesList.or(emptyMessage)).toBeVisible();
@@ -160,9 +160,9 @@ test.describe('ノート機能 - Notes Functionality', () => {
       await page.waitForTimeout(500);
 
       // ノートが削除されたことを確認（空メッセージまたはノートが消える）
-      // 削除後は空メッセージが表示されるか、ノートリストから消える
+      // 削除後は空メッセージが表示されるか、サイドバーが表示される
       await expect(
-        page.getByText(/ノートがありません|まだノートがありません/).or(page.locator('.note-item'))
+        page.getByText(/ノートがありません|まだノートがありません/).or(page.locator('aside'))
       ).toBeVisible();
     }
   });

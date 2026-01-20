@@ -101,15 +101,15 @@ export function LessonDetailPage() {
 
   return (
     <div className={styles.container}>
-      <nav className={styles.breadcrumb}>
+      <nav className={styles.breadcrumb} data-testid="breadcrumb">
         <Link to="/lessons">レッスン一覧</Link>
         <span className={styles.separator}>/</span>
         <span>{lesson.title}</span>
       </nav>
 
       <header className={styles.header}>
-        <div className={styles.meta}>
-          <Badge variant={difficultyVariants[lesson.difficulty]}>
+        <div className={styles.meta} data-testid="lesson-meta">
+          <Badge variant={difficultyVariants[lesson.difficulty]} data-testid="difficulty-badge">
             {difficultyLabels[lesson.difficulty]}
           </Badge>
           <span className={styles.duration}>約 {lesson.estimatedMinutes} 分</span>
