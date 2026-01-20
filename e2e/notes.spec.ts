@@ -316,12 +316,12 @@ test.describe('ノート機能 - Notes Functionality', () => {
     await page.goto('/notes');
     await page.waitForLoadState('networkidle');
 
-    // サイドバーが表示される
-    const sidebar = page.locator('aside');
-    await expect(sidebar).toBeVisible();
+    // ノートページが表示される
+    const notesPage = page.getByTestId('notes-page');
+    await expect(notesPage).toBeVisible();
 
-    // メインエリアが表示される
-    const main = page.locator('main');
-    await expect(main).toBeVisible();
+    // サイドバーが表示される
+    const sidebar = notesPage.locator('aside');
+    await expect(sidebar).toBeVisible();
   });
 });
