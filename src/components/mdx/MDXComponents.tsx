@@ -53,10 +53,7 @@ function CodeBlock({ children, className, ...props }: ComponentProps<'code'>) {
 // Pre block for code blocks
 function Pre({ children, ...props }: ComponentProps<'pre'>) {
   return (
-    <pre
-      className="bg-[#011627] text-gray-100 p-4 rounded-lg overflow-x-auto text-sm my-4"
-      {...props}
-    >
+    <pre className="bg-[#011627] p-4 rounded-lg overflow-x-auto text-sm my-4" {...props}>
       {children}
     </pre>
   );
