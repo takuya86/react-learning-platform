@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SyncStatusIndicator } from '@/components/ui/SyncStatusIndicator';
 import * as syncModule from '@/features/sync';
+import type { SyncContextState } from '@/features/sync';
 
 // Mock the sync module
 vi.mock('@/features/sync', () => ({
@@ -14,16 +15,27 @@ describe('SyncStatusIndicator', () => {
   const createMockState = (
     combinedStatus: 'idle' | 'syncing' | 'error' | 'offline',
     lastSyncedAtFormatted: string
-  ) => ({
-    state: {
+  ) => {
+    const state: SyncContextState = {
+      progress: {
+        status: combinedStatus === 'syncing' ? 'syncing' : 'idle',
+        lastSyncedAt: new Date().toISOString(),
+        error: combinedStatus === 'error' ? 'Sync error' : null,
+      },
+      notes: {
+        status: 'idle',
+        lastSyncedAt: new Date().toISOString(),
+        error: null,
+      },
       isOnline: combinedStatus !== 'offline',
-      isSyncing: combinedStatus === 'syncing',
-      error: combinedStatus === 'error' ? new Error('Sync error') : null,
-      lastSyncedAt: new Date(),
-    },
-    combinedStatus,
-    lastSyncedAtFormatted,
-  });
+    };
+
+    return {
+      state,
+      combinedStatus,
+      lastSyncedAtFormatted,
+    };
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
