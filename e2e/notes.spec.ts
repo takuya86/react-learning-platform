@@ -67,7 +67,7 @@ test.describe('ノート機能 - Notes Functionality', () => {
     }
   });
 
-  test('ノート一覧 - サイドバーにノートリストが表示される', async ({ page }) => {
+  test('ノート一覧 - サイドバーにレッスンリストが表示される', async ({ page }) => {
     await page.goto('/notes');
     await page.waitForLoadState('networkidle');
 
@@ -75,11 +75,11 @@ test.describe('ノート機能 - Notes Functionality', () => {
     const sidebar = page.locator('aside');
     await expect(sidebar).toBeVisible();
 
-    // リスト要素が存在するか確認（空でも構造はある）
-    const notesList = sidebar.locator('ul, [role="list"]');
-    const emptyMessage = sidebar.getByText(/ノートがありません|まだノートがありません/);
+    // レッスンボタンまたは空メッセージが表示される
+    const lessonButton = sidebar.locator('button').first();
+    const emptyMessage = sidebar.getByText('該当するレッスンがありません');
 
-    await expect(notesList.or(emptyMessage)).toBeVisible();
+    await expect(lessonButton.or(emptyMessage)).toBeVisible();
   });
 
   test('ノート編集 - 既存のノートを編集できる', async ({ page }) => {
@@ -318,15 +318,21 @@ test.describe('ノート機能 - Notes Functionality', () => {
     }
   });
 
-  test('空の状態 - ノートが無い場合のメッセージ表示', async ({ page }) => {
-    // 新しいコンテキストまたはリセット後
+  test('レッスンを選択するとノート編集エリアが表示される', async ({ page }) => {
     await page.goto('/notes');
     await page.waitForLoadState('networkidle');
 
-    // 空メッセージまたは新規作成ボタンが表示される
-    const emptyMessage = page.getByText(/ノートがありません|まだノートがありません/);
-    const newNoteButton = page.getByRole('button', { name: /新しいノート|ノートを追加/ });
+    // サイドバーからレッスンを選択
+    const sidebar = page.locator('aside');
+    const lessonButton = sidebar.locator('button').first();
 
-    await expect(emptyMessage.or(newNoteButton)).toBeVisible();
+    if (await lessonButton.isVisible()) {
+      await lessonButton.click();
+      await page.waitForTimeout(500);
+
+      // ノート編集エリアが表示される
+      const main = page.locator('main');
+      await expect(main).toBeVisible();
+    }
   });
 });

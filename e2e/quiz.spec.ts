@@ -88,13 +88,13 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
 
     // スキップボタンをクリック
     const skipButton = page.getByRole('button', { name: 'スキップ' });
-    if (await skipButton.isVisible()) {
-      await skipButton.click();
+    await expect(skipButton).toBeVisible();
+    await skipButton.click();
+    await page.waitForTimeout(300);
 
-      // 次の問題へボタンが表示される
-      const nextButton = page.getByRole('button', { name: /次の問題へ|結果を見る/ });
-      await expect(nextButton).toBeVisible();
-    }
+    // 次の問題へボタンが表示される
+    const nextButton = page.getByRole('button', { name: /次の問題へ|結果を見る/ });
+    await expect(nextButton).toBeVisible();
   });
 
   test('ヒント機能 - ヒントを表示できる', async ({ page }) => {
@@ -173,30 +173,25 @@ test.describe('クイズ機能 - Quiz Functionality', () => {
       await page.waitForLoadState('networkidle');
     }
 
-    // 1問だけ回答して完了させる
-    const firstOption = page.getByTestId('quiz-option').first();
-    if (await firstOption.isVisible()) {
-      await firstOption.click();
-      await page.waitForTimeout(300);
+    // すべての問題をスキップまたは回答して結果へ進む
+    for (let i = 0; i < 10; i++) {
+      const resultTitle = page.getByRole('heading', { name: 'クイズ完了！' });
+      if (await resultTitle.isVisible()) {
+        break;
+      }
 
+      // スキップボタンが表示されていればクリック
+      const skipButton = page.getByRole('button', { name: 'スキップ' });
+      if (await skipButton.isVisible()) {
+        await skipButton.click();
+        await page.waitForTimeout(300);
+      }
+
+      // 次の問題へボタンが表示されていればクリック
       const nextButton = page.getByRole('button', { name: /次の問題へ|結果を見る/ });
       if (await nextButton.isVisible()) {
-        // すべてスキップして結果へ
-        for (let i = 0; i < 5; i++) {
-          await nextButton.click();
-          await page.waitForTimeout(300);
-
-          const resultTitle = page.getByRole('heading', { name: 'クイズ完了！' });
-          if (await resultTitle.isVisible()) {
-            break;
-          }
-
-          const skipButton = page.getByRole('button', { name: 'スキップ' });
-          if (await skipButton.isVisible()) {
-            await skipButton.click();
-            await page.waitForTimeout(300);
-          }
-        }
+        await nextButton.click();
+        await page.waitForTimeout(300);
       }
     }
 

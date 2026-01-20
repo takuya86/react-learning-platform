@@ -95,16 +95,19 @@ test.describe('レッスン一覧ページ - Lessons Page', () => {
 
     // 難易度を選択
     const difficultySelect = page.locator('select#difficulty-filter');
+    await expect(difficultySelect).toBeVisible();
     await difficultySelect.selectOption('beginner');
+    await page.waitForTimeout(300);
 
     // 検索キーワードを入力
     const searchInput = page.locator('input[placeholder*="タイトルやタグで検索"]');
+    await expect(searchInput).toBeVisible();
     await searchInput.fill('React');
     await page.waitForTimeout(500);
 
     // 結果が表示される（またはゼロ件でもエラーにならない）
     const lessonCards = page.getByTestId('lesson-card');
-    await expect(lessonCards.or(page.getByText('レッスン一覧'))).toBeVisible();
+    await expect(lessonCards.or(page.getByRole('heading', { name: 'レッスン一覧' }))).toBeVisible();
   });
 
   test('レッスンカードをクリックすると詳細ページに遷移する', async ({ page }) => {
