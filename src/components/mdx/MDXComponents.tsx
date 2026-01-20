@@ -1,6 +1,14 @@
 import type { ComponentProps } from 'react';
+import { Highlight, themes } from 'prism-react-renderer';
 
-// Custom code block component with syntax highlighting support
+// Extract language from className (e.g., "language-jsx" -> "jsx")
+function extractLanguage(className?: string): string {
+  if (!className) return 'text';
+  const match = className.match(/language-(\w+)/);
+  return match ? match[1] : 'text';
+}
+
+// Syntax highlighted code block
 function CodeBlock({ children, className, ...props }: ComponentProps<'code'>) {
   const isInline = !className;
 
@@ -15,10 +23,30 @@ function CodeBlock({ children, className, ...props }: ComponentProps<'code'>) {
     );
   }
 
+  const language = extractLanguage(className);
+  const code = typeof children === 'string' ? children.trim() : String(children).trim();
+
   return (
-    <code className={className} {...props}>
-      {children}
-    </code>
+    <Highlight theme={themes.nightOwl} code={code} language={language}>
+      {({ className: highlightClassName, style, tokens, getLineProps, getTokenProps }) => (
+        <code
+          className={highlightClassName}
+          style={{ ...style, background: 'transparent' }}
+          {...props}
+        >
+          {tokens.map((line, i) => (
+            <div key={i} {...getLineProps({ line })}>
+              <span className="inline-block w-8 text-gray-500 select-none text-right mr-4 text-xs">
+                {i + 1}
+              </span>
+              {line.map((token, key) => (
+                <span key={key} {...getTokenProps({ token })} />
+              ))}
+            </div>
+          ))}
+        </code>
+      )}
+    </Highlight>
   );
 }
 
@@ -26,7 +54,7 @@ function CodeBlock({ children, className, ...props }: ComponentProps<'code'>) {
 function Pre({ children, ...props }: ComponentProps<'pre'>) {
   return (
     <pre
-      className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm my-4"
+      className="bg-[#011627] text-gray-100 p-4 rounded-lg overflow-x-auto text-sm my-4"
       {...props}
     >
       {children}
