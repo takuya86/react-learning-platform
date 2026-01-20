@@ -1,26 +1,31 @@
 import { lazy } from 'react';
 import type { MDXLessonModule, LoadedLesson, LessonFrontmatter } from './types';
+import lessonMetadataJson from '@/content/lessons/metadata.json';
 
-// Vite's glob import for metadata - eager load frontmatter only
-const lessonMetadata = import.meta.glob<{ frontmatter: LessonFrontmatter }>(
-  '/src/content/lessons/*.mdx',
-  {
-    eager: true,
-    import: 'frontmatter',
-  }
-);
+// Type for metadata from JSON (includes path)
+interface LessonMetadataWithPath extends LessonFrontmatter {
+  path: string;
+}
 
-// Vite's glob import for components - lazy load on demand
+// Typed metadata from JSON file
+const lessonMetadata = lessonMetadataJson as LessonMetadataWithPath[];
+
+// Vite's glob import for components only - lazy load on demand
+// Since we're only using dynamic import (no eager), Vite will properly split chunks
 const lessonComponents = import.meta.glob<MDXLessonModule>('/src/content/lessons/*.mdx');
 
-// Transform modules into LoadedLesson array with lazy components
+// Transform metadata into LoadedLesson array with lazy components
 function loadLessons(): LoadedLesson[] {
-  return Object.entries(lessonMetadata).map(([path, metadata]) => {
-    const frontmatter = metadata as unknown as LessonFrontmatter;
+  return lessonMetadata.map((metadata) => {
+    const { path, ...frontmatter } = metadata;
 
     // Create lazy component for this lesson
     const Component = lazy(async () => {
-      const module = await lessonComponents[path]();
+      const loader = lessonComponents[path];
+      if (!loader) {
+        throw new Error(`Lesson component not found: ${path}`);
+      }
+      const module = await loader();
       return { default: module.default };
     });
 

@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "node tools/extract-lesson-metadata.mjs",
     "build": "tsc -b && vite build",
+    "extract:lessons": "node tools/extract-lesson-metadata.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
