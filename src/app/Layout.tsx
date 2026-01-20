@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth';
 import styles from './Layout.module.css';
@@ -79,7 +80,16 @@ export function Layout() {
         </nav>
       </header>
       <main className={styles.main}>
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner} />
+              <p>読み込み中...</p>
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
       <footer className={styles.footer}>
         <p>React Learning Platform - React学習のための実践プロジェクト</p>
