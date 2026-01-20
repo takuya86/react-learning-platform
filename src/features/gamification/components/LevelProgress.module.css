@@ -1,0 +1,92 @@
+.container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.levelBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.levelNumber {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.levelTitle {
+  font-size: 16px;
+  color: #e0e0e0;
+  font-weight: 500;
+}
+
+.xpInfo {
+  text-align: right;
+}
+
+.totalXP {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0891b2;
+}
+
+.progressSection {
+  margin-bottom: 12px;
+}
+
+.progressBar {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
+  border-radius: 6px;
+  transition: width 0.5s ease-out;
+}
+
+.progressText {
+  font-size: 13px;
+  color: #a0a0a0;
+  text-align: right;
+}
+
+.maxLevel {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.bonusInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.bonusIcon {
+  font-size: 16px;
+}
+
+.bonusText {
+  font-size: 13px;
+  color: #ffd700;
+  font-weight: 500;
+}

@@ -22,6 +22,11 @@ import {
   WeeklyCountdown,
   TodayActionCard,
 } from '@/features/actionable';
+import {
+  useGamification,
+  GamificationCard,
+  BadgeNotificationContainer,
+} from '@/features/gamification';
 import { getAllLessons } from '@/lib/lessons';
 import { quizzes } from '@/data';
 import styles from './DashboardPage.module.css';
@@ -50,6 +55,7 @@ export function DashboardPage() {
     isLoading: insightsLoading,
     error: insightsError,
   } = useGrowthInsights();
+  const gamification = useGamification();
   const lessons = useMemo(() => getAllLessons(), []);
 
   // Callback to log insights_shown event (once per day, idempotent)
@@ -72,6 +78,12 @@ export function DashboardPage() {
 
   return (
     <div className={styles.container}>
+      {/* Badge Notifications */}
+      <BadgeNotificationContainer
+        notifications={gamification.pendingNotifications}
+        onClear={gamification.clearNotification}
+      />
+
       <header className={styles.header} role="banner">
         <h1 className={styles.title} id="dashboard-title">
           React学習プラットフォーム
@@ -81,6 +93,9 @@ export function DashboardPage() {
 
       {user && (
         <>
+          {/* Gamification Card - Level & Badges */}
+          <GamificationCard gamification={gamification} />
+
           {/* Habit Intervention Card - Top priority intervention */}
           {!metricsLoading && !heatmapLoading && (
             <HabitInterventionCard recentActiveDays={recentActiveDays} />
