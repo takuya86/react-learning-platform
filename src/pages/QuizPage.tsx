@@ -2,6 +2,7 @@ import { useReducer, useEffect, useCallback, useState, useRef, useMemo } from 'r
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button, Card, CardContent, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
+import { useGamification } from '@/features/gamification';
 import { getQuizById } from '@/data';
 import { getAllLessons } from '@/lib/lessons';
 import { quizReducer, createInitialState, stateToSession } from '@/features/quiz/state/quizReducer';
@@ -29,6 +30,7 @@ export function QuizPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { completeQuiz, recordQuizAttempt } = useProgress();
+  const { addXP, checkAndAwardBadges } = useGamification();
   const lessons = useMemo(() => getAllLessons(), []);
 
   const quiz = id ? getQuizById(id) : undefined;
@@ -79,7 +81,28 @@ export function QuizPage() {
     // Build and record attempt
     const attempt = buildQuizAttempt(state, quiz.questions);
     recordQuizAttempt(attempt);
-  }, [state.isFinished, quiz, id, completeQuiz, recordQuizAttempt, state]);
+
+    // Award XP for quiz completion
+    addXP('quiz_completed', id);
+
+    // Check for perfect score and award bonus
+    const isPerfect = attempt.score === attempt.totalQuestions;
+    if (isPerfect) {
+      addXP('quiz_perfect', id);
+    }
+
+    // Check for new badges
+    checkAndAwardBadges();
+  }, [
+    state.isFinished,
+    quiz,
+    id,
+    completeQuiz,
+    recordQuizAttempt,
+    state,
+    addXP,
+    checkAndAwardBadges,
+  ]);
 
   const handleResume = useCallback(() => {
     if (!id) return;

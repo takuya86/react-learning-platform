@@ -105,12 +105,12 @@ vi.mock('@/data', () => ({
 const mockUseProgress = vi.hoisted(() =>
   vi.fn(() => ({
     progress: {
-      version: 3,
-      completedLessons: [],
-      completedQuizzes: [],
-      completedExercises: [],
-      openedLessons: [],
-      lastActivity: '',
+      lessons: {},
+      completedQuizzes: [] as string[],
+      completedExercises: [] as string[],
+      streak: 0,
+      lastStudyDate: null,
+      studyDates: [] as string[],
       quizAttempts: [],
     },
     markLessonOpened: vi.fn(),
@@ -225,12 +225,12 @@ describe('QuizListPage', () => {
     beforeEach(() => {
       mockUseProgress.mockReturnValue({
         progress: {
-          version: 3,
-          completedLessons: [],
-          completedQuizzes: ['quiz-1', 'quiz-2'],
-          completedExercises: [],
-          openedLessons: [],
-          lastActivity: '',
+          lessons: {},
+          completedQuizzes: ['quiz-1', 'quiz-2'] as string[],
+          completedExercises: [] as string[],
+          streak: 0,
+          lastStudyDate: null,
+          studyDates: [] as string[],
           quizAttempts: [],
         },
         markLessonOpened: vi.fn(),
@@ -265,12 +265,12 @@ describe('QuizListPage', () => {
     it('should not display completion badge for incomplete quizzes', () => {
       mockUseProgress.mockReturnValue({
         progress: {
-          version: 3,
-          completedLessons: [],
-          completedQuizzes: [],
-          completedExercises: [],
-          openedLessons: [],
-          lastActivity: '',
+          lessons: {},
+          completedQuizzes: [] as string[],
+          completedExercises: [] as string[],
+          streak: 0,
+          lastStudyDate: null,
+          studyDates: [] as string[],
           quizAttempts: [],
         },
         markLessonOpened: vi.fn(),
@@ -319,12 +319,12 @@ describe('QuizListPage', () => {
     it('should have accessible link text for completed quizzes', () => {
       mockUseProgress.mockReturnValue({
         progress: {
-          version: 3,
-          completedLessons: [],
-          completedQuizzes: ['quiz-1'],
-          completedExercises: [],
-          openedLessons: [],
-          lastActivity: '',
+          lessons: {},
+          completedQuizzes: ['quiz-1'] as string[],
+          completedExercises: [] as string[],
+          streak: 0,
+          lastStudyDate: null,
+          studyDates: [] as string[],
           quizAttempts: [],
         },
         markLessonOpened: vi.fn(),
@@ -413,15 +413,15 @@ describe('QuizListPage', () => {
 
   describe('progress integration', () => {
     it('should correctly check quiz completion from progress', () => {
-      const completedQuizzes = ['quiz-1', 'quiz-3'];
+      const completedQuizzes = ['quiz-1', 'quiz-3'] as string[];
       mockUseProgress.mockReturnValue({
         progress: {
-          version: 3,
-          completedLessons: [],
+          lessons: {},
           completedQuizzes,
-          completedExercises: [],
-          openedLessons: [],
-          lastActivity: '',
+          completedExercises: [] as string[],
+          streak: 0,
+          lastStudyDate: null,
+          studyDates: [] as string[],
           quizAttempts: [],
         },
         markLessonOpened: vi.fn(),
@@ -451,12 +451,12 @@ describe('QuizListPage', () => {
     it('should handle all quizzes completed', () => {
       mockUseProgress.mockReturnValue({
         progress: {
-          version: 3,
-          completedLessons: [],
-          completedQuizzes: ['quiz-1', 'quiz-2', 'quiz-3'],
-          completedExercises: [],
-          openedLessons: [],
-          lastActivity: '',
+          lessons: {},
+          completedQuizzes: ['quiz-1', 'quiz-2', 'quiz-3'] as string[],
+          completedExercises: [] as string[],
+          streak: 0,
+          lastStudyDate: null,
+          studyDates: [] as string[],
           quizAttempts: [],
         },
         markLessonOpened: vi.fn(),

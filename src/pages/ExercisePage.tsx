@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import ReactMarkdown from 'react-markdown';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input } from '@/components/ui';
 import { useProgress } from '@/features/progress';
+import { useGamification } from '@/features/gamification';
 import { getLessonById } from '@/lib/lessons';
 import { getExerciseById } from '@/data';
 import styles from './ExercisePage.module.css';
@@ -10,6 +11,7 @@ import styles from './ExercisePage.module.css';
 export function ExercisePage() {
   const { id } = useParams<{ id: string }>();
   const { completeExercise, progress } = useProgress();
+  const { addXP, checkAndAwardBadges } = useGamification();
 
   const lesson = id ? getLessonById(id) : undefined;
   const exercise = lesson?.exerciseId ? getExerciseById(lesson.exerciseId) : undefined;
@@ -35,6 +37,8 @@ export function ExercisePage() {
 
   const onSubmit = () => {
     completeExercise(exercise.id);
+    addXP('exercise_completed', exercise.id);
+    checkAndAwardBadges();
     alert('演習を完了しました！');
   };
 

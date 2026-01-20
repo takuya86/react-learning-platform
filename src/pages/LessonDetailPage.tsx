@@ -4,6 +4,7 @@ import { MDXProvider } from '@mdx-js/react';
 import { Button, Badge } from '@/components/ui';
 import { useProgress } from '@/features/progress';
 import { useLearningMetrics } from '@/features/metrics';
+import { useGamification } from '@/features/gamification';
 import { getLessonById, getNextLessons, getPrerequisiteLessons } from '@/lib/lessons';
 import { getQuizByLessonId } from '@/data';
 import { mdxComponents } from '@/components/mdx';
@@ -39,6 +40,7 @@ export function LessonDetailPage() {
   const navigate = useNavigate();
   const { markLessonOpened, completeLesson, isLessonCompleted } = useProgress();
   const { recordEvent } = useLearningMetrics();
+  const { addXP, checkAndAwardBadges } = useGamification();
 
   const lesson = id ? getLessonById(id) : undefined;
   const relatedQuiz = id ? getQuizByLessonId(id) : undefined;
@@ -69,6 +71,8 @@ export function LessonDetailPage() {
   const handleComplete = () => {
     if (id) {
       completeLesson(id);
+      addXP('lesson_completed', id);
+      checkAndAwardBadges();
     }
   };
 

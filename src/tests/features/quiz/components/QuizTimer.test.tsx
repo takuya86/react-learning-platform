@@ -68,7 +68,7 @@ describe('QuizTimer', () => {
       const { container } = render(
         <QuizTimer timeRemainingSec={LOW_TIME_THRESHOLD_SEC} onTick={onTick} isRunning={false} />
       );
-      const timer = container.firstChild;
+      const timer = container.firstChild as HTMLElement;
       expect(timer?.className).toMatch(/lowTime/);
     });
 
@@ -81,7 +81,7 @@ describe('QuizTimer', () => {
           isRunning={false}
         />
       );
-      const timer = container.firstChild;
+      const timer = container.firstChild as HTMLElement;
       expect(timer?.className).toMatch(/critical/);
     });
 
@@ -94,7 +94,7 @@ describe('QuizTimer', () => {
           isRunning={false}
         />
       );
-      const timer = container.firstChild;
+      const timer = container.firstChild as HTMLElement;
       expect(timer?.className).not.toMatch(/lowTime/);
       expect(timer?.className).not.toMatch(/critical/);
     });
