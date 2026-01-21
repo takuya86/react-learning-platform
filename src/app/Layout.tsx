@@ -54,6 +54,12 @@ export function Layout() {
             >
               進捗
             </NavLink>
+            <NavLink
+              to="/badges"
+              className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+            >
+              バッジ
+            </NavLink>
             {role === 'admin' && (
               <NavLink
                 to="/admin"

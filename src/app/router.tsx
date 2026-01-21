@@ -26,6 +26,9 @@ const QuizPage = lazy(() => import('@/pages/QuizPage').then((m) => ({ default: m
 const ProgressPage = lazy(() =>
   import('@/pages/ProgressPage').then((m) => ({ default: m.ProgressPage }))
 );
+const BadgesPage = lazy(() =>
+  import('@/pages/BadgesPage').then((m) => ({ default: m.BadgesPage }))
+);
 const NotesPage = lazy(() => import('@/pages/NotesPage').then((m) => ({ default: m.NotesPage })));
 const RoadmapPage = lazy(() =>
   import('@/pages/RoadmapPage').then((m) => ({ default: m.RoadmapPage }))
@@ -104,6 +107,10 @@ export const router = createBrowserRouter([
       {
         path: 'progress',
         element: <ProgressPage />,
+      },
+      {
+        path: 'badges',
+        element: <BadgesPage />,
       },
       {
         path: 'notes',

@@ -1,0 +1,439 @@
+/* ========================================
+ * Badges Page - Achievement Collection
+ * Aesthetic: Trophy-focused, Gamified, Celebratory
+ * ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  font-family: 'Outfit', sans-serif;
+  position: relative;
+}
+
+/* Background pattern */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 15% 25%, rgba(251, 191, 36, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 85% 75%, rgba(139, 92, 246, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.02) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Header */
+.header {
+  margin-bottom: 40px;
+  text-align: center;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 17px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Stats Section */
+.statsSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+@media (max-width: 640px) {
+  .statsSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+.levelCard {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+.levelInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.levelBadge {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.levelNumber {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.levelTitle {
+  font-size: 14px;
+  color: #a16207;
+  font-weight: 600;
+}
+
+.xpInfo {
+  text-align: right;
+}
+
+.xpLabel {
+  display: block;
+  font-size: 12px;
+  color: #a16207;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.xpValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.levelProgressSection {
+  margin-top: 8px;
+}
+
+.levelProgressBar {
+  height: 8px;
+  background: rgba(146, 64, 14, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.levelProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.levelProgressText {
+  font-size: 12px;
+  color: #a16207;
+  font-weight: 500;
+}
+
+.collectionCard {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+
+.collectionInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.collectionLabel {
+  font-size: 14px;
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+.collectionValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: #5b21b6;
+}
+
+.collectionBar {
+  height: 12px;
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.collectionFill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collectionPercent {
+  font-size: 13px;
+  color: #7c3aed;
+  font-weight: 500;
+}
+
+/* Next Section */
+.nextSection {
+  margin-bottom: 40px;
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 16px;
+}
+
+.nextGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.nextCard {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+  border-color: rgba(34, 197, 94, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.nextCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.15) !important;
+}
+
+.nextBadge {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.nextIcon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.nextInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.nextName {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #166534;
+  margin-bottom: 4px;
+}
+
+.nextDescription {
+  display: block;
+  font-size: 13px;
+  color: #15803d;
+  margin-bottom: 12px;
+}
+
+.nextProgress {
+  height: 8px;
+  background: rgba(34, 197, 94, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.nextProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.nextProgressText {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+/* Category Section */
+.categorySection {
+  margin-bottom: 32px;
+  animation: fadeInUp 0.6s ease-out 0.3s backwards;
+}
+
+.categorySection:nth-child(5) {
+  animation-delay: 0.35s;
+}
+
+.categorySection:nth-child(6) {
+  animation-delay: 0.4s;
+}
+
+.categorySection:nth-child(7) {
+  animation-delay: 0.45s;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.categoryIcon {
+  font-size: 24px;
+}
+
+.categoryCount {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.categoryDescription {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 20px;
+}
+
+/* Badge Grid */
+.badgeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.badgeItem {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.badgeItem.earned {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badgeItem.earned:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.badgeItem.locked {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  opacity: 0.7;
+}
+
+.badgeIcon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.badgeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.badgeName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.locked .badgeName {
+  color: #94a3b8;
+}
+
+.badgeDescription {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.locked .badgeDescription {
+  color: #94a3b8;
+}
+
+.badgeDate {
+  font-size: 11px;
+  color: #a16207;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Empty Section */
+.emptySection {
+  text-align: center;
+  padding: 60px 20px;
+  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+}
+
+.emptyMessage {
+  font-size: 16px;
+  color: #64748b;
+}
+
+.emptyMessage a {
+  color: #f59e0b;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.emptyMessage a:hover {
+  color: #d97706;
+  text-decoration: underline;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card enhancements */
+.categorySection :global(.card) {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 20px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+.statsSection :global(.card) {
+  border-radius: 20px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}

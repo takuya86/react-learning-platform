@@ -5,6 +5,7 @@ export { ExercisePage } from './ExercisePage';
 export { QuizListPage } from './QuizListPage';
 export { QuizPage } from './QuizPage';
 export { ProgressPage } from './ProgressPage';
+export { BadgesPage } from './BadgesPage';
 export { NotesPage } from './NotesPage';
 export { RoadmapPage } from './RoadmapPage';
 export { NotFoundPage } from './NotFoundPage';
