@@ -26,6 +26,9 @@ import {
   useGamification,
   GamificationCard,
   BadgeNotificationContainer,
+  BadgeCelebrationContainer,
+  useDailyChallenge,
+  DailyChallengeCard,
 } from '@/features/gamification';
 import { getAllLessons } from '@/lib/lessons';
 import { quizzes } from '@/data';
@@ -58,6 +61,11 @@ export function DashboardPage() {
   const gamification = useGamification();
   const lessons = useMemo(() => getAllLessons(), []);
 
+  // デイリーチャレンジ
+  const dailyChallenge = useDailyChallenge(() => {
+    gamification.addXP('streak_bonus');
+  });
+
   // Callback to log insights_shown event (once per day, idempotent)
   const handleInsightsViewed = useCallback(() => {
     recordEvent('insights_shown', INSIGHTS_REFERENCE_ID);
@@ -78,7 +86,13 @@ export function DashboardPage() {
 
   return (
     <div className={styles.container}>
-      {/* Badge Notifications */}
+      {/* Badge Celebration - 画面中央の派手な演出 */}
+      <BadgeCelebrationContainer
+        notifications={gamification.pendingNotifications}
+        onClear={gamification.clearNotification}
+      />
+
+      {/* Badge Notifications - 右上の通知（併用可能） */}
       <BadgeNotificationContainer
         notifications={gamification.pendingNotifications}
         onClear={gamification.clearNotification}
@@ -95,6 +109,15 @@ export function DashboardPage() {
         <>
           {/* Gamification Card - Level & Badges */}
           <GamificationCard gamification={gamification} />
+
+          {/* Daily Challenge Card */}
+          <DailyChallengeCard
+            challenges={dailyChallenge.challenges}
+            progress={dailyChallenge.progress}
+            allCompleted={dailyChallenge.allCompleted}
+            bonusXPAwarded={dailyChallenge.bonusXPAwarded}
+            totalXP={dailyChallenge.totalXP}
+          />
 
           {/* Habit Intervention Card - Top priority intervention */}
           {!metricsLoading && !heatmapLoading && (

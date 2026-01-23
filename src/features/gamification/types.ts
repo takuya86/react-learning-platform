@@ -85,3 +85,31 @@ export interface NewBadge {
   badge: BadgeDefinition;
   earnedAt: string;
 }
+
+// デイリーチャレンジ関連の型定義
+
+// チャレンジタイプ
+export type ChallengeType = 'lesson_complete' | 'quiz_attempt' | 'streak_maintain' | 'visit_badges';
+
+// チャレンジ定義
+export interface ChallengeDefinition {
+  id: ChallengeType;
+  title: string;
+  description: string;
+  icon: string;
+  xpReward: number;
+}
+
+// チャレンジ達成状況
+export interface ChallengeStatus {
+  id: ChallengeType;
+  completed: boolean;
+}
+
+// 日別チャレンジ進捗
+export interface DailyChallengeProgress {
+  date: string; // YYYY-MM-DD
+  challenges: ChallengeStatus[];
+  allCompleted: boolean;
+  bonusXPAwarded: boolean;
+}

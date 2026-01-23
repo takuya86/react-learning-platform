@@ -6,6 +6,7 @@ export { QuizListPage } from './QuizListPage';
 export { QuizPage } from './QuizPage';
 export { ProgressPage } from './ProgressPage';
 export { BadgesPage } from './BadgesPage';
+export { LeaderboardPage } from './LeaderboardPage';
 export { NotesPage } from './NotesPage';
 export { RoadmapPage } from './RoadmapPage';
 export { NotFoundPage } from './NotFoundPage';

@@ -29,6 +29,9 @@ const ProgressPage = lazy(() =>
 const BadgesPage = lazy(() =>
   import('@/pages/BadgesPage').then((m) => ({ default: m.BadgesPage }))
 );
+const LeaderboardPage = lazy(() =>
+  import('@/pages/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage }))
+);
 const NotesPage = lazy(() => import('@/pages/NotesPage').then((m) => ({ default: m.NotesPage })));
 const RoadmapPage = lazy(() =>
   import('@/pages/RoadmapPage').then((m) => ({ default: m.RoadmapPage }))
@@ -111,6 +114,10 @@ export const router = createBrowserRouter([
       {
         path: 'badges',
         element: <BadgesPage />,
+      },
+      {
+        path: 'leaderboard',
+        element: <LeaderboardPage />,
       },
       {
         path: 'notes',
