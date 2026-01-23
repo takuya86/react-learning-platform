@@ -60,6 +60,12 @@ export function Layout() {
             >
               バッジ
             </NavLink>
+            <NavLink
+              to="/leaderboard"
+              className={({ isActive }) => `${styles.link} ${isActive ? styles.active : ''}`}
+            >
+              ランキング
+            </NavLink>
             {role === 'admin' && (
               <NavLink
                 to="/admin"

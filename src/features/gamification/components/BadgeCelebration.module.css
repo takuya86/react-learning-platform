@@ -1,0 +1,316 @@
+/* オーバーレイ */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  cursor: pointer;
+}
+
+.overlay.visible {
+  opacity: 1;
+}
+
+.overlay.closing {
+  opacity: 0;
+}
+
+/* メインコンテンツ */
+.content {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%);
+  border: 4px solid #f59e0b;
+  border-radius: 24px;
+  padding: 48px 40px;
+  box-shadow:
+    0 20px 60px rgba(245, 158, 11, 0.5),
+    0 0 0 8px rgba(245, 158, 11, 0.1);
+  max-width: 480px;
+  text-align: center;
+  position: relative;
+  transform: scale(0.5);
+  animation: modalBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  cursor: default;
+}
+
+@keyframes modalBounce {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* パーティクルエフェクト */
+.particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(45deg, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+  animation: particleFloat 3s ease-in-out infinite;
+  animation-delay: calc(var(--index) * 0.1s);
+  left: calc(50% + (var(--index) - 10) * 40px);
+  top: 50%;
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(calc((var(--index) - 10) * 20px), calc(-150px - (var(--index) * 10px)))
+      scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc((var(--index) - 10) * 30px), calc(-300px - (var(--index) * 15px)))
+      scale(0);
+    opacity: 0;
+  }
+}
+
+/* キラキラエフェクト */
+.sparkles {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  font-size: 32px;
+  animation: sparkleFloat 2s ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.sparkle:nth-child(1) {
+  left: 10%;
+  top: 15%;
+}
+
+.sparkle:nth-child(2) {
+  right: 15%;
+  top: 20%;
+}
+
+.sparkle:nth-child(3) {
+  left: 20%;
+  bottom: 25%;
+}
+
+.sparkle:nth-child(4) {
+  right: 10%;
+  bottom: 20%;
+}
+
+.sparkle:nth-child(5) {
+  left: 50%;
+  top: 10%;
+}
+
+@keyframes sparkleFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg) scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* おめでとうテキスト */
+.congratsText {
+  font-size: 32px;
+  font-weight: 800;
+  color: #78350f;
+  margin: 0 0 32px;
+  animation: textPop 0.6s ease-out 0.2s backwards;
+}
+
+@keyframes textPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* バッジアイコン */
+.badgeIconWrapper {
+  position: relative;
+  display: inline-block;
+  margin: 0 0 24px;
+}
+
+.badgeGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+}
+
+.badgeIcon {
+  position: relative;
+  display: block;
+  font-size: 96px;
+  animation: badgeBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.3s backwards;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes badgeBounce {
+  0% {
+    transform: scale(0) rotate(-180deg);
+  }
+  60% {
+    transform: scale(1.3) rotate(10deg);
+  }
+  80% {
+    transform: scale(0.9) rotate(-5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* バッジ情報 */
+.badgeInfo {
+  margin: 0 0 24px;
+  animation: fadeInUp 0.5s ease-out 0.5s backwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.badgeName {
+  font-size: 24px;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0 0 8px;
+}
+
+.badgeDescription {
+  font-size: 16px;
+  color: #92400e;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* 閉じるヒント */
+.closeHint {
+  font-size: 14px;
+  color: #a16207;
+  margin: 0;
+  opacity: 0.8;
+  animation: fadeIn 0.5s ease-out 1s backwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.8;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .content {
+    margin: 20px;
+    padding: 32px 24px;
+    max-width: calc(100vw - 40px);
+  }
+
+  .congratsText {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+
+  .badgeIcon {
+    font-size: 72px;
+  }
+
+  .badgeName {
+    font-size: 20px;
+  }
+
+  .badgeDescription {
+    font-size: 14px;
+  }
+
+  .sparkle {
+    font-size: 24px;
+  }
+
+  .particle {
+    width: 8px;
+    height: 8px;
+  }
+}
