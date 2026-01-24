@@ -51,15 +51,25 @@
 .tableHeader {
   display: grid;
   grid-template-columns: 80px 1fr 140px 120px;
-  padding: 12px 16px;
-  background: #f8fafc;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+}
+
+.tableHeader .colXP {
+  color: #22d3ee;
+}
+
+.tableHeader .colRank,
+.tableHeader .colName,
+.tableHeader .colLevel {
+  color: #e2e8f0;
 }
 
 .tableBody {
@@ -97,18 +107,26 @@
 
 /* Top 3 Styles */
 .rank1 {
-  background: linear-gradient(135deg, #fefce8 0%, #fef08a 100%) !important;
-  border-color: #eab308 !important;
+  background: linear-gradient(135deg, #fef9c3 0%, #fde047 50%, #facc15 100%) !important;
+  border: 2px solid #eab308 !important;
+  box-shadow: 0 4px 20px rgba(234, 179, 8, 0.3);
+  transform: scale(1.02);
+}
+
+.rank1:hover {
+  transform: scale(1.02) translateX(4px);
 }
 
 .rank2 {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
-  border-color: #94a3b8 !important;
+  background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 50%, #94a3b8 100%) !important;
+  border: 2px solid #94a3b8 !important;
+  box-shadow: 0 4px 16px rgba(148, 163, 184, 0.25);
 }
 
 .rank3 {
-  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%) !important;
-  border-color: #f97316 !important;
+  background: linear-gradient(135deg, #ffedd5 0%, #fdba74 50%, #fb923c 100%) !important;
+  border: 2px solid #f97316 !important;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
 }
 
 /* Columns */
