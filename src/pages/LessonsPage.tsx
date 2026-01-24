@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { BookOpen } from 'lucide-react';
 import { LessonFilter, LessonList } from '@/features/lessons';
 import { useDebounce } from '@/hooks';
 import { getAllLessons, getAllTags } from '@/lib/lessons';
@@ -34,6 +35,9 @@ export function LessonsPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header} role="banner">
+        <div className={styles.headerIcon}>
+          <BookOpen size={24} />
+        </div>
         <h1 className={styles.title} id="lessons-page-title">
           レッスン一覧
         </h1>

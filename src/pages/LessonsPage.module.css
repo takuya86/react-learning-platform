@@ -1,80 +1,80 @@
 /* ========================================
  * Lessons Page - Course Catalog
- * Aesthetic: Educational, Organized, Inviting
+ * Design: Soft (Apple style)
  * ======================================== */
 
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: var(--space-10, 40px) var(--space-6, 24px);
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+/* Design Tokens - Soft (Apple style) */
+:root {
+  --ls-primary: #1d4ed8;
+  --ls-primary-muted: #dbeafe;
+  --ls-accent: #2563eb;
+  --ls-bg: #f8fafc;
+  --ls-card-bg: #ffffff;
+  --ls-border: #e2e8f0;
+  --ls-text-primary: #0f172a;
+  --ls-text-secondary: #475569;
+  --ls-text-muted: #94a3b8;
 }
 
-/* Hero Header */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    -apple-system,
+    sans-serif;
+  background: var(--ls-bg);
+  min-height: 100vh;
+}
+
+/* Header */
 .header {
   text-align: center;
-  margin-bottom: var(--space-10, 40px);
-  position: relative;
+  margin-bottom: 48px;
 }
 
-.header::before {
-  content: '';
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
-  height: 300px;
-  background: radial-gradient(ellipse, rgba(8, 145, 178, 0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: -1;
+.headerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--ls-primary-muted);
+  border-radius: 12px;
+  color: var(--ls-primary);
+  margin-bottom: 20px;
 }
 
 .title {
-  font-size: 38px;
-  font-weight: 800;
-  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 var(--space-3, 12px) 0;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ls-text-primary);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 17px;
-  color: var(--color-neutral-500, #64748b);
+  font-size: 15px;
+  color: var(--ls-text-secondary);
   margin: 0;
-  font-weight: 500;
-}
-
-/* Page load animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.header {
-  animation: fadeInUp 0.5s ease-out;
+  font-weight: 400;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
   .container {
-    padding: var(--space-6, 24px) var(--space-4, 16px);
+    padding: 24px 16px;
   }
 
   .title {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .subtitle {
-    font-size: 15px;
+    font-size: 14px;
   }
 }

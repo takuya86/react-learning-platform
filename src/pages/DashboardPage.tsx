@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, FileText, BarChart3 } from 'lucide-react';
+import { BookOpen, FileText, BarChart3, GraduationCap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, Badge } from '@/components/ui';
 import { useAuth } from '@/features/auth';
 import { useProgress } from '@/features/progress';
@@ -99,6 +99,9 @@ export function DashboardPage() {
       />
 
       <header className={styles.header} role="banner">
+        <div className={styles.headerIcon}>
+          <GraduationCap size={24} />
+        </div>
         <h1 className={styles.title} id="dashboard-title">
           React学習プラットフォーム
         </h1>

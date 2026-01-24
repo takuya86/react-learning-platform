@@ -3,6 +3,7 @@
  */
 
 import { memo, useEffect, useState } from 'react';
+import { Flame, PartyPopper } from 'lucide-react';
 import type { XPGain } from '../types';
 import { getXPReasonLabel } from '../services/bonusService';
 import styles from './XPGainIndicator.module.css';
@@ -36,7 +37,11 @@ export const XPGainIndicator = memo(function XPGainIndicator({
       <div className={styles.content}>
         <span className={styles.amount}>+{xpGain.amount} XP</span>
         <span className={styles.reason}>{getXPReasonLabel(xpGain.reason)}</span>
-        {hasBonus && <span className={styles.bonus}>🔥 +{bonusPercent}% ボーナス</span>}
+        {hasBonus && (
+          <span className={styles.bonus}>
+            <Flame size={14} style={{ verticalAlign: 'middle' }} /> +{bonusPercent}% ボーナス
+          </span>
+        )}
       </div>
     </div>
   );
@@ -75,7 +80,9 @@ export const LevelUpIndicator = memo(function LevelUpIndicator({
       aria-live="polite"
     >
       <div className={styles.levelUpContent}>
-        <div className={styles.levelUpIcon}>🎉</div>
+        <div className={styles.levelUpIcon}>
+          <PartyPopper size={32} />
+        </div>
         <div className={styles.levelUpText}>
           <span className={styles.levelUpLabel}>レベルアップ!</span>
           <span className={styles.levelUpLevel}>Lv.{newLevel}</span>

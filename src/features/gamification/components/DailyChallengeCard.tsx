@@ -4,9 +4,19 @@
  */
 
 import { memo } from 'react';
-import { Check, Trophy } from 'lucide-react';
+import { Check, Trophy, Target, PartyPopper, BookOpen, Brain, Flame, Award } from 'lucide-react';
 import type { ChallengeWithStatus } from '../hooks/useDailyChallenge';
 import styles from './DailyChallengeCard.module.css';
+
+// チャレンジアイコンのマッピング
+const CHALLENGE_ICONS: Record<string, React.ReactNode> = {
+  'book-open': <BookOpen size={18} />,
+  brain: <Brain size={18} />,
+  flame: <Flame size={18} />,
+  trophy: <Trophy size={18} />,
+  target: <Target size={18} />,
+  award: <Award size={18} />,
+};
 
 interface DailyChallengeCardProps {
   challenges: ChallengeWithStatus[];
@@ -30,7 +40,9 @@ export const DailyChallengeCard = memo(function DailyChallengeCard({
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <h3 className={styles.title}>
-            <span className={styles.titleIcon}>🎯</span>
+            <span className={styles.titleIcon}>
+              <Target size={18} />
+            </span>
             今日のチャレンジ
           </h3>
           <div className={styles.totalXP}>
@@ -71,7 +83,9 @@ export const DailyChallengeCard = memo(function DailyChallengeCard({
                   <Check size={16} />
                 </div>
               ) : (
-                <span className={styles.emoji}>{challenge.icon}</span>
+                <span className={styles.emoji}>
+                  {CHALLENGE_ICONS[challenge.icon] || <Target size={18} />}
+                </span>
               )}
             </div>
             <div className={styles.challengeContent}>
@@ -87,7 +101,9 @@ export const DailyChallengeCard = memo(function DailyChallengeCard({
 
       {allCompleted && (
         <div className={styles.bonusSection}>
-          <div className={styles.bonusIcon}>🎉</div>
+          <div className={styles.bonusIcon}>
+            <PartyPopper size={24} />
+          </div>
           <div className={styles.bonusText}>
             <strong>全達成ボーナス!</strong>
             <span>+50 XP 獲得{bonusXPAwarded ? '済' : ''}</span>

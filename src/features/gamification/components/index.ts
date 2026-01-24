@@ -5,3 +5,4 @@ export { BadgeCelebration, BadgeCelebrationContainer } from './BadgeCelebration'
 export { XPGainIndicator, LevelUpIndicator } from './XPGainIndicator';
 export { GamificationCard } from './GamificationCard';
 export { DailyChallengeCard } from './DailyChallengeCard';
+export { BadgeIcon } from './BadgeIcon';

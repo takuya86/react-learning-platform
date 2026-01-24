@@ -3,7 +3,9 @@
  */
 
 import { memo } from 'react';
+import { Lock } from 'lucide-react';
 import type { BadgeDefinition } from '../types';
+import { BadgeIcon } from './BadgeIcon';
 import styles from './BadgeGrid.module.css';
 
 interface BadgeWithStatus {
@@ -46,7 +48,9 @@ export const BadgeGrid = memo(function BadgeGrid({
           <div className={styles.nextBadges}>
             {nextAchievable.map(({ badge, progress, target }) => (
               <div key={badge.id} className={styles.nextBadge}>
-                <span className={styles.nextIcon}>{badge.icon}</span>
+                <span className={styles.nextIcon}>
+                  <BadgeIcon icon={badge.icon} size={24} />
+                </span>
                 <div className={styles.nextInfo}>
                   <span className={styles.nextName}>{badge.name}</span>
                   <div className={styles.nextProgress}>
@@ -72,7 +76,9 @@ export const BadgeGrid = memo(function BadgeGrid({
             className={`${styles.badge} ${earned ? styles.earned : styles.locked}`}
             title={earned ? badge.description : `未獲得: ${badge.description}`}
           >
-            <span className={styles.icon}>{earned ? badge.icon : '🔒'}</span>
+            <span className={styles.icon}>
+              {earned ? <BadgeIcon icon={badge.icon} size={24} /> : <Lock size={24} />}
+            </span>
             <span className={styles.name}>{badge.name}</span>
           </div>
         ))}
@@ -109,7 +115,7 @@ export const BadgeRow = memo(function BadgeRow({ earnedBadges, maxDisplay = 5 }:
           className={styles.rowBadge}
           title={`${badge.name}: ${badge.description}`}
         >
-          {badge.icon}
+          <BadgeIcon icon={badge.icon} size={20} />
         </span>
       ))}
       {remainingCount > 0 && <span className={styles.moreCount}>+{remainingCount}</span>}

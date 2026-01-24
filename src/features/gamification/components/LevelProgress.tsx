@@ -3,6 +3,7 @@
  */
 
 import { memo } from 'react';
+import { Flame } from 'lucide-react';
 import styles from './LevelProgress.module.css';
 
 interface LevelProgressProps {
@@ -59,7 +60,9 @@ export const LevelProgress = memo(function LevelProgress({
 
       {streakBonusDescription && (
         <div className={styles.bonusInfo}>
-          <span className={styles.bonusIcon}>🔥</span>
+          <span className={styles.bonusIcon}>
+            <Flame size={16} />
+          </span>
           <span className={styles.bonusText}>{streakBonusDescription}</span>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { BarChart3 } from 'lucide-react';
 import {
   Card,
   CardHeader,
@@ -46,6 +47,9 @@ export function ProgressPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header} role="banner">
+        <div className={styles.headerIcon}>
+          <BarChart3 size={24} />
+        </div>
         <div className={styles.headerTop}>
           <h1 className={styles.title} id="progress-page-title">
             学習の進捗
