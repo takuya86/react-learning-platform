@@ -1,38 +1,58 @@
 /* ========================================
- * Progress Page - Gamified Learning Dashboard
- * Aesthetic: Achievement-focused, Celebratory, Dynamic
+ * Progress Page - Learning Dashboard
+ * Design: Soft (Apple style)
  * ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+/* Design Tokens - Soft (Apple style) */
+:root {
+  --pg-primary: #1d4ed8;
+  --pg-primary-muted: #dbeafe;
+  --pg-accent: #2563eb;
+  --pg-bg: #f8fafc;
+  --pg-card-bg: #ffffff;
+  --pg-border: #e2e8f0;
+  --pg-text-primary: #0f172a;
+  --pg-text-secondary: #475569;
+  --pg-text-muted: #94a3b8;
+  --pg-green: #16a34a;
+  --pg-green-muted: #dcfce7;
+  --pg-orange: #ea580c;
+  --pg-orange-muted: #ffedd5;
+  --pg-purple: #7c3aed;
+  --pg-purple-muted: #ede9fe;
+}
 
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 40px 24px;
-  font-family: 'Outfit', sans-serif;
-  position: relative;
-}
-
-/* Subtle background pattern */
-.container::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(8, 145, 178, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(14, 116, 144, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.02) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: -1;
+  padding: 32px 24px;
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    -apple-system,
+    sans-serif;
+  background: var(--pg-bg);
+  min-height: 100vh;
 }
 
 /* Header */
 .header {
-  margin-bottom: 40px;
   text-align: center;
+  margin-bottom: 48px;
+}
+
+.headerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--pg-primary-muted);
+  border-radius: 12px;
+  color: var(--pg-primary);
+  margin-bottom: 20px;
 }
 
 .headerTop {
@@ -41,28 +61,25 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .title {
-  font-size: 36px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--pg-text-primary);
   margin: 0;
   letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 17px;
-  color: #64748b;
+  font-size: 15px;
+  color: var(--pg-text-secondary);
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
 }
 
-/* Stats Grid - Achievement Cards */
+/* Stats Grid */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -80,59 +97,32 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Decorative glow on stat cards */
-.statCard::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(8, 145, 178, 0.08) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.statCard:hover::before {
-  opacity: 1;
+  gap: 8px;
+  padding: 20px 16px;
 }
 
 .statLabel {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 11px;
+  color: var(--pg-text-muted);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .statValue {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
-  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--pg-text-primary);
   line-height: 1;
 }
 
-/* Progress Bar - Hero Element */
+/* Progress Bar */
 .progressBar {
   margin-bottom: 40px;
-  padding: 32px;
-  background: linear-gradient(135deg, #fafafa 0%, #f1f5f9 100%);
-  border-radius: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.03),
-    0 2px 4px -1px rgba(0, 0, 0, 0.02),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  padding: 24px;
+  background: var(--pg-card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--pg-border);
 }
 
 .progressLabel {
@@ -143,95 +133,56 @@
 }
 
 .progressLabel span:first-child {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pg-text-primary);
 }
 
 .progressLabel span:last-child {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--pg-primary);
 }
 
 .progressTrack {
-  height: 20px;
-  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 100%);
-  border-radius: 10px;
+  height: 12px;
+  background: var(--pg-primary-muted);
+  border-radius: 6px;
   overflow: hidden;
-  position: relative;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #0891b2 0%, #0e7490 40%, #06b6d4 70%, #22d3ee 100%);
-  border-radius: 10px;
+  background: var(--pg-primary);
+  border-radius: 6px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.4);
-}
-
-/* Animated shimmer effect */
-.progressFill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
 }
 
 /* Recent Activity Card */
 .recentCard {
-  --card-bg: #ffffff;
-  --card-border: rgba(148, 163, 184, 0.15);
-  --card-title-color: #1e293b;
-  --card-description-color: #64748b;
+  background: var(--pg-card-bg);
+  border: 1px solid var(--pg-border);
+  border-radius: 12px;
   margin-bottom: 40px;
-  border-radius: 20px;
   overflow: hidden;
-  box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.05),
-    0 4px 6px -2px rgba(0, 0, 0, 0.03);
 }
 
 .emptyMessage {
   text-align: center;
-  color: #64748b;
+  color: var(--pg-text-muted);
   padding: 48px 20px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .emptyMessage a {
-  color: #0891b2;
+  color: var(--pg-primary);
   text-decoration: none;
   font-weight: 600;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .emptyMessage a:hover {
-  color: #0e7490;
+  color: var(--pg-accent);
   text-decoration: underline;
 }
 
@@ -246,10 +197,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
-  border-bottom: 1px solid #f1f5f9;
-  transition: all 0.2s ease;
-  position: relative;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--pg-border);
+  transition: background 0.15s ease;
 }
 
 .recentItem:last-child {
@@ -257,34 +207,31 @@
 }
 
 .recentItem:hover {
-  background: linear-gradient(90deg, rgba(8, 145, 178, 0.02) 0%, transparent 100%);
-  margin: 0 -16px;
-  padding-left: 16px;
-  padding-right: 16px;
+  background: var(--pg-bg);
 }
 
 .recentInfo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .recentTitle {
-  color: #1e293b;
+  color: var(--pg-text-primary);
   text-decoration: none;
-  font-weight: 600;
-  font-size: 15px;
-  transition: color 0.2s ease;
+  font-weight: 500;
+  font-size: 14px;
+  transition: color 0.15s ease;
 }
 
 .recentTitle:hover {
-  color: #0891b2;
+  color: var(--pg-primary);
 }
 
 .recentDate {
-  font-size: 13px;
-  color: #94a3b8;
-  font-weight: 500;
+  font-size: 12px;
+  color: var(--pg-text-muted);
+  font-weight: 400;
 }
 
 /* Reset Section */
@@ -294,114 +241,55 @@
 }
 
 .resetSection button {
-  font-family: 'Outfit', sans-serif;
+  font-family: inherit;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
 }
 
-.resetSection button:hover {
-  transform: translateY(-1px);
-}
-
-/* Card enhancements for this page */
+/* Card enhancements */
 .statsGrid :global(.card) {
-  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 20px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.04),
-    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  background: var(--pg-card-bg);
+  border: 1px solid var(--pg-border);
+  border-radius: 12px;
+  transition: all 0.15s ease;
 }
 
 .statsGrid :global(.card):hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 20px 40px -10px rgba(8, 145, 178, 0.15),
-    0 4px 6px -1px rgba(0, 0, 0, 0.03);
-  border-color: rgba(8, 145, 178, 0.2);
+  border-color: var(--pg-primary);
 }
 
-/* First stat card (completed) - special styling */
+/* First stat card (completed) - green accent */
 .statsGrid > :first-child :global(.card) {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border-color: rgba(34, 197, 94, 0.2);
+  border-left: 3px solid var(--pg-green);
 }
 
 .statsGrid > :first-child .statValue {
-  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--pg-green);
 }
 
-/* Second stat card (percentage) */
+/* Second stat card (percentage) - primary accent */
 .statsGrid > :nth-child(2) :global(.card) {
-  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
-  border-color: rgba(8, 145, 178, 0.2);
+  border-left: 3px solid var(--pg-primary);
 }
 
 .statsGrid > :nth-child(2) .statValue {
-  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--pg-primary);
 }
 
-/* Third stat card (streak) - fire theme */
+/* Third stat card (streak) - orange accent */
 .statsGrid > :nth-child(3) :global(.card) {
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-  border-color: rgba(249, 115, 22, 0.2);
+  border-left: 3px solid var(--pg-orange);
 }
 
 .statsGrid > :nth-child(3) .statValue {
-  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--pg-orange);
 }
 
-/* Fourth stat card (in progress) */
+/* Fourth stat card (in progress) - purple accent */
 .statsGrid > :nth-child(4) :global(.card) {
-  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-  border-color: rgba(139, 92, 246, 0.2);
+  border-left: 3px solid var(--pg-purple);
 }
 
 .statsGrid > :nth-child(4) .statValue {
-  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Animation on page load */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.header {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.statsGrid {
-  animation: fadeInUp 0.6s ease-out 0.1s backwards;
-}
-
-.progressBar {
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
-}
-
-.recentCard {
-  animation: fadeInUp 0.6s ease-out 0.3s backwards;
-}
-
-.resetSection {
-  animation: fadeInUp 0.6s ease-out 0.4s backwards;
+  color: var(--pg-purple);
 }

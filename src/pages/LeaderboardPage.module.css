@@ -1,145 +1,198 @@
 /* ========================================
  * Leaderboard Page - XP Ranking
- * Aesthetic: Competitive, Trophy-focused
+ * Design: Soft (Apple style)
  * ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+/* Design Tokens - Soft (Apple style) */
+:root {
+  --ld-primary: #1d4ed8;
+  --ld-primary-muted: #dbeafe;
+  --ld-accent: #2563eb;
+  --ld-bg: #f8fafc;
+  --ld-card-bg: #ffffff;
+  --ld-border: #e2e8f0;
+  --ld-text-primary: #0f172a;
+  --ld-text-secondary: #475569;
+  --ld-text-muted: #94a3b8;
+  --ld-rank1-accent: #ca8a04;
+  --ld-rank2-accent: #64748b;
+  --ld-rank3-accent: #c2410c;
+}
 
 .container {
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 40px 24px;
-  font-family: 'Outfit', sans-serif;
+  padding: 32px 24px;
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    -apple-system,
+    sans-serif;
+  background: var(--ld-bg);
+  min-height: 100vh;
 }
 
 /* Header */
 .header {
-  margin-bottom: 40px;
   text-align: center;
-  animation: fadeInUp 0.6s ease-out;
+  margin-bottom: 48px;
+}
+
+.headerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--ld-primary-muted);
+  border-radius: 12px;
+  color: var(--ld-primary);
+  margin-bottom: 20px;
 }
 
 .title {
-  font-size: 36px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #60a5fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ld-text-primary);
+  margin: 0 0 8px;
   letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 17px;
-  color: #64748b;
+  font-size: 15px;
+  color: var(--ld-text-secondary);
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
 }
 
-/* Leaderboard Card */
+/* Card */
 .leaderboardCard {
-  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+  background: var(--ld-card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--ld-border);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--ld-border);
+  color: var(--ld-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cardHeader svg {
+  color: var(--ld-text-muted);
 }
 
 /* Table */
 .table {
-  display: flex;
-  flex-direction: column;
+  padding: 0;
 }
 
 .tableHeader {
   display: grid;
-  grid-template-columns: 80px 1fr 140px 120px;
-  padding: 14px 16px;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border-radius: 10px;
-  margin-bottom: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #e2e8f0;
+  grid-template-columns: 72px 1fr 120px 100px;
+  padding: 12px 24px;
+  background: var(--ld-bg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ld-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.tableHeader .colXP {
-  color: #22d3ee;
-}
-
-.tableHeader .colRank,
-.tableHeader .colName,
-.tableHeader .colLevel {
-  color: #e2e8f0;
+  letter-spacing: 0.05em;
 }
 
 .tableBody {
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
 .row {
   display: grid;
-  grid-template-columns: 80px 1fr 140px 120px;
-  padding: 16px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
-  transition: all 0.2s ease;
+  grid-template-columns: 72px 1fr 120px 100px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--ld-border);
+  background: var(--ld-card-bg);
+  transition: background 0.15s ease;
   align-items: center;
 }
 
+.row:last-child {
+  border-bottom: none;
+}
+
 .row:hover {
-  background: #f8fafc;
-  transform: translateX(4px);
+  background: var(--ld-bg);
 }
 
 /* Current User Highlight */
 .currentUser {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
-  border-color: #3b82f6 !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  background: var(--ld-primary-muted) !important;
 }
 
 .currentUser:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  background: var(--ld-primary-muted) !important;
 }
 
-/* Top 3 Styles */
-.rank1 {
-  background: linear-gradient(135deg, #fef9c3 0%, #fde047 50%, #facc15 100%) !important;
-  border: 2px solid #eab308 !important;
-  box-shadow: 0 4px 20px rgba(234, 179, 8, 0.3);
-  transform: scale(1.02);
-}
-
-.rank1:hover {
-  transform: scale(1.02) translateX(4px);
-}
-
-.rank2 {
-  background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 50%, #94a3b8 100%) !important;
-  border: 2px solid #94a3b8 !important;
-  box-shadow: 0 4px 16px rgba(148, 163, 184, 0.25);
-}
-
+/* Top 3 Styles - Left border only */
+.rank1,
+.rank2,
 .rank3 {
-  background: linear-gradient(135deg, #ffedd5 0%, #fdba74 50%, #fb923c 100%) !important;
-  border: 2px solid #f97316 !important;
-  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.25);
+  position: relative;
+}
+
+.rank1::before,
+.rank2::before,
+.rank3::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+}
+
+.rank1::before {
+  background: var(--ld-rank1-accent);
+}
+
+.rank2::before {
+  background: var(--ld-rank2-accent);
+}
+
+.rank3::before {
+  background: var(--ld-rank3-accent);
 }
 
 /* Columns */
 .colRank {
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+
+.rankIcon {
+  color: var(--ld-rank1-accent);
+}
+
+.rankNumber {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ld-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .colName {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ld-text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -147,88 +200,83 @@
 
 .youBadge {
   font-size: 10px;
-  font-weight: 700;
-  background: #3b82f6;
+  font-weight: 600;
+  background: var(--ld-primary);
   color: white;
   padding: 2px 8px;
   border-radius: 10px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
 }
 
 .colLevel {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 8px;
+}
+
+.levelBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--ld-primary-muted);
+  color: var(--ld-primary);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .levelNumber {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 16px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ld-text-primary);
 }
 
 .levelTitle {
   font-size: 12px;
-  color: #64748b;
+  color: var(--ld-text-muted);
+  font-weight: 400;
 }
 
 .colXP {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
   font-weight: 600;
-  color: #0891b2;
-  text-align: right;
+  color: var(--ld-text-secondary);
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.colXP svg {
+  color: var(--ld-accent);
+  width: 14px;
+  height: 14px;
 }
 
 /* Note */
 .note {
   text-align: center;
-  color: #94a3b8;
-  font-size: 13px;
-  margin-top: 24px;
-  animation: fadeInUp 0.6s ease-out 0.2s backwards;
-}
-
-/* Animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-top: 32px;
+  font-size: 12px;
+  color: var(--ld-text-muted);
+  font-weight: 500;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
-  .tableHeader {
-    grid-template-columns: 50px 1fr 100px;
-  }
-
-  .tableHeader .colXP {
-    display: none;
-  }
-
+  .tableHeader,
   .row {
-    grid-template-columns: 50px 1fr 100px;
+    grid-template-columns: 56px 1fr 80px;
   }
 
-  .row .colXP {
+  .colXP {
     display: none;
   }
 
-  .colRank {
-    font-size: 18px;
-  }
-
-  .colName {
-    font-size: 14px;
-  }
-
-  .levelNumber {
-    font-size: 14px;
+  .tableHeader,
+  .row {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }

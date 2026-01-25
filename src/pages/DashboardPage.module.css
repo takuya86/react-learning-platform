@@ -1,146 +1,143 @@
 /* ========================================
  * Dashboard Page - Learning Home
- * Aesthetic: Welcoming, Achievement-focused, Dynamic
+ * Design: Soft (Apple style)
  * ======================================== */
 
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: var(--space-10, 40px) var(--space-6, 24px);
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+/* Design Tokens - Soft (Apple style) */
+:root {
+  --db-primary: #1d4ed8;
+  --db-primary-muted: #dbeafe;
+  --db-accent: #2563eb;
+  --db-bg: #f8fafc;
+  --db-card-bg: #ffffff;
+  --db-border: #e2e8f0;
+  --db-text-primary: #0f172a;
+  --db-text-secondary: #475569;
+  --db-text-muted: #94a3b8;
 }
 
-/* Hero Header */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    -apple-system,
+    sans-serif;
+  background: var(--db-bg);
+  min-height: 100vh;
+}
+
+/* Header */
 .header {
   text-align: center;
-  margin-bottom: var(--space-12, 48px);
-  position: relative;
+  margin-bottom: 48px;
 }
 
-.header::before {
-  content: '';
-  position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(8, 145, 178, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: -1;
+.headerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--db-primary-muted);
+  border-radius: 12px;
+  color: var(--db-primary);
+  margin-bottom: 20px;
 }
 
 .title {
-  font-size: 42px;
-  font-weight: 800;
-  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 var(--space-4, 16px) 0;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--db-text-primary);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: 18px;
-  color: var(--color-neutral-500, #64748b);
+  font-size: 15px;
+  color: var(--db-text-secondary);
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 /* Stats Row */
 .statsRow {
-  margin-bottom: var(--space-8, 32px);
+  margin-bottom: 32px;
 }
 
-/* Progress Card - Hero gradient */
+/* Progress Card */
 .progressCard {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-500, #0891b2) 0%,
-    var(--color-primary-600, #0e7490) 100%
-  );
-  color: white;
-  border-radius: var(--radius-xl, 24px);
+  background: var(--db-card-bg);
+  border: 1px solid var(--db-border);
+  border-radius: 12px;
   overflow: hidden;
-  position: relative;
-  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(8, 145, 178, 0.35));
-}
-
-.progressCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 300px;
-  height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
-  pointer-events: none;
 }
 
 .progressCard :global(.card-content) {
-  padding: var(--space-8, 32px);
+  padding: 24px;
 }
 
 .progressInfo {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--space-6, 24px);
+  margin-bottom: 20px;
 }
 
 .progressLabel {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
-  opacity: 0.9;
+  color: var(--db-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .progressValue {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1;
-  margin-top: var(--space-2, 8px);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+  color: var(--db-primary);
 }
 
 .progressDetails {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-2, 8px);
-  font-size: 15px;
+  gap: 8px;
+  font-size: 14px;
   font-weight: 500;
-  opacity: 0.9;
+  color: var(--db-text-secondary);
 }
 
 .progressTrack {
-  height: 10px;
-  background-color: rgba(255, 255, 255, 0.25);
-  border-radius: var(--radius-full, 9999px);
+  height: 8px;
+  background-color: var(--db-primary-muted);
+  border-radius: 9999px;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: white;
-  border-radius: var(--radius-full, 9999px);
+  background: var(--db-primary);
+  border-radius: 9999px;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 /* Sections */
 .section {
-  margin-bottom: var(--space-10, 40px);
+  margin-bottom: 40px;
 }
 
 .sectionTitle {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-neutral-800, #1e293b);
-  margin: 0 0 var(--space-5, 20px) 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--db-text-primary);
+  margin: 0 0 16px 0;
   letter-spacing: -0.01em;
 }
 
@@ -148,31 +145,29 @@
 .lessonMeta {
   display: flex;
   align-items: center;
-  gap: var(--space-4, 16px);
-  margin-bottom: var(--space-5, 20px);
-  font-size: 14px;
-  color: var(--color-neutral-500, #64748b);
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--db-text-muted);
 }
 
-/* Start Button - Gradient CTA */
+/* Start Button */
 .startButton {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2, 8px);
-  padding: 14px 28px;
-  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--db-primary);
   color: white;
   text-decoration: none;
-  border-radius: var(--radius-lg, 16px);
-  font-weight: 700;
-  font-size: 15px;
-  transition: all var(--transition-normal, 250ms ease);
-  box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.15s ease;
 }
 
 .startButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(8, 145, 178, 0.4);
+  background: var(--db-accent);
   color: white;
 }
 
@@ -180,7 +175,7 @@
 .quickLinks {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-5, 20px);
+  gap: 16px;
 }
 
 @media (max-width: 640px) {
@@ -195,70 +190,53 @@
 }
 
 .quickCard {
-  background: var(--gradient-surface, linear-gradient(135deg, #ffffff 0%, #f8fafc 100%));
-  border: 1px solid var(--color-neutral-200, #e2e8f0);
-  border-radius: var(--radius-xl, 24px);
-  transition: all var(--transition-normal, 250ms ease);
+  background: var(--db-card-bg);
+  border: 1px solid var(--db-border);
+  border-radius: 12px;
+  transition: all 0.15s ease;
   text-align: center;
   overflow: hidden;
-  position: relative;
-}
-
-.quickCard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
-  transform: scaleX(0);
-  transition: transform var(--transition-normal, 250ms ease);
 }
 
 .quickCard:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-xl, 0 20px 40px -10px rgba(8, 145, 178, 0.2));
-  border-color: var(--color-primary-200, #c7d2fe);
-}
-
-.quickCard:hover::before {
-  transform: scaleX(1);
+  border-color: var(--db-primary);
+  background: var(--db-primary-muted);
 }
 
 .quickCard :global(.card-content) {
-  padding: var(--space-8, 32px) var(--space-6, 24px);
+  padding: 24px 20px;
 }
 
 .quickIcon {
-  font-size: 40px;
-  margin-bottom: var(--space-4, 16px);
-  display: inline-block;
-  transition: transform var(--transition-normal, 250ms ease);
-}
-
-.quickCard:hover .quickIcon {
-  transform: scale(1.1);
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--db-primary-muted);
+  border-radius: 10px;
+  color: var(--db-primary);
+  margin-bottom: 12px;
 }
 
 .quickLabel {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--color-neutral-800, #1e293b);
-  margin-bottom: var(--space-2, 8px);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--db-text-primary);
+  margin-bottom: 4px;
 }
 
 .quickCount {
-  font-size: 14px;
-  color: var(--color-neutral-500, #64748b);
+  font-size: 12px;
+  color: var(--db-text-muted);
   font-weight: 500;
 }
 
 /* Alerts Row */
 .alertsRow {
   display: flex;
-  gap: var(--space-5, 20px);
-  margin-bottom: var(--space-5, 20px);
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .alertsRow > * {
@@ -267,59 +245,36 @@
 
 /* Action Card */
 .actionCard {
-  margin-bottom: var(--space-6, 24px);
+  margin-bottom: 24px;
 }
 
 /* Heatmap & Trend Cards */
 .heatmapCard,
 .trendCard {
-  margin-top: var(--space-5, 20px);
-  margin-bottom: var(--space-5, 20px);
-  border-radius: var(--radius-xl, 24px);
-  border: 1px solid var(--color-neutral-200, #e2e8f0);
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--db-border);
   overflow: hidden;
-}
-
-/* Page load animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.header {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.statsRow {
-  animation: fadeInUp 0.5s ease-out 0.1s backwards;
-}
-
-.section {
-  animation: fadeInUp 0.5s ease-out 0.2s backwards;
+  background: var(--db-card-bg);
 }
 
 /* Responsive */
 @media (max-width: 640px) {
   .container {
-    padding: var(--space-6, 24px) var(--space-4, 16px);
+    padding: 24px 16px;
   }
 
   .title {
-    font-size: 32px;
+    font-size: 24px;
   }
 
   .subtitle {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .progressValue {
-    font-size: 42px;
+    font-size: 36px;
   }
 
   .alertsRow {

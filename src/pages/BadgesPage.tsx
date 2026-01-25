@@ -5,19 +5,27 @@
 
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { Award, BookOpen, Flame, Brain, Dumbbell, Lock, Target } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { useGamification, BADGES } from '@/features/gamification';
+import { useGamification, BADGES, BadgeIcon } from '@/features/gamification';
 import type { BadgeCategory } from '@/features/gamification';
 import styles from './BadgesPage.module.css';
 
+// カテゴリアイコンコンポーネント
+const CATEGORY_ICONS: Record<BadgeCategory, React.ReactNode> = {
+  lesson: <BookOpen size={20} />,
+  streak: <Flame size={20} />,
+  quiz: <Brain size={20} />,
+  exercise: <Dumbbell size={20} />,
+};
+
 // カテゴリ表示名
-const CATEGORY_LABELS: Record<BadgeCategory, { name: string; icon: string; description: string }> =
-  {
-    lesson: { name: 'レッスン', icon: '📚', description: 'レッスンを完了して獲得' },
-    streak: { name: '連続学習', icon: '🔥', description: '毎日学習を続けて獲得' },
-    quiz: { name: 'クイズ', icon: '🧠', description: 'クイズに挑戦して獲得' },
-    exercise: { name: '演習', icon: '💪', description: '演習を完了して獲得' },
-  };
+const CATEGORY_LABELS: Record<BadgeCategory, { name: string; description: string }> = {
+  lesson: { name: 'レッスン', description: 'レッスンを完了して獲得' },
+  streak: { name: '連続学習', description: '毎日学習を続けて獲得' },
+  quiz: { name: 'クイズ', description: 'クイズに挑戦して獲得' },
+  exercise: { name: '演習', description: '演習を完了して獲得' },
+};
 
 // カテゴリ順序
 const CATEGORY_ORDER: BadgeCategory[] = ['lesson', 'streak', 'quiz', 'exercise'];
@@ -57,6 +65,9 @@ export function BadgesPage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
+        <div className={styles.headerIcon}>
+          <Award size={24} />
+        </div>
         <h1 className={styles.title}>バッジコレクション</h1>
         <p className={styles.subtitle}>学習を続けてバッジを集めよう</p>
       </header>
@@ -107,13 +118,18 @@ export function BadgesPage() {
       {/* もうすぐ獲得 */}
       {nextAchievableBadges.length > 0 && (
         <section className={styles.nextSection} aria-label="もうすぐ獲得できるバッジ">
-          <h2 className={styles.sectionTitle}>🎯 もうすぐ獲得</h2>
+          <h2 className={styles.sectionTitle}>
+            <Target size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+            もうすぐ獲得
+          </h2>
           <div className={styles.nextGrid}>
             {nextAchievableBadges.map(({ badge, progress, target }) => (
               <Card key={badge.id} className={styles.nextCard}>
                 <CardContent>
                   <div className={styles.nextBadge}>
-                    <span className={styles.nextIcon}>{badge.icon}</span>
+                    <span className={styles.nextIcon}>
+                      <BadgeIcon icon={badge.icon} size={24} />
+                    </span>
                     <div className={styles.nextInfo}>
                       <span className={styles.nextName}>{badge.name}</span>
                       <span className={styles.nextDescription}>{badge.description}</span>
@@ -151,7 +167,7 @@ export function BadgesPage() {
               <CardHeader>
                 <CardTitle>
                   <span className={styles.categoryHeader}>
-                    <span className={styles.categoryIcon}>{categoryInfo.icon}</span>
+                    <span className={styles.categoryIcon}>{CATEGORY_ICONS[category]}</span>
                     <span>{categoryInfo.name}</span>
                     <span className={styles.categoryCount}>
                       {categoryEarned} / {badges.length}
@@ -167,7 +183,9 @@ export function BadgesPage() {
                       key={badge.id}
                       className={`${styles.badgeItem} ${earned ? styles.earned : styles.locked}`}
                     >
-                      <span className={styles.badgeIcon}>{earned ? badge.icon : '🔒'}</span>
+                      <span className={styles.badgeIcon}>
+                        {earned ? <BadgeIcon icon={badge.icon} size={20} /> : <Lock size={20} />}
+                      </span>
                       <div className={styles.badgeInfo}>
                         <span className={styles.badgeName}>{badge.name}</span>
                         <span className={styles.badgeDescription}>

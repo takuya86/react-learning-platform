@@ -4,7 +4,9 @@
  */
 
 import { memo, useEffect, useState, useCallback } from 'react';
+import { Sparkles, Star, PartyPopper } from 'lucide-react';
 import type { NewBadge } from '../types';
+import { BadgeIcon } from './BadgeIcon';
 import styles from './BadgeCelebration.module.css';
 
 interface BadgeCelebrationProps {
@@ -75,31 +77,33 @@ export const BadgeCelebration = memo(function BadgeCelebration({
         {/* キラキラエフェクト */}
         <div className={styles.sparkles} aria-hidden="true">
           <span className={styles.sparkle} style={{ '--delay': '0s' } as React.CSSProperties}>
-            ✨
+            <Sparkles size={16} />
           </span>
           <span className={styles.sparkle} style={{ '--delay': '0.2s' } as React.CSSProperties}>
-            ✨
+            <Sparkles size={16} />
           </span>
           <span className={styles.sparkle} style={{ '--delay': '0.4s' } as React.CSSProperties}>
-            ✨
+            <Sparkles size={16} />
           </span>
           <span className={styles.sparkle} style={{ '--delay': '0.6s' } as React.CSSProperties}>
-            ⭐
+            <Star size={16} />
           </span>
           <span className={styles.sparkle} style={{ '--delay': '0.8s' } as React.CSSProperties}>
-            ✨
+            <Sparkles size={16} />
           </span>
         </div>
 
         {/* おめでとうテキスト */}
         <h2 className={styles.congratsText} id="badge-celebration-title">
-          🎉 おめでとう！ 🎉
+          <PartyPopper size={24} /> おめでとう！ <PartyPopper size={24} />
         </h2>
 
         {/* バッジアイコン */}
         <div className={styles.badgeIconWrapper}>
           <div className={styles.badgeGlow} aria-hidden="true" />
-          <span className={styles.badgeIcon}>{newBadge.badge.icon}</span>
+          <span className={styles.badgeIcon}>
+            <BadgeIcon icon={newBadge.badge.icon} size={48} />
+          </span>
         </div>
 
         {/* バッジ情報 */}
