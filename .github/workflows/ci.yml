@@ -10,7 +10,7 @@ jobs:
   test-and-build:
     runs-on: ubuntu-latest
     env:
-      NODE_OPTIONS: '--max-old-space-size=4096'
+      NODE_OPTIONS: '--max-old-space-size=8192'
 
     steps:
       - name: Checkout
@@ -35,7 +35,7 @@ jobs:
         run: npm run validate:lessons -- --strict
 
       - name: Test with coverage
-        run: npm run test:coverage
+        run: npx vitest run --coverage --pool=forks --poolOptions.forks.singleFork
 
       - name: Build
         run: npm run build
