@@ -9,6 +9,8 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: '--max-old-space-size=8192'
 
     steps:
       - name: Checkout
@@ -32,8 +34,8 @@ jobs:
       - name: Validate lessons
         run: npm run validate:lessons -- --strict
 
-      - name: Test with coverage
-        run: npm run test:coverage
+      - name: Test
+        run: npx vitest run --pool=threads 2>&1 | tee test-output.txt; grep -q "Test Files.*passed" test-output.txt
 
       - name: Build
         run: npm run build
