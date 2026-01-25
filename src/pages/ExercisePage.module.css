@@ -1,97 +1,116 @@
+/* ========================================
+ * Exercise Page - Soft Design (Apple Style)
+ * ======================================== */
+
 .container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px;
+  padding: var(--space-6, 24px);
 }
 
+/* Breadcrumb */
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: var(--space-2, 8px);
+  margin-bottom: var(--space-6, 24px);
   font-size: 14px;
   flex-wrap: wrap;
 }
 
 .breadcrumb a {
-  color: #0891b2;
+  color: var(--color-primary-500, #0891b2);
   text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast, 150ms ease);
 }
 
 .breadcrumb a:hover {
-  text-decoration: underline;
+  color: var(--color-primary-600, #0e7490);
 }
 
 .separator {
-  color: #9ca3af;
+  color: var(--color-neutral-400, #94a3b8);
 }
 
+/* Header */
 .header {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6, 24px);
 }
 
 .title {
   font-size: 28px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 8px 0;
+  font-weight: 800;
+  color: var(--color-neutral-800, #1e293b);
+  margin: 0 0 var(--space-2, 8px) 0;
+  letter-spacing: -0.02em;
 }
 
 .description {
   font-size: 16px;
-  color: #6b7280;
+  color: var(--color-neutral-500, #64748b);
   margin: 0;
+  line-height: 1.6;
 }
 
 .completedBadge {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 4px 12px;
-  background-color: #dcfce7;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  margin-top: var(--space-3, 12px);
+  padding: var(--space-1, 4px) var(--space-3, 12px);
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
   color: #15803d;
-  border-radius: 9999px;
+  border-radius: var(--radius-full, 9999px);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
+/* Instructions Card */
 .instructionsCard {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6, 24px);
 }
 
 .instructions {
   line-height: 1.7;
+  color: var(--color-neutral-700, #334155);
 }
 
 .instructions h2 {
   font-size: 20px;
-  margin-top: 24px;
-  margin-bottom: 12px;
+  font-weight: 700;
+  color: var(--color-neutral-800, #1e293b);
+  margin-top: var(--space-6, 24px);
+  margin-bottom: var(--space-3, 12px);
 }
 
 .instructions h3 {
   font-size: 16px;
-  margin-top: 20px;
-  margin-bottom: 8px;
+  font-weight: 700;
+  color: var(--color-neutral-700, #334155);
+  margin-top: var(--space-5, 20px);
+  margin-bottom: var(--space-2, 8px);
 }
 
 .instructions ul,
 .instructions ol {
-  padding-left: 24px;
-  margin-bottom: 16px;
+  padding-left: var(--space-6, 24px);
+  margin-bottom: var(--space-4, 16px);
 }
 
 .instructions li {
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2, 8px);
 }
 
+/* Form Card */
 .formCard {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6, 24px);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5, 20px);
 }
 
 .field {
@@ -101,89 +120,110 @@
 .textareaWrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1, 4px);
 }
 
 .label {
   font-size: 14px;
-  font-weight: 500;
-  color: #374151;
+  font-weight: 600;
+  color: var(--color-neutral-700, #334155);
 }
 
 .textarea {
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: var(--space-3, 12px);
+  border: 2px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: var(--radius-lg, 16px);
   font-size: 14px;
   min-height: 120px;
   resize: vertical;
   font-family: inherit;
+  transition: all var(--transition-fast, 150ms ease);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
 }
 
 .textarea:focus {
   outline: none;
-  border-color: #0891b2;
-  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+  border-color: var(--color-primary-400, #22d3ee);
+  box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
 }
 
 .checkboxLabel {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2, 8px);
   font-size: 14px;
-  color: #374151;
+  color: var(--color-neutral-700, #334155);
   cursor: pointer;
+  font-weight: 500;
 }
 
 .checkboxLabel input {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary-500, #0891b2);
 }
 
 .error {
   font-size: 12px;
-  color: #ef4444;
-  margin-top: 4px;
+  color: var(--color-error-500, #ef4444);
+  margin-top: var(--space-1, 4px);
+  font-weight: 500;
 }
 
 .formActions {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 8px;
+  gap: var(--space-4, 16px);
+  margin-top: var(--space-2, 8px);
 }
 
 .backLink {
-  color: #6b7280;
+  color: var(--color-neutral-500, #64748b);
   text-decoration: none;
   font-size: 14px;
+  font-weight: 500;
+  transition: color var(--transition-fast, 150ms ease);
 }
 
 .backLink:hover {
-  color: #374151;
+  color: var(--color-neutral-700, #334155);
 }
 
+/* Not Found */
 .notFound {
   text-align: center;
-  padding: 60px 20px;
+  padding: 60px var(--space-5, 20px);
 }
 
 .notFound h1 {
   font-size: 24px;
-  color: #111827;
-  margin-bottom: 12px;
+  font-weight: 700;
+  color: var(--color-neutral-800, #1e293b);
+  margin-bottom: var(--space-3, 12px);
 }
 
 .notFound p {
-  color: #6b7280;
-  margin-bottom: 24px;
+  color: var(--color-neutral-500, #64748b);
+  margin-bottom: var(--space-6, 24px);
 }
 
 .notFound a {
-  color: #0891b2;
+  color: var(--color-primary-500, #0891b2);
   text-decoration: none;
+  font-weight: 600;
 }
 
 .notFound a:hover {
   text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-4, 16px);
+  }
+
+  .title {
+    font-size: 24px;
+  }
 }
