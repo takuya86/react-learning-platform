@@ -1,47 +1,113 @@
+/* ========================================
+ * Not Found Page - Soft Design (Apple Style)
+ * ======================================== */
+
 .container {
   min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: var(--space-6, 24px);
+  position: relative;
+}
+
+/* Background decoration */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(8, 145, 178, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(14, 116, 144, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .content {
   text-align: center;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .code {
-  font-size: 96px;
-  font-weight: 700;
-  color: #e5e7eb;
+  font-size: 120px;
+  font-weight: 800;
+  background: linear-gradient(
+    135deg,
+    var(--color-neutral-200, #e2e8f0) 0%,
+    var(--color-neutral-300, #cbd5e1) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
   line-height: 1;
+  letter-spacing: -0.05em;
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #111827;
-  margin: 16px 0 8px;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-neutral-800, #1e293b);
+  margin: var(--space-4, 16px) 0 var(--space-2, 8px);
+  letter-spacing: -0.02em;
 }
 
 .description {
   font-size: 16px;
-  color: #6b7280;
-  margin: 0 0 24px;
+  color: var(--color-neutral-500, #64748b);
+  margin: 0 0 var(--space-6, 24px);
+  font-weight: 500;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
 }
 
 .link {
-  display: inline-block;
-  padding: 12px 24px;
-  background-color: #0891b2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3, 12px) var(--space-6, 24px);
+  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
   color: white;
   text-decoration: none;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+  border-radius: var(--radius-lg, 16px);
+  font-weight: 700;
+  font-size: 15px;
+  transition: all var(--transition-normal, 250ms ease);
+  box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
 }
 
 .link:hover {
-  background-color: #0e7490;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(8, 145, 178, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .code {
+    font-size: 80px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .description {
+    font-size: 15px;
+  }
 }

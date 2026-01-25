@@ -1,72 +1,112 @@
+/* ========================================
+ * Quiz List Page - Soft Design (Apple Style)
+ * ======================================== */
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: var(--space-6, 24px);
 }
 
+/* Header */
 .header {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8, 32px);
+  text-align: center;
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 800;
+  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 var(--space-2, 8px) 0;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
   font-size: 16px;
-  color: #6b7280;
+  color: var(--color-neutral-500, #64748b);
   margin: 0;
+  font-weight: 500;
 }
 
+/* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-5, 20px);
 }
 
+/* Card */
 .card {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--color-neutral-200, #e2e8f0);
+  border-radius: var(--radius-xl, 24px);
+  padding: var(--space-5, 20px);
+  transition: all var(--transition-normal, 250ms ease);
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(8, 145, 178, 0.15);
+  border-color: var(--color-primary-200, #a5f3fc);
 }
 
+/* Header Top */
 .headerTop {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--space-2, 8px);
+  margin-bottom: var(--space-2, 8px);
 }
 
+/* Related Lessons */
 .relatedLabel {
   font-size: 12px;
-  color: #6b7280;
-  margin: 0 0 8px 0;
+  color: var(--color-neutral-500, #64748b);
+  margin: 0 0 var(--space-2, 8px) 0;
+  font-weight: 500;
 }
 
 .relatedLessons {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--space-1, 4px);
 }
 
+/* Link */
 .link {
-  display: inline-block;
-  padding: 8px 16px;
-  background-color: #0891b2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2, 8px) var(--space-4, 16px);
+  background: var(--gradient-primary, linear-gradient(135deg, #0891b2 0%, #0e7490 100%));
   color: white;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: var(--radius-lg, 16px);
   font-size: 14px;
-  transition: background-color 0.2s ease;
+  font-weight: 600;
+  transition: all var(--transition-normal, 250ms ease);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
 }
 
 .link:hover {
-  background-color: #0e7490;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(8, 145, 178, 0.35);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-4, 16px);
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,0 +1,361 @@
+/* ========================================
+ * Design Sample Page - Refined Patterns
+ * Based on: Linear, Notion, Vercel
+ * ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+/* ========================================
+ * Pattern A: Minimal (Linear/Notion style)
+ * - Monochrome base + single accent
+ * - Left border for hierarchy
+ * ======================================== */
+.patternA {
+  --primary: #6366f1;
+  --primary-muted: #e0e7ff;
+  --accent: #6366f1;
+  --bg: #fafafa;
+  --card-bg: #ffffff;
+  --border: #e5e5e5;
+  --text-primary: #171717;
+  --text-secondary: #737373;
+  --text-muted: #a3a3a3;
+  --rank1-accent: #eab308;
+  --rank2-accent: #71717a;
+  --rank3-accent: #ea580c;
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    -apple-system,
+    sans-serif;
+}
+
+/* ========================================
+ * Pattern B: Clean (Vercel/Stripe style)
+ * - Pure white + subtle shadows
+ * - Minimal color, maximum clarity
+ * ======================================== */
+.patternB {
+  --primary: #000000;
+  --primary-muted: #f5f5f5;
+  --accent: #0ea5e9;
+  --bg: #ffffff;
+  --card-bg: #ffffff;
+  --border: #eaeaea;
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --rank1-accent: #eab308;
+  --rank2-accent: #a1a1aa;
+  --rank3-accent: #f97316;
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    -apple-system,
+    sans-serif;
+}
+
+/* ========================================
+ * Pattern C: Soft (Apple style)
+ * - Soft backgrounds + gentle curves
+ * - Warm and approachable
+ * ======================================== */
+.patternC {
+  --primary: #1d4ed8;
+  --primary-muted: #dbeafe;
+  --accent: #2563eb;
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --rank1-accent: #ca8a04;
+  --rank2-accent: #64748b;
+  --rank3-accent: #c2410c;
+  font-family:
+    'Inter',
+    'Noto Sans JP',
+    -apple-system,
+    sans-serif;
+}
+
+/* ========================================
+ * Base Styles
+ * ======================================== */
+.container {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 32px 24px;
+}
+
+/* Pattern Switch */
+.patternSwitch {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 48px;
+}
+
+.switchBtn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.switchBtn:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.switchBtn.active {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--card-bg);
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.headerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--primary-muted);
+  border-radius: 12px;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Card */
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cardHeader svg {
+  color: var(--text-muted);
+}
+
+/* Table */
+.table {
+  padding: 0;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 72px 1fr 120px 100px;
+  padding: 12px 24px;
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 72px 1fr 120px 100px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+  transition: background 0.15s ease;
+  align-items: center;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--bg);
+}
+
+/* Rank Styles - Left border only */
+.rank1,
+.rank2,
+.rank3 {
+  position: relative;
+}
+
+.rank1::before,
+.rank2::before,
+.rank3::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+}
+
+.rank1::before {
+  background: var(--rank1-accent);
+}
+
+.rank2::before {
+  background: var(--rank2-accent);
+}
+
+.rank3::before {
+  background: var(--rank3-accent);
+}
+
+/* Columns */
+.colRank {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+
+.rankNumber {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Icon colors */
+.icon1A,
+.icon1B,
+.icon1C {
+  color: var(--rank1-accent);
+}
+.icon2A,
+.icon2B,
+.icon2C {
+  color: var(--rank2-accent);
+}
+.icon3A,
+.icon3B,
+.icon3C {
+  color: var(--rank3-accent);
+}
+
+.colName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.colLevel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.levelBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--primary-muted);
+  color: var(--primary);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.levelTitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.colXP {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.colXP svg {
+  color: var(--accent);
+  width: 14px;
+  height: 14px;
+}
+
+/* Font Info */
+.fontInfo {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .tableHeader,
+  .row {
+    grid-template-columns: 56px 1fr 80px;
+  }
+
+  .colXP {
+    display: none;
+  }
+
+  .patternSwitch {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tableHeader,
+  .row {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

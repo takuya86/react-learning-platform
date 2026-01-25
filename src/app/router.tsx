@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, useParams } from 'react-router-dom';
 import { Layout } from './Layout';
 import { RequireAuth, RequireRole } from '@/features/auth';
@@ -46,6 +46,9 @@ const AdminMetricsPage = lazy(() =>
 const ErrorBoundaryTestPage = lazy(() =>
   import('@/pages/ErrorBoundaryTestPage').then((m) => ({ default: m.ErrorBoundaryTestPage }))
 );
+const DesignSamplePage = lazy(() =>
+  import('@/pages/DesignSamplePage').then((m) => ({ default: m.DesignSamplePage }))
+);
 
 function LessonDetailRoute() {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +73,71 @@ export const router = createBrowserRouter([
   {
     path: '/auth/callback',
     element: <AuthCallbackPage />,
+  },
+  // デモ用公開ルート（調査後に削除）
+  {
+    path: '/demo/design',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <DesignSamplePage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/demo/dashboard',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <DashboardPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/demo/lessons',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <LessonsPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/demo/badges',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <BadgesPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/demo/leaderboard',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <LeaderboardPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/demo/progress',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <ProgressPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/demo/notes',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <NotesPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/demo/roadmap',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <RoadmapPage />
+      </Suspense>
+    ),
   },
   {
     path: '/',
