@@ -35,7 +35,7 @@ jobs:
         run: npm run validate:lessons -- --strict
 
       - name: Test with coverage
-        run: npx vitest run --coverage --pool=forks --poolOptions.forks.singleFork
+        run: npx vitest run --coverage --pool=threads --poolOptions.threads.maxThreads=2
 
       - name: Build
         run: npm run build
