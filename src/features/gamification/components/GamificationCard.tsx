@@ -7,6 +7,7 @@ import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { LevelProgress } from './LevelProgress';
 import { BadgeRow } from './BadgeGrid';
+import { BadgeIcon } from './BadgeIcon';
 import type { UseGamificationReturn } from '../hooks/useGamification';
 import styles from './GamificationCard.module.css';
 
@@ -51,7 +52,9 @@ export const GamificationCard = memo(function GamificationCard({
         {nextAchievableBadges.length > 0 && (
           <div className={styles.nextBadge}>
             <span className={styles.nextLabel}>次のバッジ:</span>
-            <span className={styles.nextIcon}>{nextAchievableBadges[0].badge.icon}</span>
+            <span className={styles.nextIcon}>
+              <BadgeIcon icon={nextAchievableBadges[0].badge.icon} size={16} />
+            </span>
             <span className={styles.nextName}>{nextAchievableBadges[0].badge.name}</span>
             <span className={styles.nextProgress}>
               ({nextAchievableBadges[0].progress}/{nextAchievableBadges[0].target})

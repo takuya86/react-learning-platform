@@ -3,6 +3,8 @@
  */
 
 import { memo, useEffect, useState, useCallback } from 'react';
+import { Sparkles } from 'lucide-react';
+import { BadgeIcon } from './BadgeIcon';
 import type { NewBadge } from '../types';
 import styles from './BadgeNotification.module.css';
 
@@ -48,8 +50,12 @@ export const BadgeNotification = memo(function BadgeNotification({
     >
       <div className={styles.content}>
         <div className={styles.iconWrapper}>
-          <span className={styles.icon}>{newBadge.badge.icon}</span>
-          <span className={styles.sparkle}>✨</span>
+          <span className={styles.icon}>
+            <BadgeIcon icon={newBadge.badge.icon} size={32} />
+          </span>
+          <span className={styles.sparkle}>
+            <Sparkles size={16} />
+          </span>
         </div>
         <div className={styles.info}>
           <span className={styles.label}>バッジ獲得!</span>
