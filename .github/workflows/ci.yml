@@ -35,7 +35,7 @@ jobs:
         run: npm run validate:lessons -- --strict
 
       - name: Test
-        run: npx vitest run --pool=threads
+        run: npx vitest run --pool=threads 2>&1 | tee test-output.txt; grep -q "Test Files.*passed" test-output.txt
 
       - name: Build
         run: npm run build
